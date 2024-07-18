@@ -44,5 +44,21 @@
   },
   "lint-staged": {
     "*": "eslint --fix"
+  },
+  "directories": {
+    "example": "examples",
+    "test": "tests"
+  },
+  "keywords": [
+    "utils",
+    "typescript",
+    "ts",
+    "javascript",
+    "js",
+    "cjs",
+    "esm"
+  ],
+  "bugs": {
+    "url": "https://github.com/kayno0o/utils/issues"
   }
 }
