@@ -21,7 +21,7 @@ jobs:
 
       - name: Set git config
         run: |
-          git config --local user.email "kayno0o+js-utils@github.com"
+          git config --local user.email "kayno0o+utils@github.com"
           git config --local user.name "Documentation Generator"
 
       - name: Setup Bun

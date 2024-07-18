@@ -5,10 +5,10 @@
   "description": "A bunch of small utils functions that I use in my TS based projects",
   "author": "Kaynooo <https://github.com/kayno0o>",
   "license": "MIT",
-  "homepage": "https://kayno0o.github.io/js-utils/docs/",
+  "homepage": "https://kayno0o.github.io/utils/docs/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kayno0o/js-utils.git"
+    "url": "git+https://github.com/kayno0o/utils.git"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
