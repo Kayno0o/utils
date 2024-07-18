@@ -21,7 +21,7 @@ jobs:
 
       - name: Reset gh-pages branch to main
         run: |
-          git fetch origin gh-pages
+          git fetch origin main
           git reset --hard origin/main
 
       - name: Setup Bun
