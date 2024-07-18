@@ -1,0 +1,48 @@
+{
+  "name": "@kaynooo/utils",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "A bunch of small utils functions that I use in my TS based projects",
+  "author": "Kaynooo <https://github.com/kayno0o>",
+  "license": "MIT",
+  "homepage": "https://kayno0o.github.io/js-utils/docs/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kayno0o/js-utils.git"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "./dist/index.cjs",
+    "./dist/index.d.ts",
+    "./dist/index.js"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "lint:fix": "eslint . --fix",
+    "doc": "typedoc ./src/*",
+    "test": "bun test",
+    "benchmark": "bun benchmark.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.22.0-beta.3",
+    "@types/benchmark": "^2.1.5",
+    "@types/bun": "^1.1.6",
+    "benchmark": "^2.1.4",
+    "dayjs": "^1.11.11",
+    "eslint": "^9.6.0",
+    "eslint-plugin-format": "^0.1.2",
+    "lint-staged": "^15.2.7",
+    "microtime": "^3.1.1",
+    "tsup": "^8.1.0",
+    "typedoc": "^0.26.3",
+    "typescript": "^5.5.3"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  }
+}
