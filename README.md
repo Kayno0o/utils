@@ -1,21 +1,21 @@
-# [@kayno0o/js-utils](https://github.com/kayno0o/js-utils)
+# [@kayno0o/utils](https://github.com/kayno0o/utils)
 
 ## Installation
 
 ```bash
 # @antfu/ni
-ni @kaynooo/js-utils
+ni @kaynooo/utils
 
 # bun
-bun add @kaynooo/js-utils
+bun add @kaynooo/utils
 # pnpm
-pnpm add @kaynooo/js-utils
+pnpm add @kaynooo/utils
 
 # yarn
-yarn install @kaynooo/js-utils
+yarn install @kaynooo/utils
 # npm
-npm install @kaynooo/js-utils
+npm install @kaynooo/utils
 ```
 
 ## Documentation with [typedoc](https://typedoc.org/):
-https://kayno0o.github.io/js-utils/docs/
+https://kayno0o.github.io/utils/docs/
