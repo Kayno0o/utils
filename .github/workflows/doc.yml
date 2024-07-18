@@ -19,33 +19,25 @@ jobs:
         with:
           ref: gh-pages
 
-      - name: Set git config
+      - name: Reset gh-pages branch to main
         run: |
-          git config --local user.email "kayno0o+utils@github.com"
-          git config --local user.name "Documentation Generator"
+          git fetch origin gh-pages
+          git reset --hard origin/main
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
 
-      - name: Install dependencies
-        run: bun install --no-save
-
-      - name: Fetch origin/main
-        run: git fetch origin main
-
-      - name: Reset gh-pages from origin/main
-        run: git reset --hard origin/main
-
-      - name: Push gh-pages changes
-        run: git push origin gh-pages --force
-
       - name: Generate documentation
-        run: bun run doc
+        run: |
+          bun install
+          bun run doc
 
       - name: Commit documentation changes
         run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git diff-index --quiet HEAD || git commit -m "Generate documentation"
 
