@@ -1,0 +1,56 @@
+name: generate-doc
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.js'
+      - '**.ts'
+  workflow_dispatch:
+
+jobs:
+  doc:
+    name: doc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Set git config
+        run: |
+          git config --local user.email "kayno0o+js-utils@github.com"
+          git config --local user.name "Documentation Generator"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --no-save
+
+      - name: Fetch origin/main
+        run: git fetch origin main
+
+      - name: Reset gh-pages from origin/main
+        run: git reset --hard origin/main
+
+      - name: Push gh-pages changes
+        run: git push origin gh-pages --force
+
+      - name: Generate documentation
+        run: bun run doc
+
+      - name: Commit documentation changes
+        run: |
+          git add -A
+          git diff-index --quiet HEAD || git commit -m "Generate documentation"
+
+      - name: Push changes to gh-pages
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
