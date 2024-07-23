@@ -3,7 +3,9 @@ import { randomInt } from './numberUtils'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-export function randomString(length: number, charset = wordChars, isCrypto = false): string {
+export function randomString(length: number, charset?: string, isCrypto = false): string {
+  charset ||= wordChars
+
   if (isCrypto) {
     let id = ''
     const vals = crypto.getRandomValues(new Uint8Array(length))
@@ -132,18 +134,6 @@ export function escapeXml(unsafe: string): string {
       default: return char
     }
   })
-}
-
-export function escapeCSV(value: string | number): string {
-  let stringValue = String(value)
-
-  stringValue = stringValue.replace(/"/g, '""')
-
-  if (/[",\n]/.test(stringValue)) {
-    stringValue = `"${stringValue}"`
-  }
-
-  return stringValue
 }
 
 export function matchLength(str1: string, str2: string): number {
