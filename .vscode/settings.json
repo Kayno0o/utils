@@ -40,5 +40,8 @@
     "yaml",
     "toml",
     "github-actions-workflow"
+  ],
+  "conventionalCommits.scopes": [
+    "eslint"
   ]
 }
