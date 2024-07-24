@@ -37,13 +37,18 @@ jobs:
 
       - name: Check for changes
         id: git-check
-        run: echo ::set-output name=changed::$(git diff --exit-code || echo "true")
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_ENV
+          else
+            echo "changed=false" >> $GITHUB_ENV
+          fi
 
       - name: Commit documentation changes
-        if: steps.git-check.outputs.changed == 'true'
+        if: env.changed == 'true'
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config --global user.name 'Kay'
+          git config --global user.email 'kayno0o@users.noreply.github.com'
           git add -A
           git commit -m "Generate documentation"
 

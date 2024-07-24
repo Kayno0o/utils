@@ -42,6 +42,7 @@
     "github-actions-workflow"
   ],
   "conventionalCommits.scopes": [
-    "eslint"
+    "eslint",
+    "doc"
   ]
 }
