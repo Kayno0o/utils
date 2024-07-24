@@ -43,6 +43,7 @@
   ],
   "conventionalCommits.scopes": [
     "eslint",
-    "doc"
+    "doc",
+    "workflow"
   ]
 }
