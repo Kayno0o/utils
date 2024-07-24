@@ -1,14 +1,20 @@
 import antfu from '@antfu/eslint-config'
+import github from 'eslint-plugin-github'
 
 export default antfu({
   ignores: [
     '**/docs/**',
   ],
+  plugins: {
+    github,
+  },
   rules: {
     'logical-assignment-operators': ['error', 'always', { enforceForIfStatements: true }],
     'no-console': 'off',
     'no-empty-function': 'off',
     'node/prefer-global/process': 'off',
+    'github/no-then': 'error',
+    'github/array-foreach': 'error',
     'operator-assignment': ['error', 'always'],
     'perfectionist/sort-classes': ['warn', { type: 'natural' }],
     'perfectionist/sort-enums': ['warn', { type: 'natural' }],
