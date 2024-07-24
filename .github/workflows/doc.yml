@@ -45,6 +45,7 @@ jobs:
           fi
 
       - name: Commit and push changes
+        if: env.changed == 'true'
         run: |
           git config --global user.name 'Kay'
           git config --global user.email 'kayno0o@users.noreply.github.com'
