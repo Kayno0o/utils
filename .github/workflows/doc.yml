@@ -11,8 +11,8 @@ on:
 
 jobs:
   doc:
-    name: doc
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,6 +22,7 @@ jobs:
       - name: Reset gh-pages branch to main
         run: |
           git fetch origin main
+          git checkout -B gh-pages
           git reset --hard origin/main
 
       - name: Setup Bun
@@ -43,11 +44,12 @@ jobs:
             echo "changed=false" >> $GITHUB_ENV
           fi
 
-      - name: Commit documentation changes
-        if: env.changed == 'true'
+      - name: Commit and push changes
         run: |
           git config --global user.name 'Kay'
           git config --global user.email 'kayno0o@users.noreply.github.com'
           git add -A
           git commit -m "Generate documentation"
-          git push origin gh-pages
+          git push --force origin gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
