@@ -3,15 +3,15 @@
   "type": "module",
   "version": "1.0.8",
   "description": "A bunch of small utils functions that I use in my TS based projects",
-  "author": "Kaynooo <https://github.com/kayno0o>",
+  "author": "Kaynooo <https://github.com/Kayno0o>",
   "license": "MIT",
-  "homepage": "https://kayno0o.github.io/utils/docs/",
+  "homepage": "https://Kayno0o.github.io/utils/docs/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kayno0o/utils.git"
+    "url": "git+https://github.com/Kayno0o/utils.git"
   },
   "bugs": {
-    "url": "https://github.com/kayno0o/utils/issues"
+    "url": "https://github.com/Kayno0o/utils/issues"
   },
   "keywords": [
     "utils",
