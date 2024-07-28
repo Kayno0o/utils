@@ -1,4 +1,7 @@
-name: publish-npm
+name: Release
+
+permissions:
+  contents: write
 
 on:
   push:
@@ -25,6 +28,11 @@ jobs:
 
       - name: Build package files
         run: bun run build
+
+      - name: Publish package
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - run: npx changelogithub
         env:
