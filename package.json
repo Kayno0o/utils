@@ -1,7 +1,7 @@
 {
   "name": "@kaynooo/utils",
   "type": "module",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A bunch of small utils functions that I use in my TS based projects",
   "author": "Kaynooo <https://github.com/kayno0o>",
   "license": "MIT",
