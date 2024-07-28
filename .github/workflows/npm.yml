@@ -29,7 +29,6 @@ jobs:
       - name: Build package files
         run: bun run build
 
-      - run: npm ci
       - name: Publish package
         run: npm publish --provenance --access public
         env:
