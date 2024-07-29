@@ -1,15 +1,27 @@
 {
   "name": "@kaynooo/utils",
   "type": "module",
-  "version": "1.0.1",
+  "version": "1.0.9",
   "description": "A bunch of small utils functions that I use in my TS based projects",
-  "author": "Kaynooo <https://github.com/kayno0o>",
+  "author": "Kaynooo <https://github.com/Kayno0o>",
   "license": "MIT",
-  "homepage": "https://kayno0o.github.io/utils/docs/",
+  "homepage": "https://Kayno0o.github.io/utils/docs/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kayno0o/utils.git"
+    "url": "git+https://github.com/Kayno0o/utils.git"
   },
+  "bugs": {
+    "url": "https://github.com/Kayno0o/utils/issues"
+  },
+  "keywords": [
+    "utils",
+    "typescript",
+    "ts",
+    "javascript",
+    "js",
+    "cjs",
+    "esm"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -29,19 +41,19 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.22.0-beta.3",
+    "@antfu/eslint-config": "^2.24.0",
     "@types/benchmark": "^2.1.5",
     "@types/bun": "^1.1.6",
     "benchmark": "^2.1.4",
-    "dayjs": "^1.11.11",
-    "eslint": "^9.6.0",
+    "dayjs": "^1.11.12",
+    "eslint": "^9.8.0",
     "eslint-plugin-format": "^0.1.2",
     "eslint-plugin-github": "^5.0.1",
     "lint-staged": "^15.2.7",
     "microtime": "^3.1.1",
-    "tsup": "^8.1.0",
-    "typedoc": "^0.26.3",
-    "typescript": "^5.5.3"
+    "tsup": "^8.2.3",
+    "typedoc": "^0.26.5",
+    "typescript": "^5.5.4"
   },
   "lint-staged": {
     "*": "eslint --fix"
@@ -49,17 +61,5 @@
   "directories": {
     "example": "examples",
     "test": "tests"
-  },
-  "keywords": [
-    "utils",
-    "typescript",
-    "ts",
-    "javascript",
-    "js",
-    "cjs",
-    "esm"
-  ],
-  "bugs": {
-    "url": "https://github.com/kayno0o/utils/issues"
   }
 }
