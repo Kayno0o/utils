@@ -1,14 +1,24 @@
+import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
 import fr from 'dayjs/locale/fr'
 
-dayjs.extend(utc)
+import utc from 'dayjs/plugin/utc'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
 dayjs.locale(fr)
+dayjs.extend(utc)
+dayjs.extend(isSameOrAfter)
+dayjs.extend(isSameOrBefore)
+dayjs.extend(customParseFormat)
+dayjs.extend(relativeTime)
 
 export { dayjs }
 
-type DateFormatType = 'input' | 'shortText' | 'longText' | 'datetime-input' | 'default'
-type SingleDateProp = Date | string
+type DateFormatType = 'input' | 'shortText' | 'longText' | 'datetime-input' | 'default' | 'datetimeText'
+type SingleDateProp = Date | Dayjs | string
 type NullableSingleDateProp = SingleDateProp | null | undefined
 type DateProp = NullableSingleDateProp | NullableSingleDateProp[]
 
@@ -20,6 +30,7 @@ interface DateUtilsConfig {
 
 const formats: Record<DateFormatType, string> = {
   'datetime-input': 'YYYY-MM-DD H:mm:ss',
+  'datetimeText': 'ddd DD/MM/YYYY H:mm:ss',
   'default': 'DD/MM/YYYY',
   'input': 'YYYY-MM-DD',
   'longText': 'ddd DD MMM YYYY',
@@ -62,30 +73,4 @@ export function formatDate(date: DateProp, format: DateFormatType | string = 'de
 export function isDateBetween(date: SingleDateProp, start: NullableSingleDateProp, end: NullableSingleDateProp, utc = false): boolean {
   const d = utc ? dayjs.utc(date) : dayjs(date)
   return (start ? d.isAfter(start) : true) && (end ? d.isBefore(end) : true)
-}
-
-const units = {
-  d: 60 * 60 * 24,
-  h: 60 * 60,
-  i: 60,
-  m: 60 * 60 * 24 * 30,
-  s: 1,
-  w: 60 * 60 * 24 * 7,
-  y: 60 * 60 * 24 * 365,
-}
-
-/**
- * @param {string} duration in format '1i' (minute), '1h', '1d', '1w', '1m', '1y'.
- * @returns {number} time in milliseconds.
- */
-export function stringToMsDuration(duration: string): number {
-  const match = duration.match(/(\d+)(\w)/)
-  if (match) {
-    const [_, time, unit] = match
-    let factor = 1
-    if (Object.prototype.hasOwnProperty.call(units, unit))
-      factor = units[unit as keyof typeof units]
-    return Number(time) * factor * 1000
-  }
-  return 0
 }
