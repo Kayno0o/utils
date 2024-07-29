@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { humanFileSize, map, precisionRound, randomInt } from '../src/numberUtils'
+import { humanFileSize, map, randomInt, round } from '../src/numberUtils'
 
 describe('randomInt function', () => {
   it('within the specified range', () => {
@@ -85,40 +85,40 @@ describe('humanFileSize function', () => {
   })
 })
 
-describe('precisionRound function', () => {
+describe('round function', () => {
   it('handle 0', () => {
-    expect(precisionRound(0.00000)).toEqual(0.0)
+    expect(round(0.00000)).toEqual(0.0)
   })
 
   it('handle exact value', () => {
-    expect(precisionRound(13.51, 2)).toEqual(13.51)
+    expect(round(13.51, 2)).toEqual(13.51)
   })
 
   it('handle negative exact value', () => {
-    expect(precisionRound(-35.17, 2)).toEqual(-35.17)
+    expect(round(-35.17, 2)).toEqual(-35.17)
   })
 
   it('handle value', () => {
-    expect(precisionRound(13.5143, 2)).toEqual(13.51)
+    expect(round(13.5143, 2)).toEqual(13.51)
   })
 
   it('handle negative value', () => {
-    expect(precisionRound(-35.171234, 2)).toEqual(-35.17)
+    expect(round(-35.171234, 2)).toEqual(-35.17)
   })
 
   it('handle ceil value', () => {
-    expect(precisionRound(35.179234, 2)).toEqual(35.18)
+    expect(round(35.179234, 2)).toEqual(35.18)
   })
 
   it('handle ceil negative value', () => {
-    expect(precisionRound(-35.179234, 2)).toEqual(-35.18)
+    expect(round(-35.179234, 2)).toEqual(-35.18)
   })
 
   it('handle negative precision', () => {
-    expect(precisionRound(135.179234, -2)).toEqual(100)
+    expect(round(135.179234, -2)).toEqual(100)
   })
 
   it('handle negative precision', () => {
-    expect(precisionRound(135.179234, 4)).toEqual(135.1792)
+    expect(round(135.179234, 4)).toEqual(135.1792)
   })
 })
