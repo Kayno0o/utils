@@ -74,3 +74,47 @@ export function isDateBetween(date: SingleDateProp, start: NullableSingleDatePro
   const d = utc ? dayjs.utc(date) : dayjs(date)
   return (start ? d.isAfter(start) : true) && (end ? d.isBefore(end) : true)
 }
+
+export function calculateEaster(year: number): Date {
+  const f = Math.floor
+  const G = year % 19
+  const C = f(year / 100)
+  const H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30
+  const I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11))
+  const J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7
+  const L = I - J
+  const month = 3 + f((L + 40) / 44)
+  const day = L + 28 - 31 * f(month / 4)
+  return new Date(year, month - 1, day)
+}
+
+export function getFrenchHolidays(year: number): string[] {
+  const holidays: Record<string, string> = {
+    'All Saints\' Day': `${year}-11-01`,
+    'Armistice Day': `${year}-11-11`,
+    'Assumption of Mary': `${year}-08-15`,
+    'Bastille Day': `${year}-07-14`,
+    'Christmas Day': `${year}-12-25`,
+    'Labour Day': `${year}-05-01`,
+    'New Year\'s Day': `${year}-01-01`,
+    'Victory in Europe Day': `${year}-05-08`,
+  }
+
+  const easter = calculateEaster(year)
+  const addDays = (date: Date, days: number): string => {
+    const result = new Date(date)
+    result.setDate(result.getDate() + days)
+    return result.toISOString().split('T')[0]
+  }
+
+  holidays['Easter Monday'] = addDays(easter, 1)
+  holidays['Ascension Day'] = addDays(easter, 39)
+  holidays['Whit Monday'] = addDays(easter, 50)
+
+  return Object.values(holidays)
+}
+
+export function isHoliday(date: SingleDateProp): boolean {
+  const holidays = getFrenchHolidays(dayjs(date).year())
+  return holidays.includes(formatDate(date, 'input'))
+}
