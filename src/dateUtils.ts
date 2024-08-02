@@ -1,14 +1,24 @@
+import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
 import fr from 'dayjs/locale/fr'
 
-dayjs.extend(utc)
+import utc from 'dayjs/plugin/utc'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
 dayjs.locale(fr)
+dayjs.extend(utc)
+dayjs.extend(isSameOrAfter)
+dayjs.extend(isSameOrBefore)
+dayjs.extend(customParseFormat)
+dayjs.extend(relativeTime)
 
 export { dayjs }
 
-type DateFormatType = 'input' | 'shortText' | 'longText' | 'datetime-input' | 'default'
-type SingleDateProp = Date | string
+type DateFormatType = 'input' | 'shortText' | 'longText' | 'datetime-input' | 'default' | 'datetimeText'
+type SingleDateProp = Date | Dayjs | string
 type NullableSingleDateProp = SingleDateProp | null | undefined
 type DateProp = NullableSingleDateProp | NullableSingleDateProp[]
 
@@ -20,6 +30,7 @@ interface DateUtilsConfig {
 
 const formats: Record<DateFormatType, string> = {
   'datetime-input': 'YYYY-MM-DD H:mm:ss',
+  'datetimeText': 'ddd DD/MM/YYYY H:mm:ss',
   'default': 'DD/MM/YYYY',
   'input': 'YYYY-MM-DD',
   'longText': 'ddd DD MMM YYYY',
@@ -64,28 +75,46 @@ export function isDateBetween(date: SingleDateProp, start: NullableSingleDatePro
   return (start ? d.isAfter(start) : true) && (end ? d.isBefore(end) : true)
 }
 
-const units = {
-  d: 60 * 60 * 24,
-  h: 60 * 60,
-  i: 60,
-  m: 60 * 60 * 24 * 30,
-  s: 1,
-  w: 60 * 60 * 24 * 7,
-  y: 60 * 60 * 24 * 365,
+export function calculateEaster(year: number): Date {
+  const f = Math.floor
+  const G = year % 19
+  const C = f(year / 100)
+  const H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30
+  const I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11))
+  const J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7
+  const L = I - J
+  const month = 3 + f((L + 40) / 44)
+  const day = L + 28 - 31 * f(month / 4)
+  return new Date(year, month - 1, day)
 }
 
-/**
- * @param {string} duration in format '1i' (minute), '1h', '1d', '1w', '1m', '1y'.
- * @returns {number} time in milliseconds.
- */
-export function stringToMsDuration(duration: string): number {
-  const match = duration.match(/(\d+)(\w)/)
-  if (match) {
-    const [_, time, unit] = match
-    let factor = 1
-    if (Object.prototype.hasOwnProperty.call(units, unit))
-      factor = units[unit as keyof typeof units]
-    return Number(time) * factor * 1000
+export function getFrenchHolidays(year: number): string[] {
+  const holidays: Record<string, string> = {
+    'All Saints\' Day': `${year}-11-01`,
+    'Armistice Day': `${year}-11-11`,
+    'Assumption of Mary': `${year}-08-15`,
+    'Bastille Day': `${year}-07-14`,
+    'Christmas Day': `${year}-12-25`,
+    'Labour Day': `${year}-05-01`,
+    'New Year\'s Day': `${year}-01-01`,
+    'Victory in Europe Day': `${year}-05-08`,
   }
-  return 0
+
+  const easter = calculateEaster(year)
+  const addDays = (date: Date, days: number): string => {
+    const result = new Date(date)
+    result.setDate(result.getDate() + days)
+    return result.toISOString().split('T')[0]
+  }
+
+  holidays['Easter Monday'] = addDays(easter, 1)
+  holidays['Ascension Day'] = addDays(easter, 39)
+  holidays['Whit Monday'] = addDays(easter, 50)
+
+  return Object.values(holidays)
+}
+
+export function isHoliday(date: SingleDateProp): boolean {
+  const holidays = getFrenchHolidays(dayjs(date).year())
+  return holidays.includes(formatDate(date, 'input'))
 }

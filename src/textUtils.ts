@@ -136,6 +136,18 @@ export function escapeXml(unsafe: string): string {
   })
 }
 
+export function escapeCSV(value: string | number): string {
+  let stringValue = String(value)
+
+  stringValue = stringValue.replace(/"/g, '""')
+
+  if (/[",\n]/.test(stringValue)) {
+    stringValue = `"${stringValue}"`
+  }
+
+  return stringValue
+}
+
 export function matchLength(str1: string, str2: string): number {
   let length = 0
   const minLength = Math.min(str1.length, str2.length)
