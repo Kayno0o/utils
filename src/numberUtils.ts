@@ -5,7 +5,7 @@ export function randomInt(max: number): number
 
 export function randomInt(minOrMax: number, max?: number, isCrypto = false) {
   const getRandomValue = isCrypto
-    ? () => crypto.getRandomValues(arr32)[0] / 2 ** 32
+    ? () => crypto.getRandomValues(arr32)[0]! / 2 ** 32
     : Math.random
 
   const min = max === undefined ? 0 : minOrMax
@@ -46,10 +46,6 @@ export function humanFileSize(bytes: number, si = false, dp = 1) {
   } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1)
 
   return `${bytes.toFixed(dp)} ${units[u]}`
-}
-
-export function precisionRound(nb: number, precision = 2) {
-  return Math.round(nb * (10 ** precision)) / (10 ** precision)
 }
 
 export function round(nb: number, precision = 2) {
