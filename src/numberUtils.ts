@@ -20,6 +20,14 @@ export function map(value: number, start1: number, stop1: number, start2: number
 }
 
 /**
+ * @deprecated use this function instead:
+ * ```ts
+ * function formatFileSize(bytes: number, si?: boolean, dp?: number)
+ * ```
+ */
+export const humanFileSize = formatFileSize
+
+/**
  * Format bytes as human-readable text.
  * @param bytes Number of bytes.
  * @param si True to use metric (SI) units, aka powers of 1000. False to use binary (IEC), aka powers of 1024.
@@ -28,7 +36,7 @@ export function map(value: number, start1: number, stop1: number, start2: number
  * @author https://stackoverflow.com/users/65387/mpen
  * @see https://stackoverflow.com/a/14919494
  */
-export function humanFileSize(bytes: number, si = false, dp = 1) {
+export function formatFileSize(bytes: number, si = false, dp = 1) {
   const thresh = si ? 1000 : 1024
 
   if (Math.abs(bytes) < thresh)
