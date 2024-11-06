@@ -21,14 +21,14 @@ describe('isBetweenDays rule', () => {
 
   it('should return error message for date outside the range (inclusive)', () => {
     const date = new Date('2023-07-27')
-    const errorMessage = translateRules('rules.isBetweenDays.include', { minDate: formatDate(minDate, 'shortText'), maxDate: formatDate(maxDate, 'shortText') })
+    const errorMessage = translateRules('rules.isBetweenDays.include', { maxDate: formatDate(maxDate, 'shortText'), minDate: formatDate(minDate, 'shortText') })
     const isValid = rules.isBetweenDays(minDate, maxDate)(date)
     expect(isValid).toBe(errorMessage)
   })
 
   it('should return error message for date outside the range (exclusive)', () => {
     const date = new Date('2023-07-27')
-    const errorMessage = translateRules('rules.isBetweenDays', { minDate: formatDate(minDate, 'shortText'), maxDate: formatDate(maxDate, 'shortText') })
+    const errorMessage = translateRules('rules.isBetweenDays', { maxDate: formatDate(maxDate, 'shortText'), minDate: formatDate(minDate, 'shortText') })
     const isValid = rules.isBetweenDays(minDate, maxDate, false)(date)
     expect(isValid).toBe(errorMessage)
   })

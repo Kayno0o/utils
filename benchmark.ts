@@ -1,6 +1,6 @@
 import { performance } from 'node:perf_hooks'
 import chalk from 'chalk'
-import { humanFileSize, progressBar, randomHex, randomInt, randomText, uuidV4 } from './'
+import { progressBar, randomHex, randomInt, randomText, uuidV4 } from './'
 
 async function warmup(callback: () => any, duration = 1000) {
   const endTime = performance.now() + duration

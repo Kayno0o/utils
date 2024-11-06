@@ -9,12 +9,13 @@ export default antfu({
     github,
   },
   rules: {
+    'antfu/no-top-level-await': 'off',
+    'github/array-foreach': 'error',
+    'github/no-then': 'error',
     'logical-assignment-operators': ['error', 'always', { enforceForIfStatements: true }],
     'no-console': 'off',
     'no-empty-function': 'off',
     'node/prefer-global/process': 'off',
-    'github/no-then': 'error',
-    'github/array-foreach': 'error',
     'operator-assignment': ['error', 'always'],
     'perfectionist/sort-classes': ['warn', { type: 'natural' }],
     'perfectionist/sort-enums': ['warn', { type: 'natural' }],
@@ -39,6 +40,7 @@ export default antfu({
     'ts/prefer-for-of': 'error',
     'ts/prefer-function-type': 'error',
     'ts/prefer-namespace-keyword': 'error',
+    'unicorn/no-new-array': 'off',
   },
   typescript: true,
 })
