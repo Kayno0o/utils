@@ -59,3 +59,23 @@ export function formatFileSize(bytes: number, si = false, dp = 1) {
 export function round(nb: number, precision = 2) {
   return Math.round(nb * (10 ** precision)) / (10 ** precision)
 }
+
+export function formatEuro(amount: number) {
+  return new Intl.NumberFormat('de-DE', {
+    currency: 'EUR',
+    style: 'currency',
+  }).format(amount)
+}
+
+export function formatUnit(num: number): string {
+  if (num < 1000)
+    return num.toString()
+  const units = ['k', 'M', 'B', 'T']
+  let unitIndex = -1
+  let scaledNum = num
+  while (scaledNum >= 1000 && unitIndex < units.length - 1) {
+    scaledNum /= 1000
+    unitIndex++
+  }
+  return `${scaledNum.toFixed(1)}${units[unitIndex]}`
+}
