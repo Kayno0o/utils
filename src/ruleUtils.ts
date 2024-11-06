@@ -1,5 +1,5 @@
-import { dayjs, formatDate } from './dateUtils'
 import type { RecursiveKeyOf } from './types'
+import { dayjs, formatDate } from './dateUtils'
 
 export type RuleFunction<T> = (arg: T) => boolean | string
 

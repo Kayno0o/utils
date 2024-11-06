@@ -10,7 +10,7 @@ export function uniqueArray<T extends string | number | symbol | boolean | null 
 }
 
 export function range(nb: number) {
-  return [...Array(nb).keys()]
+  return [...new Array(nb).keys()]
 }
 
 export function notEmpty<T>(value: T | null | undefined): value is T {

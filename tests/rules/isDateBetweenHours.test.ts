@@ -18,14 +18,14 @@ describe('isDateBetweenHours rule', () => {
 
   it('should return error message for date outside hours range (inclusive)', () => {
     const date = new Date('2023-07-29T08:00:00')
-    const errorMessage = translateRules('rules.isDateBetweenHours.include', { minHour: 9, maxHour: 17 })
+    const errorMessage = translateRules('rules.isDateBetweenHours.include', { maxHour: 17, minHour: 9 })
     const isValid = rules.isDateBetweenHours(9, 17)(date)
     expect(isValid).toBe(errorMessage)
   })
 
   it('should return error message for date outside hours range (exclusive)', () => {
     const date = new Date('2023-07-29T18:00:00')
-    const errorMessage = translateRules('rules.isDateBetweenHours', { minHour: 9, maxHour: 17 })
+    const errorMessage = translateRules('rules.isDateBetweenHours', { maxHour: 17, minHour: 9 })
     const isValid = rules.isDateBetweenHours(9, 17, false)(date)
     expect(isValid).toBe(errorMessage)
   })

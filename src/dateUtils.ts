@@ -2,11 +2,11 @@ import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
 import fr from 'dayjs/locale/fr'
 
-import utc from 'dayjs/plugin/utc'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import utc from 'dayjs/plugin/utc'
 
 dayjs.locale(fr)
 dayjs.extend(utc)
