@@ -41,7 +41,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@kaynooo/utils": "^1.0.11"
+    "@kaynooo/utils": "^1.0.12"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.8.0",
