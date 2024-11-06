@@ -118,3 +118,28 @@ export function isHoliday(date: SingleDateProp): boolean {
   const holidays = getFrenchHolidays(dayjs(date).year())
   return holidays.includes(formatDate(date, 'input'))
 }
+
+export function stringToMsDuration(duration: string | number): number {
+  if (typeof duration === 'number')
+    return duration
+
+  const match = duration.match(/(\d+)(\w)/)
+  if (!match)
+    return 0
+
+  const [_, time, unit] = match
+  let factor = 1
+  if (unit === 'm')
+    factor = 60
+  if (unit === 'h')
+    factor = 60 * 60
+  if (unit === 'd')
+    factor = 60 * 60 * 24
+  if (unit === 'w')
+    factor = 60 * 60 * 24 * 7
+  if (unit === 'M')
+    factor = 60 * 60 * 24 * 30
+  if (unit === 'y')
+    factor = 60 * 60 * 24 * 365
+  return Number(time) * factor * 1000
+}
