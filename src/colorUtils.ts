@@ -55,7 +55,7 @@ export function opacityColor(hex1: string, hex2: string, a1: number) {
   return rgbToHex(r3, g3, b3)
 }
 
-export function colorFromString(str: string, { hueDecay = 0, l = 65, sRange = [40, 60] }: { hueDecay: number, l: number, sRange: [number, number] }) {
+export function colorFromString(str: string, { hueDecay = 0, l = 65, sRange = [40, 60] }: { hueDecay?: number, l?: number, sRange?: [number, number] } = {}) {
   let hash = 0
   for (const char of str) {
     hash ^= char.charCodeAt(0) + (hash << 5) + (hash >> 2)
