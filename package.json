@@ -41,7 +41,7 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.8.0",
+    "@antfu/eslint-config": "^3.9.1",
     "@types/benchmark": "^2.1.5",
     "@types/bun": "^1.1.13",
     "benchmark": "^2.1.4",
