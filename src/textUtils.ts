@@ -198,3 +198,22 @@ export function progressBar(value: number, min: number, max: number, { emptyChar
 
   return startChar + fillBar + emptyChar.repeat(emptyLength) + endChar
 }
+
+/**
+ * handle common pluralization rules
+ */
+export function plural(singular: string): string {
+  if (singular.endsWith('y') && !/[aeiou]y$/.test(singular))
+    return `${singular.slice(0, -1)}ies`
+
+  if (singular.endsWith('s') || singular.endsWith('x') || singular.endsWith('z') || singular.endsWith('ch') || singular.endsWith('sh'))
+    return `${singular}es`
+
+  if (singular.endsWith('f'))
+    return `${singular.slice(0, -1)}ves`
+
+  if (singular.endsWith('fe'))
+    return `${singular.slice(0, -2)}ves`
+
+  return `${singular}s`
+}
