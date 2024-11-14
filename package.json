@@ -35,10 +35,14 @@
     "lint:fix": "eslint . --fix",
     "doc": "typedoc ./src/*",
     "test": "bun test",
+    "test:coverage": "NODE_ENV=production bun test --coverage --coverage-reporter lcov && genhtml -o coverage-report -c ./assets/gcov.css ./coverage/lcov.info >/dev/null && echo Generated coverage-report/index.html",
     "benchmark": "bun benchmark.ts"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "nyc": "^17.1.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.9.1",

@@ -8,14 +8,21 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import utc from 'dayjs/plugin/utc'
 
-dayjs.locale(fr)
-dayjs.extend(utc)
-dayjs.extend(isSameOrAfter)
-dayjs.extend(isSameOrBefore)
-dayjs.extend(customParseFormat)
-dayjs.extend(relativeTime)
+export function configureDayjs(djs: typeof dayjs) {
+  djs.locale(fr)
+  djs.extend(utc)
+  djs.extend(isSameOrAfter)
+  djs.extend(isSameOrBefore)
+  djs.extend(customParseFormat)
+  djs.extend(relativeTime)
+}
 
-export { dayjs }
+configureDayjs(dayjs)
+
+export {
+  /** @deprecated use the original dayjs in combination with `configureDayjs` function */
+  dayjs,
+}
 
 type DateFormatType = 'input' | 'shortText' | 'longText' | 'datetime-input' | 'default' | 'datetimeText'
 type SingleDateProp = Date | Dayjs | string
@@ -123,7 +130,7 @@ export function stringToMsDuration(duration: string | number): number {
   if (typeof duration === 'number')
     return duration
 
-  const match = duration.match(/(\d+)(\w)/)
+  const match = duration.match(/(\d+)([a-z])/i)
   if (!match)
     return 0
 

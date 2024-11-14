@@ -130,8 +130,7 @@ export function escapeXml(unsafe: string): string {
       case '>': return '&gt;'
       case '&': return '&amp;'
       case '\'': return '&apos;'
-      case '"': return '&quot;'
-      default: return char
+      case '"': default: return '&quot;'
     }
   })
 }
