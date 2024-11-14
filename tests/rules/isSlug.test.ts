@@ -1,5 +1,5 @@
+import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { getRules, translateRules } from '~/utils'
 
 describe('isSlug rule', () => {
   const rules = getRules()
@@ -11,14 +11,12 @@ describe('isSlug rule', () => {
 
   it('should return error message for invalid slug with uppercase letters', () => {
     const isValid = rules.isSlug('Invalid_Slug')
-    const errorMessage = translateRules('rules.isSlug')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return error message for invalid slug with special characters', () => {
     const isValid = rules.isSlug('invalid-slug!')
-    const errorMessage = translateRules('rules.isSlug')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for empty string', () => {

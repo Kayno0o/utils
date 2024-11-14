@@ -1,5 +1,5 @@
+import { humanFileSize, map, randomInt, round } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { humanFileSize, map, randomInt, round } from '../src/numberUtils'
 
 describe('randomInt function', () => {
   it('within the specified range', () => {

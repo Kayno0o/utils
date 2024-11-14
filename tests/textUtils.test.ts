@@ -1,5 +1,5 @@
+import { escapeRegExp, getInitials, normalizeAccents, randomString, randomText, searchAll, searchOne, slugify } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { escapeRegExp, getInitials, normalizeAccents, randomString, randomText, searchAll, searchOne, slugify } from '../src/textUtils'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {

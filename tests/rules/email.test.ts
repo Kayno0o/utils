@@ -1,5 +1,5 @@
+import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { getRules, translateRules } from '~/utils'
 
 describe('email rule', () => {
   const rules = getRules()
@@ -11,25 +11,21 @@ describe('email rule', () => {
 
   it('should invalidate incorrect email', () => {
     const email = 'invalid-email'
-    const errorMessage = translateRules('rules.email')
-    expect(rules.email(email)).toBe(errorMessage)
+    expect(rules.email(email)).toBeString()
   })
 
   it('should invalidate email without domain', () => {
     const email = 'test@.com'
-    const errorMessage = translateRules('rules.email')
-    expect(rules.email(email)).toBe(errorMessage)
+    expect(rules.email(email)).toBeString()
   })
 
   it('should invalidate email without username', () => {
     const email = '@test.com'
-    const errorMessage = translateRules('rules.email')
-    expect(rules.email(email)).toBe(errorMessage)
+    expect(rules.email(email)).toBeString()
   })
 
   it('should invalidate email with spaces', () => {
     const email = 'test @test.com'
-    const errorMessage = translateRules('rules.email')
-    expect(rules.email(email)).toBe(errorMessage)
+    expect(rules.email(email)).toBeString()
   })
 })

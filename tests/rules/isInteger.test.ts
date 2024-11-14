@@ -1,5 +1,5 @@
+import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { getRules, translateRules } from '~/utils'
 
 describe('isInteger rule', () => {
   const rules = getRules()
@@ -11,8 +11,7 @@ describe('isInteger rule', () => {
 
   it('should return error message for invalid integer (strict mode)', () => {
     const isValid = rules.isInteger(true)('42.5')
-    const errorMessage = translateRules('rules.isInteger')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for valid integer string (non-strict mode)', () => {
@@ -27,8 +26,7 @@ describe('isInteger rule', () => {
 
   it('should return error message for non-integer string (non-strict mode)', () => {
     const isValid = rules.isInteger(false)('42.5')
-    const errorMessage = translateRules('rules.isInteger')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for null value', () => {

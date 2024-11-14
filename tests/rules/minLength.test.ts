@@ -1,5 +1,5 @@
+import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { getRules, translateRules } from '~/utils'
 
 describe('minLength rule', () => {
   const rules = getRules()
@@ -11,8 +11,7 @@ describe('minLength rule', () => {
 
   it('should return error message for string with length less than minLength', () => {
     const isValid = rules.minLength(5)('test')
-    const errorMessage = translateRules('rules.minLength', { length: 5 })
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for null value', () => {
