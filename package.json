@@ -35,7 +35,9 @@
     "lint:fix": "eslint . --fix",
     "doc": "typedoc ./src/*",
     "test": "bun test",
-    "test:coverage": "NODE_ENV=production bun test --coverage --coverage-reporter lcov && genhtml -o coverage-report -c ./assets/gcov.css ./coverage/lcov.info >/dev/null && echo Generated coverage-report/index.html",
+    "test:clean": "rm ./coverage/.*.tmp",
+    "test:coverage": "nr test:clean ; NODE_ENV=production bun test --coverage && bun run test:coverage-to-html",
+    "test:coverage-to-html": "genhtml -o coverage-report -c ./assets/gcov.css ./coverage/lcov.info >/dev/null && echo Generated coverage-report/index.html",
     "benchmark": "bun benchmark.ts"
   },
   "peerDependencies": {

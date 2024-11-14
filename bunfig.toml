@@ -1,0 +1,6 @@
+[test]
+coverageReporter = [
+  "text",
+  "lcov"
+]
+coverageDir = "./coverage"
