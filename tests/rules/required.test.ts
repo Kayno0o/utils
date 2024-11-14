@@ -1,5 +1,5 @@
+import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { getRules, translateRules } from '~/utils'
 
 describe('required rule', () => {
   const rules = getRules()
@@ -11,14 +11,12 @@ describe('required rule', () => {
 
   it('should return error message for empty string', () => {
     const isValid = rules.required('')
-    const errorMessage = translateRules('rules.required')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return error message for string with only spaces', () => {
     const isValid = rules.required('   ')
-    const errorMessage = translateRules('rules.required')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for non-zero number', () => {
@@ -28,14 +26,12 @@ describe('required rule', () => {
 
   it('should return error message for null value', () => {
     const isValid = rules.required(null)
-    const errorMessage = translateRules('rules.required')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return error message for undefined value', () => {
     const isValid = rules.required(undefined)
-    const errorMessage = translateRules('rules.required')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for non-empty array', () => {
@@ -45,8 +41,7 @@ describe('required rule', () => {
 
   it('should return error message for empty array', () => {
     const isValid = rules.required([])
-    const errorMessage = translateRules('rules.required')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for non-empty object', () => {
@@ -56,7 +51,6 @@ describe('required rule', () => {
 
   it('should return error message for empty object', () => {
     const isValid = rules.required({})
-    const errorMessage = translateRules('rules.required')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 })

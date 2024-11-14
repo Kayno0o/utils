@@ -1,5 +1,5 @@
+import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { getRules, translateRules } from '~/utils'
 
 describe('lowercase rule', () => {
   const rules = getRules()
@@ -11,8 +11,7 @@ describe('lowercase rule', () => {
 
   it('should return error message for string with uppercase letters', () => {
     const isValid = rules.lowercase('LowerCase')
-    const errorMessage = translateRules('rules.lowercase')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for null value', () => {

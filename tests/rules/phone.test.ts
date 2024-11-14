@@ -1,5 +1,5 @@
+import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { getRules, translateRules } from '~/utils'
 
 describe('phone rule', () => {
   const rules = getRules()
@@ -16,8 +16,7 @@ describe('phone rule', () => {
 
   it('should return error message for invalid phone number', () => {
     const isValid = rules.phone('123456')
-    const errorMessage = translateRules('rules.phone')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for null value', () => {

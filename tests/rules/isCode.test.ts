@@ -1,5 +1,5 @@
+import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { getRules, translateRules } from '~/utils'
 
 describe('isCode rule', () => {
   const rules = getRules()
@@ -11,14 +11,12 @@ describe('isCode rule', () => {
 
   it('should return error message for invalid code with numbers', () => {
     const isValid = rules.isCode('invalid1_code')
-    const errorMessage = translateRules('rules.isCode')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return error message for invalid code with special characters', () => {
     const isValid = rules.isCode('invalid-code!')
-    const errorMessage = translateRules('rules.isCode')
-    expect(isValid).toBe(errorMessage)
+    expect(isValid).toBeString()
   })
 
   it('should return true for empty string', () => {

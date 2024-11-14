@@ -1,5 +1,5 @@
+import { hexToRgb, rgbToHex } from '~'
 import { describe, expect, test as it } from 'bun:test'
-import { hexToRgb, rgbToHex } from '../src/colorUtils'
 
 describe('hexToRgb function', () => {
   it('hex with # and 3 chars', () => {
