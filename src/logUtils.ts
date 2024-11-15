@@ -68,7 +68,7 @@ export function declareLogger<
   const log = (...args: LogFnArgs<Services, IncludeType>) => {
     const [level, serviceOrType, typeOrMessages, ...messages] = args
     const service = serviceColor ? (serviceOrType as Services) : undefined
-    const type = includeType
+    const type = (includeType === true || includeType === undefined)
       ? (serviceColor ? typeOrMessages : serviceOrType)
       : undefined
 
