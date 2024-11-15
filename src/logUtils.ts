@@ -17,7 +17,10 @@ const baseActionColors: Record<LogLevel, chalk.Chalk> = {
   warning: chalk.yellow,
 }
 
-type LoggerOptions<Services extends string | undefined, IncludeType extends boolean> = {
+type LoggerOptions<
+  Services extends string | undefined,
+  IncludeType extends boolean = true,
+> = {
   /** @default { error: chalk.red, warning: chalk.yellow, success: chalk.green, info: chalk.cyan } */
   actionColors?: Record<LogLevel, chalk.Chalk>
   /** @default true */
@@ -26,12 +29,25 @@ type LoggerOptions<Services extends string | undefined, IncludeType extends bool
   logFilePath?: string
   /** @default info */
   logLevel?: LogLevel
-}
-& (Services extends string
+} & (Services extends string
   ? { serviceColor: Record<Services, chalk.Chalk> }
   : { serviceColor?: undefined })
 
-export function declareLogger<Services extends string | undefined = undefined, IncludeType extends boolean = true>({
+type LogFnArgs<
+  Services extends string | undefined,
+  IncludeType extends boolean = true,
+> = Services extends string
+  ? IncludeType extends true
+    ? [level: LogLevel, service: Services, type: string, ...messages: any[]]
+    : [level: LogLevel, service: Services, ...messages: any[]]
+  : IncludeType extends true
+    ? [level: LogLevel, type: string, ...messages: any[]]
+    : [level: LogLevel, ...messages: any[]]
+
+export function declareLogger<
+  Services extends string | undefined = undefined,
+  IncludeType extends boolean = true,
+>({
   actionColors = baseActionColors,
   clear = true,
   includeType,
@@ -49,17 +65,9 @@ export function declareLogger<Services extends string | undefined = undefined, I
   if (clear)
     clearLogs()
 
-  type LogFn = Services extends undefined
-    ? IncludeType extends true
-      ? (level: LogLevel, type: string, ...messages: any[]) => void
-      : (level: LogLevel, ...messages: any[]) => void
-    : IncludeType extends true
-      ? (level: LogLevel, service: Services, type: string, ...messages: any[]) => void
-      : (level: LogLevel, service: Services, ...messages: any[]) => void
-
-  const log: LogFn = ((level: LogLevel, ...args: any[]) => {
-    const [serviceOrType, typeOrMessages, ...messages] = args
-    const service: Services | undefined = serviceColor ? serviceOrType : undefined
+  const log = (...args: LogFnArgs<Services, IncludeType>) => {
+    const [level, serviceOrType, typeOrMessages, ...messages] = args
+    const service = serviceColor ? (serviceOrType as Services) : undefined
     const type = includeType
       ? (serviceColor ? typeOrMessages : serviceOrType)
       : undefined
@@ -89,7 +97,7 @@ export function declareLogger<Services extends string | undefined = undefined, I
 
     const logEntry = `[${new Date().toISOString()}] ${level.toUpperCase()} ${prepend} ${messages.join(' ')}\n`
     fs.appendFileSync(logFilePath, logEntry)
-  }) as LogFn
+  }
 
   return {
     clearLogs,
