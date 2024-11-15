@@ -68,7 +68,11 @@ export function declareLogger<
   const log = (...args: LogFnArgs<Services, IncludeType>) => {
     const [level, serviceOrType, typeOrMessages, ...messages] = args
     const service = serviceColor ? (serviceOrType as Services) : undefined
-    const type = (includeType === true || includeType === undefined)
+
+    // default to true if undefined
+    includeType ??= true as IncludeType
+
+    const type = includeType
       ? (serviceColor ? typeOrMessages : serviceOrType)
       : undefined
 
@@ -80,10 +84,12 @@ export function declareLogger<
 
     const prepend
       = serviceColor && service
-        ? `[${serviceColor[service](service.toLocaleUpperCase())}:${type}]`
-        : includeType && type
-          ? `[${type}]`
-          : ''
+        ? (includeType && type
+            ? `[${serviceColor[service](service.toLocaleUpperCase())}:${type}]`
+            : `[${serviceColor[service](service.toLocaleUpperCase())}]`)
+        : (includeType && type
+            ? `[${type}]`
+            : '')
 
     if (actionLevel <= envLogLevel) {
       console.log(
