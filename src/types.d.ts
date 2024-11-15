@@ -25,3 +25,9 @@ type RecursiveKeyOfHandleValue<TValue, Text extends string> =
     TValue extends object
       ? Text | `${Text}${RecursiveKeyOfInner<TValue>}`
       : Text
+
+type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N
+  ? Acc[number]
+  : Enumerate<N, [...Acc, Acc['length']]>
+
+type IntRange<F extends number, T extends number> = Exclude<Enumerate<T>, Enumerate<F>>
