@@ -76,6 +76,10 @@ export function declareLogger<
       ? (serviceColor ? typeOrMessages : serviceOrType)
       : undefined
 
+    const actualMessages = serviceColor
+      ? messages
+      : [typeOrMessages, ...messages].filter(Boolean) // Ensure no undefined values are included in the messages
+
     const envLogLevel = Number.isNaN(Number(logLevel))
       ? logLevels[logLevel as keyof typeof logLevels]
       : Number(logLevel)
@@ -94,14 +98,14 @@ export function declareLogger<
     if (actionLevel <= envLogLevel) {
       console.log(
         actionColors[level](prepend),
-        ...messages,
+        ...actualMessages,
       )
     }
 
     if (!logFilePath)
       return
 
-    const logEntry = `[${new Date().toISOString()}] ${level.toUpperCase()} ${prepend} ${messages.join(' ')}\n`
+    const logEntry = `[${new Date().toISOString()}] ${level.toUpperCase()} ${prepend} ${actualMessages.join(' ')}\n`
     fs.appendFileSync(logFilePath, logEntry)
   }
 
