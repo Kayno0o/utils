@@ -150,3 +150,13 @@ export function stringToMsDuration(duration: string | number): number {
     factor = 60 * 60 * 24 * 365
   return Number(time) * factor * 1000
 }
+
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+export function getDaysInMonth(year: number, month: number): number {
+  if (month === 2 && ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0)) {
+    return 29
+  }
+
+  return DAYS_IN_MONTH[month - 1]
+}
