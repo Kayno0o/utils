@@ -1,4 +1,4 @@
-import { getRandomElement } from './arrayUtils'
+import { faker } from './fakerUtils'
 import { randomInt } from './numberUtils'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -71,43 +71,15 @@ export function firstUpper(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-export const LOREM_WORDS = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'proin', 'ultricies', 'sed', 'dui', 'scelerisque', 'donec', 'pellentesque', 'diam', 'vel', 'ligula', 'efficitur']
-
-export interface LoremOptionType {
-  isCrypto?: boolean
-  length?: number
-  type?: 'word' | 'sentence' | 'paragraph'
-}
-
-export function randomText({ isCrypto = false, length = 5, type = 'paragraph' }: LoremOptionType = {}, words = LOREM_WORDS): string {
-  length = Math.max(1, length)
-
-  const rWord = () => getRandomElement(words, isCrypto)
-  const rSentence = () => {
-    const count = randomInt(5, 15, isCrypto)
-    let sentence = rWord()
-    for (let i = 1; i < count; i++)
-      sentence += (i < count - 1 && Math.random() < 0.1) ? ` ${rWord()},` : ` ${rWord()}`
-
-    sentence += '.'
-    return firstUpper(sentence)
-  }
-  const rParagraph = () => {
-    const count = randomInt(3, 7, isCrypto)
-    let paragraph = rSentence()
-    for (let i = 1; i < count; i++)
-      paragraph += ` ${rSentence()}`
-    return paragraph
-  }
-
-  return Array.from({ length }, () => {
-    switch (type) {
-      case 'word': return rWord()
-      case 'sentence': return rSentence()
-      case 'paragraph': default: return rParagraph()
-    }
-  }).join(type === 'word' ? ' ' : '\n')
-}
+/**
+ * @deprecated use `faker()` instead:
+ * ```ts
+ * faker().word(options)
+ * faker().sentence(options)
+ * faker().paragraph(options)
+ * ```
+ */
+export const randomText = faker().text
 
 export function searchOne(query: string, ...values: string[]): boolean {
   query = normalizeAccents(query).toLowerCase()
@@ -198,9 +170,7 @@ export function progressBar(value: number, min: number, max: number, { emptyChar
   return startChar + fillBar + emptyChar.repeat(emptyLength) + endChar
 }
 
-/**
- * handle common pluralization rules
- */
+/** handle common pluralization rules */
 export function plural(singular: string): string {
   if (singular.endsWith('y') && !/[aeiou]y$/.test(singular))
     return `${singular.slice(0, -1)}ies`
