@@ -10,51 +10,30 @@ const text = Object.assign(
     isCrypto?: boolean
     length?: number
     type: 'word' | 'sentence' | 'paragraph'
-  }, words = LOREM_WORDS): string => {
+  }): string => {
     length = Math.max(1, length)
 
     switch (type) {
-      case 'word': return text.word(length, isCrypto, words)
-      case 'sentence': return text.sentence(length, isCrypto, words)
-      case 'paragraph': return text.paragraph(length, isCrypto, words)
+      case 'word': return text.word(length, isCrypto)
+      case 'sentence': return text.sentence(length, isCrypto)
+      case 'paragraph': return text.paragraph(length, isCrypto)
     }
   },
   {
-    paragraph: (length = 1, isCrypto = false, words = LOREM_WORDS): string => {
-      length = Math.max(1, length)
-
-      return Array.from({ length }, () => {
+    paragraph: (length = 1, isCrypto = false): string =>
+      Array.from({ length: Math.max(1, length) }, () => {
         const count = randomInt(3, 7, isCrypto)
-        let paragraph = text.sentence(1, isCrypto, words)
-
-        for (let i = 1; i < count; i++) {
-          paragraph += ` ${text.sentence(1, isCrypto, words)}`
-        }
-
-        return paragraph
-      }).join('\n')
-    },
-    sentence: (length = 1, isCrypto = false, words = LOREM_WORDS): string => {
-      length = Math.max(1, length)
-
-      return Array.from({ length }, () => {
+        return text.sentence(count, isCrypto)
+      }).join('\n'),
+    sentence: (length = 1, isCrypto = false): string =>
+      Array.from({ length: Math.max(1, length) }, () => {
         const count = randomInt(5, 15, isCrypto)
-        let sentence = text.word(1, isCrypto, words)
-
-        for (let i = 1; i < count; i++) {
-          sentence += (i < count - 1 && Math.random() < 0.1)
-            ? ` ${text.word(1, isCrypto, words)},`
-            : ` ${text.word(1, isCrypto, words)}`
-        }
+        const sentence = text.word(count, isCrypto).replaceAll(' ', () => Math.random() < 0.1 ? ', ' : ' ')
 
         return `${firstUpper(sentence)}.`
-      }).join('\n')
-    },
-    word: (length = 1, isCrypto = false, words = LOREM_WORDS): string => {
-      length = Math.max(1, length)
-
-      return Array.from({ length }, () => getRandomElement(words, isCrypto)).join(' ')
-    },
+      }).join(' '),
+    word: (length = 1, isCrypto = false): string =>
+      Array.from({ length: Math.max(1, length) }, () => getRandomElement(LOREM_WORDS, isCrypto)).join(' '),
   },
 )
 

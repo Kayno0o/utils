@@ -57,29 +57,29 @@ async function suite(benchmarks: [string, () => any][], iterations = 1_000_000) 
 
 console.clear()
 
-await suite([
-  ['randomInt', () => randomInt(1, 100, false)],
-  ['randomInt:crypto', () => randomInt(1, 100, true)],
-], 1_000_000)
+// await suite([
+//   ['randomInt', () => randomInt(1, 100, false)],
+//   ['randomInt:crypto', () => randomInt(1, 100, true)],
+// ], 1_000_000)
 
 await suite([
   ['faker.text:paragraph:50', () => faker.text({ isCrypto: false, length: 50, type: 'paragraph' })],
   ['faker.text:paragraph:50:crypto', () => faker.text({ isCrypto: true, length: 50, type: 'paragraph' })],
 ], 1_000)
 
-await suite([
-  ['uuidV4', () => faker.datatype.uuidV4()],
-  ['uuidV4:crypto', () => faker.datatype.uuidV4(true)],
-], 10_000)
+// await suite([
+//   ['uuidV4', () => faker.datatype.uuidV4()],
+//   ['uuidV4:crypto', () => faker.datatype.uuidV4(true)],
+// ], 10_000)
 
-await suite([
-  ['randomHex', () => randomHex()],
-  ['randomHex:crypto', () => randomHex(true)],
-])
+// await suite([
+//   ['randomHex', () => randomHex()],
+//   ['randomHex:crypto', () => randomHex(true)],
+// ])
 
-await suite([
-  ['range:10', () => range(10)],
-  ['range:0-10', () => range(0, 10)],
-])
+// await suite([
+//   ['range:10', () => range(10)],
+//   ['range:0-10', () => range(0, 10)],
+// ])
 
 console.log()
