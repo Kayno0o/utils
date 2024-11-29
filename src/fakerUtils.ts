@@ -84,17 +84,17 @@ export function faker() {
     }).join('\n')
   }
 
-  function fakeText({ isCrypto = false, length = 5, type = 'paragraph' }: {
+  function fakeText({ isCrypto = false, length = 5, type }: {
     isCrypto?: boolean
     length?: number
-    type?: 'word' | 'sentence' | 'paragraph'
-  } = {}, words = LOREM_WORDS): string {
+    type: 'word' | 'sentence' | 'paragraph'
+  }, words = LOREM_WORDS): string {
     length = Math.max(1, length)
 
     switch (type) {
       case 'word': return fakeWord(length, isCrypto, words)
       case 'sentence': return fakeSentence(length, isCrypto, words)
-      case 'paragraph': default: return fakeParagraph(length, isCrypto, words)
+      case 'paragraph': return fakeParagraph(length, isCrypto, words)
     }
   }
 
