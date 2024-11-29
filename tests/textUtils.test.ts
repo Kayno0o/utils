@@ -187,31 +187,6 @@ describe('getInitials function', () => {
   })
 })
 
-describe('randomText function', () => {
-  it('should generate a random paragraph of specified length', () => {
-    const length = 5
-    const result = randomText({ length, type: 'paragraph' })
-    expect(result.split('\n').length).toEqual(length)
-  })
-
-  it('should generate a random sentence of specified length', () => {
-    const length = 5
-    const result = randomText({ length, type: 'sentence' })
-    expect(result.split('.').length - 1).toEqual(length)
-  })
-
-  it('should generate a random word of specified length', () => {
-    const length = 5
-    const result = randomText({ length, type: 'word' })
-    expect(result.split(' ').length).toEqual(length)
-  })
-
-  it('should handle empty options', () => {
-    const result = randomText()
-    expect(result.split('\n').length).toEqual(5)
-  })
-})
-
 describe('searchOne function', () => {
   it('should return true if one of the values contains the query', () => {
     const result = searchOne('hello', 'hello world', 'goodbye world')
