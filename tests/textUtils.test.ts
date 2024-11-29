@@ -1,4 +1,4 @@
-import { escapeCSV, escapeRegExp, escapeXml, getInitials, getUuidFromIri, matchingSubstring, matchLength, normalizeAccents, plural, progressBar, randomString, randomText, removeComments, searchAll, searchOne, slugify, uuidV4 } from '~'
+import { escapeCSV, escapeRegExp, escapeXml, getInitials, getUuidFromIri, matchingSubstring, matchLength, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, uuidV4 } from '~'
 import { describe, expect, test as it } from 'bun:test'
 
 describe('randomString function', () => {
