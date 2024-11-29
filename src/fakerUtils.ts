@@ -46,33 +46,38 @@ export function faker() {
     return `${randomFirstName} ${randomLastName}`
   }
 
-  function fakeWord(isCrypto = false, length = 1, words = LOREM_WORDS): string {
+  function fakeWord(length = 1, isCrypto = false, words = LOREM_WORDS): string {
     length = Math.max(1, length)
+
     return Array.from({ length }, () => getRandomElement(words, isCrypto)).join(' ')
   }
 
-  function fakeSentence(isCrypto = false, length = 1, words = LOREM_WORDS): string {
+  function fakeSentence(length = 1, isCrypto = false, words = LOREM_WORDS): string {
+    length = Math.max(1, length)
+
     return Array.from({ length }, () => {
       const count = randomInt(5, 15, isCrypto)
-      let sentence = fakeWord(isCrypto, 1, words)
+      let sentence = fakeWord(1, isCrypto, words)
 
       for (let i = 1; i < count; i++) {
         sentence += (i < count - 1 && Math.random() < 0.1)
-          ? ` ${fakeWord(isCrypto, 1, words)},`
-          : ` ${fakeWord(isCrypto, 1, words)}`
+          ? ` ${fakeWord(1, isCrypto, words)},`
+          : ` ${fakeWord(1, isCrypto, words)}`
       }
 
       return `${firstUpper(sentence)}.`
     }).join('\n')
   }
 
-  function fakeParagraph(isCrypto = false, length = 1, words = LOREM_WORDS): string {
+  function fakeParagraph(length = 1, isCrypto = false, words = LOREM_WORDS): string {
+    length = Math.max(1, length)
+
     return Array.from({ length }, () => {
       const count = randomInt(3, 7, isCrypto)
-      let paragraph = fakeSentence(isCrypto, 1, words)
+      let paragraph = fakeSentence(1, isCrypto, words)
 
       for (let i = 1; i < count; i++) {
-        paragraph += ` ${fakeSentence(isCrypto, 1, words)}`
+        paragraph += ` ${fakeSentence(1, isCrypto, words)}`
       }
 
       return paragraph
@@ -87,9 +92,9 @@ export function faker() {
     length = Math.max(1, length)
 
     switch (type) {
-      case 'word': return fakeWord(isCrypto, length, words)
-      case 'sentence': return fakeSentence(isCrypto, length, words)
-      case 'paragraph': default: return fakeParagraph(isCrypto, length, words)
+      case 'word': return fakeWord(length, isCrypto, words)
+      case 'sentence': return fakeSentence(length, isCrypto, words)
+      case 'paragraph': default: return fakeParagraph(length, isCrypto, words)
     }
   }
 
@@ -97,7 +102,10 @@ export function faker() {
     date: fakeDate,
     fullName: fakeFullName,
     month: fakeMonth,
+    paragraph: fakeParagraph,
+    sentence: fakeSentence,
     text: fakeText,
+    word: fakeWord,
     year: fakeYear,
   }
 }
