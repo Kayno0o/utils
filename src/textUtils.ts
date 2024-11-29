@@ -1,4 +1,3 @@
-import { faker } from './fakerUtils'
 import { randomInt } from './numberUtils'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -71,16 +70,6 @@ export function firstUpper(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-/**
- * @deprecated use `faker()` instead:
- * ```ts
- * faker().word(options)
- * faker().sentence(options)
- * faker().paragraph(options)
- * ```
- */
-export const randomText = faker().text
-
 export function searchOne(query: string, ...values: string[]): boolean {
   query = normalizeAccents(query).toLowerCase()
   return values.some(value => normalizeAccents(value).toLowerCase().includes(query))
@@ -141,16 +130,6 @@ export function matchingSubstring(str1: string, str2: string): string {
 export function getUuidFromIri(iri: string): string | null {
   const match = iri.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)
   return match ? match[0] : null
-}
-
-const uuidV4Template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-
-export function uuidV4(isCrypto = false): string {
-  return uuidV4Template.replace(/[xy]/g, (c) => {
-    const r = randomInt(0, 16, isCrypto)
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
 }
 
 export function progressBar(value: number, min: number, max: number, { emptyChar = ' ', endChar = ']', fillChar = '=', startChar = '[', tipChar = '', totalChars = 40 } = {}) {

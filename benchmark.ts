@@ -1,6 +1,7 @@
 import { performance } from 'node:perf_hooks'
 import chalk from 'chalk'
-import { progressBar, randomHex, randomInt, randomText, uuidV4 } from './'
+import { progressBar, randomHex, randomInt, range } from './'
+import { faker } from './src/fakerUtils'
 
 async function warmup(callback: () => any, duration = 1000) {
   const endTime = performance.now() + duration
@@ -62,18 +63,23 @@ await suite([
 ], 1_000_000)
 
 await suite([
-  ['randomText:50', () => randomText({ isCrypto: false, length: 50 })],
-  ['randomText:50:crypto', () => randomText({ isCrypto: true, length: 50 })],
+  ['faker.text:paragraph:50', () => faker.text({ isCrypto: false, length: 50, type: 'paragraph' })],
+  ['faker.text:paragraph:50:crypto', () => faker.text({ isCrypto: true, length: 50, type: 'paragraph' })],
 ], 1_000)
 
 await suite([
-  ['uuidV4', () => uuidV4()],
-  ['uuidV4:crypto', () => uuidV4(true)],
+  ['uuidV4', () => faker.datatype.uuidV4()],
+  ['uuidV4:crypto', () => faker.datatype.uuidV4(true)],
 ], 10_000)
 
 await suite([
   ['randomHex', () => randomHex()],
   ['randomHex:crypto', () => randomHex(true)],
+])
+
+await suite([
+  ['range:10', () => range(10)],
+  ['range:0-10', () => range(0, 10)],
 ])
 
 console.log()

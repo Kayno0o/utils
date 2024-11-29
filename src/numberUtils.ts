@@ -79,3 +79,12 @@ export function formatUnit(num: number): string {
   }
   return `${scaledNum.toFixed(1)}${units[unitIndex]}`
 }
+
+export function range(minOrMax: number, max?: number): number[] {
+  if (max === undefined) {
+    max = minOrMax
+    minOrMax = 0
+  }
+
+  return Array.from({ length: max - minOrMax }, (_, i) => i + minOrMax)
+}
