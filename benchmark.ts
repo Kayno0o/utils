@@ -65,8 +65,8 @@ console.clear()
 const faker = new Faker()
 
 await suite([
-  ['faker.text:paragraph:50', () => faker.text({ isCrypto: false, length: 50, type: 'paragraph' })],
-  ['faker.text:paragraph:50:crypto', () => faker.text({ isCrypto: true, length: 50, type: 'paragraph' })],
+  ['faker.text:paragraph:50', () => faker.lorem({ isCrypto: false, length: 50, type: 'paragraph' })],
+  ['faker.text:paragraph:50:crypto', () => faker.lorem({ isCrypto: true, length: 50, type: 'paragraph' })],
 ], 1_000)
 
 // await suite([
