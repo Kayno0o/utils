@@ -1,4 +1,6 @@
-import { faker } from '../'
+import { Faker } from '../'
+
+const faker = new Faker()
 
 console.log(faker.name.username())
 console.log(faker.text.sentence())
