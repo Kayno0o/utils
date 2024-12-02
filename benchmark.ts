@@ -1,7 +1,7 @@
 import { performance } from 'node:perf_hooks'
 import chalk from 'chalk'
 import { progressBar, randomHex, randomInt, range } from './'
-import { faker } from './src/fakerUtils'
+import { Faker } from './src/fakerUtils'
 
 async function warmup(callback: () => any, duration = 1000) {
   const endTime = performance.now() + duration
@@ -61,6 +61,8 @@ console.clear()
 //   ['randomInt', () => randomInt(1, 100, false)],
 //   ['randomInt:crypto', () => randomInt(1, 100, true)],
 // ], 1_000_000)
+
+const faker = new Faker()
 
 await suite([
   ['faker.text:paragraph:50', () => faker.text({ isCrypto: false, length: 50, type: 'paragraph' })],

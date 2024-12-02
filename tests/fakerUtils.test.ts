@@ -1,8 +1,9 @@
 import { describe, expect, test as it } from 'bun:test'
-import { faker } from '../src/fakerUtils'
+import { Faker } from '../src/fakerUtils'
 
 describe('faker.paragraph function', () => {
   const notEmpty = (value: any) => !!value
+  const faker = new Faker()
 
   it('should generate a random word of specified length', () => {
     const length = 5

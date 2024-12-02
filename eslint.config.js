@@ -17,7 +17,6 @@ export default antfu({
     'no-empty-function': 'off',
     'node/prefer-global/process': 'off',
     'operator-assignment': ['error', 'always'],
-    'perfectionist/sort-classes': ['warn', { type: 'natural' }],
     'perfectionist/sort-enums': ['warn', { type: 'natural' }],
     'perfectionist/sort-interfaces': ['warn', { type: 'natural' }],
     'perfectionist/sort-object-types': ['warn', { type: 'natural' }],
