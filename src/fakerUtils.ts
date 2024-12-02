@@ -6,7 +6,7 @@ import { firstUpper } from './textUtils'
 export class Faker {
   LOREM_WORDS = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'proin', 'ultricies', 'sed', 'dui', 'scelerisque', 'donec', 'pellentesque', 'diam', 'vel', 'ligula', 'efficitur']
 
-  text = Object.assign(
+  lorem = Object.assign(
     ({ isCrypto = false, length = 5, type }: {
       isCrypto?: boolean
       length?: number
@@ -15,21 +15,21 @@ export class Faker {
       length = Math.max(1, length)
 
       switch (type) {
-        case 'word': return this.text.word(length, isCrypto)
-        case 'sentence': return this.text.sentence(length, isCrypto)
-        case 'paragraph': return this.text.paragraph(length, isCrypto)
+        case 'word': return this.lorem.word(length, isCrypto)
+        case 'sentence': return this.lorem.sentence(length, isCrypto)
+        case 'paragraph': return this.lorem.paragraph(length, isCrypto)
       }
     },
     {
       paragraph: (length = 1, isCrypto = false): string =>
         Array.from({ length: Math.max(1, length) }, () => {
           const count = randomInt(3, 7, isCrypto)
-          return this.text.sentence(count, isCrypto)
+          return this.lorem.sentence(count, isCrypto)
         }).join('\n'),
       sentence: (length = 1, isCrypto = false): string =>
         Array.from({ length: Math.max(1, length) }, () => {
           const count = randomInt(5, 15, isCrypto)
-          const sentence = this.text.word(count, isCrypto).replaceAll(' ', () => Math.random() < 0.1 ? ', ' : ' ')
+          const sentence = this.lorem.word(count, isCrypto).replaceAll(' ', () => Math.random() < 0.1 ? ', ' : ' ')
 
           return `${firstUpper(sentence)}.`
         }).join(' '),
