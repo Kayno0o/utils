@@ -71,19 +71,20 @@ export class Faker {
   ADJECTIVES = ['quick', 'bright', 'massive', 'ancient', 'fragile', 'smooth', 'silent', 'fierce', 'colorful', 'mysterious', 'epic', 'stealthy', 'legendary', 'agile', 'immersive']
   OBJECTS = ['table', 'mountain', 'lamp', 'book', 'window', 'river', 'cloud', 'carpet', 'bottle', 'clock', 'controller', 'sword', 'avatar', 'quest', 'dungeon', 'rocket']
 
-  name = Object.assign(
-    (): string => {
-      const randomFirstName = getRandomElement(this.FIRST_NAMES)
-      const randomLastName = getRandomElement(this.LAST_NAMES)
+  name = {
+    firstName: () => getRandomElement(this.FIRST_NAMES),
+    fullname: () => `${this.name.firstName()} ${this.name.lastName()}`,
+    lastName: () => getRandomElement(this.LAST_NAMES),
+    username: () => firstUpper(getRandomElement(this.ADJECTIVES)) + firstUpper(getRandomElement(this.OBJECTS)),
+  }
 
-      return `${randomFirstName} ${randomLastName}`
+  PROVIDER = ['@gmail.com', '@yahoo.com', '@orange.fr']
+
+  internet = {
+    email: () => {
+      return this.name.fullname().toLocaleLowerCase().replace(' ', '.') + getRandomElement(this.PROVIDER)
     },
-    {
-      firstName: () => getRandomElement(this.FIRST_NAMES),
-      lastName: () => getRandomElement(this.LAST_NAMES),
-      username: () => firstUpper(getRandomElement(this.ADJECTIVES)) + firstUpper(getRandomElement(this.OBJECTS)),
-    },
-  )
+  }
 
   UUID_V4_TEMPLATE = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 
