@@ -1,15 +1,19 @@
 const arr32 = new Uint32Array(1)
 
 export function randomInt(min: number, max: number, isCrypto?: boolean): number
-export function randomInt(max: number): number
+export function randomInt(max: number, isCrypto?: boolean): number
 
-export function randomInt(minOrMax: number, max?: number, isCrypto = false) {
+export function randomInt(minOrMax: number, max?: number | boolean, isCrypto?: boolean) {
+  if (typeof max === 'boolean')
+    isCrypto = max
+  isCrypto ??= false
+
   const getRandomValue = isCrypto
     ? () => crypto.getRandomValues(arr32)[0]! / 2 ** 32
     : Math.random
 
-  const min = max === undefined ? 0 : minOrMax
-  const range = max === undefined ? minOrMax : max - minOrMax
+  const min = (typeof max !== 'number') ? 0 : minOrMax
+  const range = (typeof max !== 'number') ? minOrMax : max - minOrMax
 
   return Math.floor(getRandomValue() * range) + min
 }
