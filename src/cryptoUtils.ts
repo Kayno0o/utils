@@ -6,7 +6,7 @@ export function hashPassword(password: string) {
   return `${salt}:${hash}`
 }
 
-export async function comparePasswords(plaintextPassword: string, hashedPassword: string): Promise<boolean> {
+export function comparePasswords(plaintextPassword: string, hashedPassword: string): boolean {
   const [salt, originalHash] = hashedPassword.split(':')
   const hash = createHash('sha256').update(plaintextPassword + salt).digest('hex')
   return hash === originalHash
