@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from 'node:crypto'
 import { randomInt } from './numberUtils'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -164,4 +165,16 @@ export function plural(singular: string): string {
     return `${singular.slice(0, -2)}ves`
 
   return `${singular}s`
+}
+
+export function hashPassword(password: string) {
+  const salt = randomBytes(16).toString('hex')
+  const hash = createHash('sha256').update(password + salt).digest('hex')
+  return `${salt}:${hash}`
+}
+
+export async function comparePasswords(plaintextPassword: string, hashedPassword: string): Promise<boolean> {
+  const [salt, originalHash] = hashedPassword.split(':')
+  const hash = createHash('sha256').update(plaintextPassword + salt).digest('hex')
+  return hash === originalHash
 }
