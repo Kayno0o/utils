@@ -76,7 +76,7 @@ export function declareLogger<
       ? (serviceColor ? typeOrMessages : serviceOrType)
       : undefined
 
-    const actualMessages = serviceColor
+    const actualMessages = (serviceColor && includeType)
       ? messages
       : [typeOrMessages, ...messages].filter(Boolean) // Ensure no undefined values are included in the messages
 
