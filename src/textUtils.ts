@@ -1,4 +1,3 @@
-import { createHash, randomBytes } from 'node:crypto'
 import { randomInt } from './numberUtils'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
