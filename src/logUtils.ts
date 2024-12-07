@@ -1,4 +1,3 @@
-import fs from 'node:fs'
 import chalk from 'chalk'
 
 export type LogLevel = 'info' | 'success' | 'warning' | 'error'
@@ -29,11 +28,9 @@ const baseLogTypes: Record<LogLevel, LogType> = {
 
 type LoggerOptions<Services extends string | undefined> = {
   logTypes?: Record<LogLevel, LogType>
-  /** @default true */
-  clear?: boolean
-  logFilePath?: string
   /** @default info */
   logLevel?: LogLevel
+  onLog?: (log: string) => void | Promise<void>
 } & (Services extends string
   ? { serviceColor: Record<Services, chalk.Chalk> }
   : { serviceColor?: undefined })
@@ -48,21 +45,10 @@ export function declareLogger<
   Services extends string | undefined = undefined,
 >({
   logTypes = baseLogTypes,
-  clear = true,
-  logFilePath,
   logLevel = 'info',
   serviceColor,
+  onLog,
 }: LoggerOptions<Services>) {
-  const clearLogs = () => {
-    if (!logFilePath)
-      return
-
-    fs.writeFileSync(logFilePath, '')
-  }
-
-  if (clear)
-    clearLogs()
-
   const log = (...args: LogFnArgs<Services>) => {
     const [level, serviceOrMessages, ...messages] = args
     const service = serviceColor ? (serviceOrMessages as Services) : undefined
@@ -89,15 +75,9 @@ export function declareLogger<
       )
     }
 
-    if (!logFilePath)
-      return
-
-    const logEntry = `[${new Date().toISOString()}] ${level.toUpperCase()} ${prepend} ${actualMessages.join(' ')}\n`
-    fs.appendFileSync(logFilePath, logEntry)
+    if (onLog)
+      onLog(`[${new Date().toISOString()}] ${level.toUpperCase()} ${prepend} ${actualMessages.join(' ')}\n`)
   }
 
-  return {
-    clearLogs,
-    log,
-  }
+  return log
 }
