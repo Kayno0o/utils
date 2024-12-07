@@ -1,27 +1,27 @@
-import chalk from 'chalk'
+import colors from 'ansi-colors'
 
 export type LogLevel = 'info' | 'success' | 'warning' | 'error'
-interface LogType { char: string, color: chalk.Chalk, level: number }
+interface LogType { char: string, color: (str: string) => string, level: number }
 
 const baseLogTypes: Record<LogLevel, LogType> = {
   error: {
     char: '⛔',
-    color: chalk.red,
+    color: colors.red,
     level: 0,
   },
   info: {
     char: '❔',
-    color: chalk.cyan,
+    color: colors.cyan,
     level: 3,
   },
   success: {
     char: '✅',
-    color: chalk.green,
+    color: colors.green,
     level: 2,
   },
   warning: {
     char: '⚡',
-    color: chalk.yellow,
+    color: colors.yellow,
     level: 1,
   },
 }
@@ -32,7 +32,7 @@ type LoggerOptions<Services extends string | undefined> = {
   logLevel?: LogLevel
   onLog?: (log: string) => void | Promise<void>
 } & (Services extends string
-  ? { serviceColor: Record<Services, chalk.Chalk> }
+  ? { serviceColor: Record<Services, colors.StyleFunction> }
   : { serviceColor?: undefined })
 
 type LogFnArgs<
