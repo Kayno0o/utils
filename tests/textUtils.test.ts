@@ -1,4 +1,4 @@
-import { escapeCSV, escapeRegExp, escapeXml, getInitials, getUuidFromIri, matchingSubstring, matchLength, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, uuidV4 } from '~'
+import { escapeCSV, escapeRegExp, escapeXml, getInitials, getUuidFromIri, matchingSubstring, matchLength, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify } from '~'
 import { describe, expect, test as it } from 'bun:test'
 
 describe('randomString function', () => {
@@ -315,19 +315,6 @@ describe('getUuidFromIri function', () => {
   it('should return null if no UUID found', () => {
     const result = getUuidFromIri('https://example.com/resource/')
     expect(result).toBeNull()
-  })
-})
-
-describe('uuidV4 function', () => {
-  it('should generate a valid UUID v4 string', () => {
-    const uuid = uuidV4()
-    expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-  })
-
-  it('should generate unique UUIDs', () => {
-    const uuid1 = uuidV4()
-    const uuid2 = uuidV4()
-    expect(uuid1).not.toEqual(uuid2)
   })
 })
 

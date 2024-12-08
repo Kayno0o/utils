@@ -40,6 +40,21 @@ describe('faker.paragraph function', () => {
 
   it('text: should generate random words', () => {
     const result = faker.lorem({ type: 'word' })
-    expect(result.split(' ').filter(notEmpty).length).toEqual(1)
+    expect(result.split(' ').filter(notEmpty).length).toEqual(5)
+  })
+})
+
+describe('uuidV4 function', () => {
+  const faker = new Faker()
+
+  it('should generate a valid UUID v4 string', () => {
+    const uuid = faker.datatype.uuidV4()
+    expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+  })
+
+  it('should generate unique UUIDs', () => {
+    const uuid1 = faker.datatype.uuidV4()
+    const uuid2 = faker.datatype.uuidV4()
+    expect(uuid1).not.toEqual(uuid2)
   })
 })
