@@ -33,3 +33,10 @@ type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] exte
 export type IntRange<F extends number, T extends number> = Exclude<Enumerate<T>, Enumerate<F>>
 
 export type MaybePromise<T> = T | Promise<T>
+
+export type RecursivePartial<T> = {
+  [P in keyof T]?:
+  T[P] extends (infer U)[] ? RecursivePartial<U>[] :
+    T[P] extends object | undefined ? RecursivePartial<T[P]> :
+      T[P];
+}
