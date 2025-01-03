@@ -57,7 +57,7 @@ async function suite(benchmarks: [string, () => any][], iterations = 1_000) {
     const timeColor = [chalk.green, chalk.red][Number(result.timeTaken === maxTime)]
 
     console.log(chalk.yellow.bold(result.name))
-    console.log(chalk.blue('[Time]  '), progressBar(result.timeTaken, 0, maxTime), timeColor(`${result.timeTaken.toFixed(2)} ms`))
+    console.log(chalk.blue('[Time]  '), progressBar(result.timeTaken, 0, maxTime), timeColor(`${(result.timeTaken / iterations).toFixed(2)} ms`))
   }
 }
 
