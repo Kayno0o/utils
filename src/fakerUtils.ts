@@ -29,7 +29,7 @@ export class Faker {
       sentence: (length = 1, isCrypto = false): string =>
         Array.from({ length: Math.max(1, length) }, () => {
           const count = randomInt(5, 15, isCrypto)
-          const sentence = this.lorem.word(count, isCrypto).replaceAll(' ', () => Math.random() < 0.1 ? ', ' : ' ')
+          const sentence = this.lorem.word(count, isCrypto).replace(/ /g, () => Math.random() < 0.1 ? ', ' : ' ')
 
           return `${firstUpper(sentence)}.`
         }).join(' '),
