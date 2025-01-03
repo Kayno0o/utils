@@ -1,6 +1,6 @@
 import { performance } from 'node:perf_hooks'
 import chalk from 'chalk'
-import { progressBar, randomHex, randomInt, range } from './'
+import { progressBar, randomHex, randomInt, range, searchOne } from './'
 import { Faker } from './src/fakerUtils'
 
 async function warmup(callback: () => any, duration = 1000) {
@@ -34,7 +34,13 @@ async function benchmark(name: string, callback: () => any, iterations = 1_000_0
   return { timeTaken }
 }
 
-async function suite(benchmarks: [string, () => any][], iterations = 1_000_000) {
+const search = process.argv.slice(2).join(' ')
+
+async function suite(benchmarks: [string, () => any][], iterations = 1_000) {
+  benchmarks = benchmarks.filter(benchmark => searchOne(search, benchmark[0]))
+  if (!benchmarks.length)
+    return
+
   const results: { name: string, timeTaken: number }[] = []
 
   for (const [name, callback] of benchmarks) {
@@ -57,31 +63,31 @@ async function suite(benchmarks: [string, () => any][], iterations = 1_000_000) 
 
 console.clear()
 
-// await suite([
-//   ['randomInt', () => randomInt(1, 100, false)],
-//   ['randomInt:crypto', () => randomInt(1, 100, true)],
-// ], 1_000_000)
+await suite([
+  ['randomInt', () => randomInt(1, 100, false)],
+  ['randomInt:crypto', () => randomInt(1, 100, true)],
+], 1_000_000)
 
 const faker = new Faker()
 
 await suite([
   ['faker.text:paragraph:50', () => faker.lorem({ isCrypto: false, length: 50, type: 'paragraph' })],
   ['faker.text:paragraph:50:crypto', () => faker.lorem({ isCrypto: true, length: 50, type: 'paragraph' })],
-], 1_000)
+])
 
-// await suite([
-//   ['uuidV4', () => faker.datatype.uuidV4()],
-//   ['uuidV4:crypto', () => faker.datatype.uuidV4(true)],
-// ], 10_000)
+await suite([
+  ['faker.uuidV4', () => faker.datatype.uuidV4()],
+  ['faker.uuidV4:crypto', () => faker.datatype.uuidV4(true)],
+], 10_000)
 
-// await suite([
-//   ['randomHex', () => randomHex()],
-//   ['randomHex:crypto', () => randomHex(true)],
-// ])
+await suite([
+  ['randomHex', () => randomHex()],
+  ['randomHex:crypto', () => randomHex(true)],
+], 1_000_000)
 
-// await suite([
-//   ['range:10', () => range(10)],
-//   ['range:0-10', () => range(0, 10)],
-// ])
+await suite([
+  ['range:10', () => range(10)],
+  ['range:90-100', () => range(90, 100)],
+], 1_000_000)
 
 console.log()
