@@ -155,3 +155,5 @@ export function getDaysInMonth(year: number, month: number): number {
 
   return DAYS_IN_MONTH[month - 1]
 }
+
+export { dayjs }
