@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { randomInt } from './numberUtils'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -130,6 +131,15 @@ export function matchingSubstring(str1: string, str2: string): string {
 export function getUuidFromIri(iri: string): string | null {
   const match = iri.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)
   return match ? match[0] : null
+}
+
+export function minifyUuid(uuid: string): string {
+  return Buffer.from(uuid.replace(/-/g, ''), 'hex').toString('base64').replace(/=+$/, '')
+}
+
+export function expandUuid(minified: string): string {
+  const hex = Buffer.from(minified, 'base64').toString('hex')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
 export function progressBar(value: number, min: number, max: number, { emptyChar = ' ', endChar = ']', fillChar = '=', startChar = '[', tipChar = '', totalChars = 40 } = {}) {
