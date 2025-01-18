@@ -19,6 +19,8 @@ export function configureDayjs(djs: typeof dayjs) {
 
 configureDayjs(dayjs)
 
+export { dayjs }
+
 type DateFormatType = 'input' | 'shortText' | 'longText' | 'datetime-input' | 'default' | 'datetimeText'
 type SingleDateProp = Date | Dayjs | string
 type NullableSingleDateProp = SingleDateProp | null | undefined
