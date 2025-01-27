@@ -2,32 +2,32 @@ import { describe, expect, test as it } from 'bun:test'
 import dayjs from 'dayjs'
 import { calculateEaster, configureDayjs, formatDate, getFrenchHolidays, isDateBetween, isHoliday, stringToMsDuration } from '../src/dateUtils'
 
-configureDayjs(dayjs)
-
 describe('isDateBetween function', () => {
+  configureDayjs(dayjs)
+
   it('should return true if the date is between start and end', () => {
-    const result = isDateBetween('2023-05-15', '2023-05-01', '2023-05-30')
+    const result = isDateBetween(dayjs, '2023-05-15', '2023-05-01', '2023-05-30')
     expect(result).toBe(true)
   })
 
   it('should return false if the date is before the start date', () => {
-    const result = isDateBetween('2023-04-15', '2023-05-01', '2023-05-30')
+    const result = isDateBetween(dayjs, '2023-04-15', '2023-05-01', '2023-05-30')
     expect(result).toBe(false)
   })
 
   it('should return false if the date is after the end date', () => {
-    const result = isDateBetween('2023-06-01', '2023-05-01', '2023-05-30')
+    const result = isDateBetween(dayjs, '2023-06-01', '2023-05-01', '2023-05-30')
     expect(result).toBe(false)
   })
 
   it('should handle open-ended ranges', () => {
-    expect(isDateBetween('2023-05-15', null, '2023-05-30')).toBe(true) // only end date
-    expect(isDateBetween('2023-05-15', '2023-05-01', null)).toBe(true) // only start date
-    expect(isDateBetween('2023-05-15', null, null)).toBe(true) // no start or end date
+    expect(isDateBetween(dayjs, '2023-05-15', null, '2023-05-30')).toBe(true) // only end date
+    expect(isDateBetween(dayjs, '2023-05-15', '2023-05-01', null)).toBe(true) // only start date
+    expect(isDateBetween(dayjs, '2023-05-15', null, null)).toBe(true) // no start or end date
   })
 
   it('should handle UTC dates if utc flag is true', () => {
-    const result = isDateBetween('2023-05-15T00:00:00Z', '2023-05-01', '2023-05-30', true)
+    const result = isDateBetween(dayjs, '2023-05-15T00:00:00Z', '2023-05-01', '2023-05-30', true)
     expect(result).toBe(true)
   })
 })
@@ -62,12 +62,12 @@ describe('getFrenchHolidays function', () => {
 
 describe('isHoliday function', () => {
   it('should return true for a known holiday', () => {
-    const result = isHoliday('2023-07-14') // Bastille Day
+    const result = isHoliday(dayjs, '2023-07-14') // Bastille Day
     expect(result).toBe(true)
   })
 
   it('should return false for a non-holiday', () => {
-    const result = isHoliday('2023-07-15')
+    const result = isHoliday(dayjs, '2023-07-15')
     expect(result).toBe(false)
   })
 })
@@ -123,55 +123,55 @@ describe('formatDate function', () => {
   const sampleDate = new Date(2023, 4, 15, 13, 45, 30) // May 15, 2023, 13:45:30
 
   it('should format a single date with the default format', () => {
-    const result = formatDate(sampleDate)
+    const result = formatDate(dayjs, sampleDate)
     expect(result).toBe('15/05/2023') // Default format: DD/MM/YYYY
   })
 
   it('should format a single date with a specified format', () => {
-    const result = formatDate(sampleDate, 'datetime-input')
+    const result = formatDate(dayjs, sampleDate, 'datetime-input')
     expect(result).toBe('2023-05-15 13:45:30') // Format: YYYY-MM-DD H:mm:ss
   })
 
   it('should format a single date in UTC', () => {
-    const result = formatDate(sampleDate, 'datetime-input', { utc: true })
+    const result = formatDate(dayjs, sampleDate, 'datetime-input', { utc: true })
     expect(result).toBe(dayjs.utc(sampleDate).format('YYYY-MM-DD H:mm:ss'))
   })
 
   it('should format an array of dates with the default separator', () => {
     const dates = [sampleDate, new Date(2023, 4, 16)]
-    const result = formatDate(dates)
+    const result = formatDate(dayjs, dates)
     expect(result).toBe('15/05/2023, 16/05/2023')
   })
 
   it('should format an array of dates with a custom separator', () => {
     const dates = [sampleDate, new Date(2023, 4, 16)]
-    const result = formatDate(dates, 'default', { separator: ' | ' })
+    const result = formatDate(dayjs, dates, 'default', { separator: ' | ' })
     expect(result).toBe('15/05/2023 | 16/05/2023')
   })
 
   it('should format an array of dates with unique filtering enabled', () => {
     const dates = [sampleDate, sampleDate, new Date(2023, 4, 16)]
-    const result = formatDate(dates, 'default', { unique: true })
+    const result = formatDate(dayjs, dates, 'default', { unique: true })
     expect(result).toBe('15/05/2023, 16/05/2023') // Duplicates removed
   })
 
   it('should format an empty date array as an empty string', () => {
-    const result = formatDate([], 'default')
+    const result = formatDate(dayjs, [], 'default')
     expect(result).toBe('')
   })
 
   it('should return an empty string if date is null or undefined', () => {
-    expect(formatDate(null)).toBe('')
-    expect(formatDate(undefined)).toBe('')
+    expect(formatDate(dayjs, null)).toBe('')
+    expect(formatDate(dayjs, undefined)).toBe('')
   })
 
   it('should format a single date with a custom format string', () => {
-    const result = formatDate(sampleDate, 'YYYY/MM/DD')
+    const result = formatDate(dayjs, sampleDate, 'YYYY/MM/DD')
     expect(result).toBe('2023/05/15')
   })
 
   it('should handle an unknown format string as a custom format', () => {
-    const result = formatDate(sampleDate, 'MMMM D, YYYY')
+    const result = formatDate(dayjs, sampleDate, 'MMMM D, YYYY')
     expect(result).toBe(dayjs(sampleDate).format('MMMM D, YYYY'))
   })
 })

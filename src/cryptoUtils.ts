@@ -1,7 +1,10 @@
-import { createHash, randomBytes } from 'node:crypto'
+import { createHash, getRandomValues } from 'node:crypto'
 
 export function hashPassword(password: string) {
-  const salt = randomBytes(16).toString('hex')
+  const salt = Array.from(getRandomValues(new Uint8Array(16)))
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('')
+
   const hash = createHash('sha256').update(password + salt).digest('hex')
   return `${salt}:${hash}`
 }

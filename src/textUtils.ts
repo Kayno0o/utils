@@ -133,15 +133,6 @@ export function getUuidFromIri(iri: string): string | null {
   return match ? match[0] : null
 }
 
-export function minifyUuid(uuid: string): string {
-  return Buffer.from(uuid.replace(/-/g, ''), 'hex').toString('base64').replace(/=+$/, '')
-}
-
-export function expandUuid(minified: string): string {
-  const hex = Buffer.from(minified, 'base64').toString('hex')
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
-}
-
 export function progressBar(value: number, min: number, max: number, { emptyChar = ' ', endChar = ']', fillChar = '=', startChar = '[', tipChar = '', totalChars = 40 } = {}) {
   if (min === max) {
     return value >= max ? startChar + fillChar.repeat(totalChars) + endChar : startChar + emptyChar.repeat(totalChars) + endChar
@@ -174,4 +165,25 @@ export function plural(singular: string): string {
     return `${singular.slice(0, -2)}ves`
 
   return `${singular}s`
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const MINIFIED_REGEX = /^[\w-]+$/
+
+export function minifyUUID(uuid: string): string {
+  if (!UUID_REGEX.test(uuid))
+    throw new Error('Invalid UUID format')
+
+  return Buffer.from(uuid.replace(/-/g, ''), 'hex').toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+}
+
+export function expandUUID(minified: string): string {
+  if (!MINIFIED_REGEX.test(minified))
+    throw new Error('Invalid minified format')
+
+  const hex = Buffer.from(minified.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('hex')
+  if (hex.length !== 32)
+    throw new Error('Invalid minified format')
+
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }

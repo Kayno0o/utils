@@ -1,26 +1,24 @@
-import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
+import { Rules } from '~'
 
 describe('isNumber rule', () => {
-  const rules = getRules()
-
   it('should return true for valid number', () => {
-    const isValid = rules.isNumber('123')
+    const isValid = Rules.isNumber('123')
     expect(isValid).toBe(true)
   })
 
   it('should return error message for invalid number', () => {
-    const isValid = rules.isNumber('abc')
+    const isValid = Rules.isNumber('abc')
     expect(isValid).toBeString()
   })
 
   it('should return true for null value', () => {
-    const isValid = rules.isNumber(null)
+    const isValid = Rules.isNumber(null)
     expect(isValid).toBe(true)
   })
 
   it('should return true for undefined value', () => {
-    const isValid = rules.isNumber(undefined)
+    const isValid = Rules.isNumber(undefined)
     expect(isValid).toBe(true)
   })
 })

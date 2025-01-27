@@ -1,8 +1,7 @@
-import { expandUuid, minifyUuid } from '../index'
+import { expandUUID, Faker, minifyUUID } from '../index'
 
-const uuid = '550e8400-e29b-41d4-a716-446655440000'
-const minified = minifyUuid(uuid)
-console.log('Minified UUID:', minified)
-
-const expanded = expandUuid(minified)
-console.log('Expanded UUID:', expanded)
+const uuid = Faker.datatype.uuidV4()
+const minified = minifyUUID(uuid)
+console.log(uuid)
+console.log(minified)
+console.log(expandUUID(minified))

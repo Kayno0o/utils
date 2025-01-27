@@ -2,11 +2,11 @@ import { defineConfig } from 'tsup'
 
 export default defineConfig({
   clean: true,
-  dts: true, // Generate declaration file (.d.ts)
+  dts: true,
   entry: ['./index.ts'],
-  format: ['cjs', 'esm'], // Build for commonJS and ESmodules
+  format: ['cjs', 'esm'],
   minify: true,
   sourcemap: true,
   splitting: false,
-  target: ['chrome80', 'firefox80', 'node18'],
+  external: ['dayjs', 'ansi-colors'],
 })

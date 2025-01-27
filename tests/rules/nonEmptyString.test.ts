@@ -1,31 +1,29 @@
-import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
+import { Rules } from '~'
 
 describe('nonEmptyString rule', () => {
-  const rules = getRules()
-
   it('should return true for non-empty string', () => {
-    const isValid = rules.nonEmptyString('test')
+    const isValid = Rules.nonEmptyString('test')
     expect(isValid).toBe(true)
   })
 
   it('should return error message for empty string', () => {
-    const isValid = rules.nonEmptyString('')
+    const isValid = Rules.nonEmptyString('')
     expect(isValid).toBeString()
   })
 
   it('should return error message for string with only spaces', () => {
-    const isValid = rules.nonEmptyString('   ')
+    const isValid = Rules.nonEmptyString('   ')
     expect(isValid).toBeString()
   })
 
   it('should return error message for null value', () => {
-    const isValid = rules.nonEmptyString(null)
+    const isValid = Rules.nonEmptyString(null)
     expect(isValid).toBeString()
   })
 
   it('should return error message for undefined value', () => {
-    const isValid = rules.nonEmptyString(undefined)
+    const isValid = Rules.nonEmptyString(undefined)
     expect(isValid).toBeString()
   })
 })

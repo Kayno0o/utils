@@ -1,26 +1,26 @@
-import colors from 'ansi-colors'
+import { colors } from './colors/colors'
 
 export type LogLevel = 'info' | 'success' | 'warning' | 'error'
 interface LogType { char: string, color: (str: string) => string, level: number }
 
 const baseLogTypes: Record<LogLevel, LogType> = {
   error: {
-    char: '⛔',
+    char: 'X',
     color: colors.red,
     level: 0,
   },
   info: {
-    char: '❔',
+    char: '?',
     color: colors.cyan,
     level: 3,
   },
   success: {
-    char: '✅',
+    char: '+',
     color: colors.green,
     level: 2,
   },
   warning: {
-    char: '⚡',
+    char: '!',
     color: colors.yellow,
     level: 1,
   },
@@ -32,7 +32,7 @@ type LoggerOptions<Services extends string | undefined> = {
   logLevel?: LogLevel
   onLog?: (log: string) => void | Promise<void>
 } & (Services extends string
-  ? { serviceColor: Record<Services, colors.StyleFunction> }
+  ? { serviceColor: Record<Services, (value: string) => string> }
   : { serviceColor?: undefined })
 
 type LogFnArgs<
