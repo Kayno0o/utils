@@ -1,28 +1,27 @@
-import type { Dayjs } from 'dayjs'
-import dayjs from 'dayjs'
+import type dayjs from 'dayjs'
 import fr from 'dayjs/locale/fr'
 
-import customParseFormat from 'dayjs/plugin/customParseFormat'
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter'
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import utc from 'dayjs/plugin/utc'
-
-export function configureDayjs(djs: typeof dayjs) {
+export async function configureDayjs(djs: typeof dayjs) {
   djs.locale(fr)
-  djs.extend(utc)
-  djs.extend(isSameOrAfter)
-  djs.extend(isSameOrBefore)
-  djs.extend(customParseFormat)
-  djs.extend(relativeTime)
+
+  const isSameOrAfter = await import('dayjs/plugin/isSameOrAfter')
+  djs.extend(isSameOrAfter.default)
+
+  const isSameOrBefore = await import('dayjs/plugin/isSameOrBefore')
+  djs.extend(isSameOrBefore.default)
+
+  const relativeTime = await import('dayjs/plugin/relativeTime')
+  djs.extend(relativeTime.default)
+
+  const utc = await import('dayjs/plugin/utc')
+  djs.extend(utc.default)
+
+  const customParseFormat = await import('dayjs/plugin/customParseFormat')
+  djs.extend(customParseFormat.default)
 }
 
-configureDayjs(dayjs)
-
-export { dayjs }
-
 type DateFormatType = 'input' | 'shortText' | 'longText' | 'datetime-input' | 'default' | 'datetimeText'
-type SingleDateProp = Date | Dayjs | string
+type SingleDateProp = Date | dayjs.Dayjs | string
 type NullableSingleDateProp = SingleDateProp | null | undefined
 type DateProp = NullableSingleDateProp | NullableSingleDateProp[]
 
@@ -41,10 +40,11 @@ const formats: Record<DateFormatType, string> = {
   'shortText': 'ddd DD/MM',
 }
 
-export function formatDate(date: DateProp, format?: DateFormatType, config?: DateUtilsConfig): string
-export function formatDate(date: DateProp, format?: string, config?: DateUtilsConfig): string
+export function formatDate(djs: typeof dayjs, date: DateProp, format?: DateFormatType, config?: DateUtilsConfig): string
+export function formatDate(djs: typeof dayjs, date: DateProp, format?: string, config?: DateUtilsConfig): string
 
 /**
+ * @param {dayjs} djs
  * @param {DateProp | DateProp[]} date
  * @param {DateFormatType | string} [format]
  * @param {DateUtilsConfig} [config]
@@ -53,9 +53,14 @@ export function formatDate(date: DateProp, format?: string, config?: DateUtilsCo
  * @param {string} [config.separator] the separator to use when joining multiple dates (default: ', ').
  * @returns {string} formatted date(s) as a string.
  */
-export function formatDate(date: DateProp, format: DateFormatType | string = 'default', config: DateUtilsConfig = {}): string {
+export function formatDate(djs: typeof dayjs, date: DateProp, format: DateFormatType | string = 'default', config: DateUtilsConfig = {}): string {
   if (Array.isArray(date)) {
-    const formattedDates = date.filter(d => !!d).map(d => formatDate(d, format, config))
+    const formattedDates = date.reduce((acc, d) => {
+      if (d)
+        acc.push(formatDate(djs, d, format, config))
+
+      return acc
+    }, [] as string[])
     if (config.unique)
       return [...(new Set(formattedDates))].join(config.separator ?? ', ')
     return formattedDates.join(config.separator ?? ', ')
@@ -64,18 +69,19 @@ export function formatDate(date: DateProp, format: DateFormatType | string = 'de
   if (!date)
     return ''
 
-  return (config.utc ? dayjs.utc(date) : dayjs(date)).format(Object.prototype.hasOwnProperty.call(formats, format) ? formats[format as keyof typeof formats] : format)
+  return (config.utc ? djs.utc(date) : djs(date)).format(Object.prototype.hasOwnProperty.call(formats, format) ? formats[format as keyof typeof formats] : format)
 }
 
 /**
+ * @param {dayjs} djs
  * @param {SingleDateProp} date
  * @param {NullableSingleDateProp} start
  * @param {NullableSingleDateProp} end
  * @param {boolean} [utc] formats in utc timezone (default: false).
  * @returns {boolean} true if is between the start and end (inclusive), else false.
  */
-export function isDateBetween(date: SingleDateProp, start: NullableSingleDateProp, end: NullableSingleDateProp, utc = false): boolean {
-  const d = utc ? dayjs.utc(date) : dayjs(date)
+export function isDateBetween(djs: typeof dayjs, date: SingleDateProp, start: NullableSingleDateProp, end: NullableSingleDateProp, utc = false): boolean {
+  const d = utc ? djs.utc(date) : djs(date)
   return (start ? d.isAfter(start) : true) && (end ? d.isBefore(end) : true)
 }
 
@@ -118,9 +124,9 @@ export function getFrenchHolidays(year: number): string[] {
   return Object.values(holidays)
 }
 
-export function isHoliday(date: SingleDateProp): boolean {
-  const holidays = getFrenchHolidays(dayjs(date).year())
-  return holidays.includes(formatDate(date, 'input'))
+export function isHoliday(djs: typeof dayjs, date: SingleDateProp): boolean {
+  const holidays = getFrenchHolidays(djs(date).year())
+  return holidays.includes(formatDate(djs, date, 'input'))
 }
 
 export function stringToMsDuration(duration: string | number): number {
@@ -157,5 +163,3 @@ export function getDaysInMonth(year: number, month: number): number {
 
   return DAYS_IN_MONTH[month - 1]
 }
-
-export { dayjs }

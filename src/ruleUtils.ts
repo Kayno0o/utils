@@ -1,5 +1,3 @@
-import { dayjs, formatDate } from './dateUtils'
-
 export type RuleFunction<T> = (arg: T) => boolean | string
 
 type ValidRuleKeys<T, U> = {
@@ -7,7 +5,7 @@ type ValidRuleKeys<T, U> = {
 }[keyof T]
 
 /** the name of a valid rule based on the return type of getRules */
-export type RulesName<T> = ValidRuleKeys<ReturnType<typeof getRules>, T>
+export type RulesName<T> = ValidRuleKeys<typeof Rules, T>
 
 /** either allow a rule name or a rule function */
 export type RuleType<T> = (RulesName<T> | RuleFunction<T>)[]
@@ -34,156 +32,179 @@ function compareNumber(comparator: 'lt' | 'gt' | 'gte' | 'lte' | 'eq' | 'neq', n
   }
 }
 
-export function getRules() {
-  return {
-    compareNumber,
+export class Rules {
+  static compareNumber = compareNumber
 
-    email: (value?: string | null): boolean | string => {
-      if (!value)
-        return true
+  static email = (value?: string | null): boolean | string => {
+    if (!value)
+      return true
 
-      return /^(?:[^<>()[\]\\.,;:\s@"]+(?:\.[^<>()[\]\\.,;:\s@"]+)*|".+")@(?:\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]|(?:[a-z\-0-9]+\.)+[a-z]{2,})$/i
-        .test(value) || 'Invalid email'
-    },
+    return /^(?:[^<>()[\]\\.,;:\s@"]+(?:\.[^<>()[\]\\.,;:\s@"]+)*|".+")@(?:\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]|(?:[a-z\-0-9]+\.)+[a-z]{2,})$/i
+      .test(value) || 'Invalid email'
+  }
 
-    isAfterDay: (date: Date, include = true) => (value?: Date | null) => {
-      if (!value)
-        return true
+  static isCode = (value?: string | null): boolean | string => {
+    if (!value)
+      return true
 
-      const formattedDate = () => formatDate(date, 'shortText')
-      return (include ? dayjs(value).isSameOrAfter(dayjs(date), 'd') : dayjs(value).isAfter(dayjs(date), 'd'))
-        || (include ? `Date must be on or after ${formattedDate()}` : `Date must be after ${formattedDate()}`)
-    },
+    return /^[a-z_]+$/.test(value) || 'Must contain lowercase letters and underscores only'
+  }
 
-    isAfterToday: (include = true) => (value?: Date | null) => {
-      if (!value)
-        return true
+  static isDateBetweenHours = (minHour = 0, maxHour = 24, include = true) => (date?: Date | null) => {
+    if (!date)
+      return true
 
-      return (include ? dayjs(value).isSameOrAfter(dayjs(), 'd') : dayjs(value).isAfter(dayjs(), 'd'))
-        || (include ? 'Date must be today or later' : 'Date must be after today')
-    },
-
-    isBetweenDays: (minDate: Date, maxDate: Date, include = true) => (value?: Date | null) => {
-      if (!value)
-        return true
-
-      const minFormatted = formatDate(minDate, 'shortText')
-      const maxFormatted = formatDate(maxDate, 'shortText')
-      return (include
-        ? (dayjs(value).isSameOrAfter(dayjs(minDate), 'd') && dayjs(value).isSameOrBefore(dayjs(maxDate), 'd'))
-        : (dayjs(value).isAfter(dayjs(minDate), 'd') && dayjs(value).isBefore(dayjs(maxDate), 'd')))
+    const hour = date.getHours()
+    return (include ? (hour >= minHour && hour <= maxHour) : (hour > minHour && hour < maxHour))
       || (include
-        ? `Date must be between ${minFormatted} and ${maxFormatted}, inclusive`
-        : `Date must be between ${minFormatted} and ${maxFormatted}`)
-    },
+        ? `Time must be between ${minHour}h and ${maxHour}h, inclusive`
+        : `Time must be between ${minHour}h and ${maxHour}h`)
+  }
 
-    isCode: (value?: string | null): boolean | string => {
+  static isInteger = (strict = false) => (value?: string | number | null): boolean | string => {
+    if (value === null || value === undefined)
+      return true
+
+    return (strict ? Number.isInteger(Number(value)) : Math.floor(Number(value)) === Number(value) * 1.0)
+      || 'Must be an integer'
+  }
+
+  static isNumber = (value?: string | number | null): boolean | string => {
+    if (value === null || value === undefined)
+      return true
+
+    return !Number.isNaN(Number(value)) || 'Nombre invalide'
+  }
+
+  static isSlug = (value?: string | null): boolean | string => {
+    if (!value)
+      return true
+
+    return /^[a-z0-9_]+$/.test(value) || 'Must contain lowercase letters, numbers, and underscores only'
+  }
+
+  static isWeekDay = (date?: Date | null) => {
+    if (!date)
+      return true
+
+    return (date.getDay() >= 1 && date.getDay() <= 5) || 'Must be a weekday'
+  }
+
+  static lowercase = (value?: string | null): boolean | string => {
+    if (!value)
+      return true
+
+    return value.toLowerCase() === value || 'Must be lowercase'
+  }
+
+  static max = (nb: number, eq = true) => compareNumber(eq ? 'lte' : 'lt', nb)
+
+  static maxLength = (length: number) =>
+    (value?: string | any[] | null) => {
       if (!value)
         return true
+      return ((value?.length || 0) <= length) || `Max length is ${length} characters`
+    }
 
-      return /^[a-z_]+$/.test(value) || 'Must contain lowercase letters and underscores only'
-    },
+  static min = (nb: number, eq = true) => compareNumber(eq ? 'gte' : 'gt', nb)
 
-    isDateBetweenHours: (minHour = 0, maxHour = 24, include = true) => (date?: Date | null) => {
-      if (!date)
-        return true
-
-      const hour = date.getHours()
-      return (include ? (hour >= minHour && hour <= maxHour) : (hour > minHour && hour < maxHour))
-        || (include
-          ? `Time must be between ${minHour}h and ${maxHour}h, inclusive`
-          : `Time must be between ${minHour}h and ${maxHour}h`)
-    },
-
-    isInteger: (strict = false) => (value?: string | number | null): boolean | string => {
-      if (value === null || value === undefined)
-        return true
-
-      return (strict ? Number.isInteger(Number(value)) : Math.floor(Number(value)) === Number(value) * 1.0)
-        || 'Must be an integer'
-    },
-    isNumber: (value?: string | number | null): boolean | string => {
-      if (value === null || value === undefined)
-        return true
-
-      return !Number.isNaN(Number(value)) || 'Nombre invalide'
-    },
-
-    isSlug: (value?: string | null): boolean | string => {
+  static minLength = (length: number) =>
+    (value?: string | any[] | null) => {
       if (!value)
         return true
+      return ((value?.length || 0) >= length) || `Min length is ${length} characters`
+    }
 
-      return /^[a-z0-9_]+$/.test(value) || 'Must contain lowercase letters, numbers, and underscores only'
-    },
-    isWeekDay: (date?: Date | null) => {
-      if (!date)
-        return true
+  static nonEmptyString = (value?: string | null): boolean | string => {
+    if (!value)
+      return 'Required'
 
-      return (date.getDay() >= 1 && date.getDay() <= 5) || 'Must be a weekday'
-    },
+    return value.trim().length > 0 || 'Required'
+  }
 
-    lowercase: (value?: string | null): boolean | string => {
-      if (!value)
-        return true
+  static nonZero = (value?: number | null): boolean | string => {
+    if (typeof value === 'number')
+      return (value !== 0) || 'Required'
 
-      return value.toLowerCase() === value || 'Must be lowercase'
-    },
+    return !!value || 'Required'
+  }
 
-    max: (nb: number, eq = true) => compareNumber(eq ? 'lte' : 'lt', nb),
+  static phone = (value?: string | number | null): boolean | string => {
+    if (!value)
+      return true
+    return /^(?:\+?33 ?|0)[1-9](?:[-. ]?\d{2}){4}$/.test(value.toString()) || 'Invalid phone number'
+  }
 
-    maxLength: (length: number) =>
-      (value?: string | any[] | null) => {
-        if (!value)
-          return true
-        return ((value?.length || 0) <= length) || `Max length is ${length} characters`
-      },
+  static required = (value?: any): boolean | string => {
+    if (value === undefined || value === null)
+      return 'Required'
 
-    min: (nb: number, eq = true) => compareNumber(eq ? 'gte' : 'gt', nb),
+    if (typeof value === 'number')
+      return true
 
-    minLength: (length: number) =>
-      (value?: string | any[] | null) => {
-        if (!value)
-          return true
-        return ((value?.length || 0) >= length) || `Min length is ${length} characters`
-      },
+    if (Array.isArray(value))
+      return value.length > 0 || 'Required'
 
-    nonEmptyString: (value?: string | null): boolean | string => {
-      if (!value)
-        return 'Required'
-
+    if (typeof value === 'string')
       return value.trim().length > 0 || 'Required'
-    },
 
-    nonZero: (value?: number | null): boolean | string => {
-      if (typeof value === 'number')
-        return (value !== 0) || 'Required'
+    if (typeof value === 'object')
+      return Object.keys(value).length > 0 || 'Required'
 
-      return !!value || 'Required'
-    },
+    return !!value || 'Required'
+  }
 
-    phone: (value?: string | number | null): boolean | string => {
-      if (!value)
-        return true
-      return /^(?:\+?33 ?|0)[1-9](?:[-. ]?\d{2}){4}$/.test(value.toString()) || 'Invalid phone number'
-    },
+  static isAfterDay = (date: Date, include = true) => (value?: Date | null) => {
+    if (!value)
+      return true
 
-    required: (value?: any): boolean | string => {
-      if (value === undefined || value === null)
-        return 'Required'
+    const normalizedDate = new Date(date)
+    normalizedDate.setHours(0, 0, 0, 0)
 
-      if (typeof value === 'number')
-        return true
+    const comparison = include
+      ? value >= normalizedDate
+      : value > normalizedDate
 
-      if (Array.isArray(value))
-        return value.length > 0 || 'Required'
+    return comparison || (include
+      ? `Date must be on or after ${normalizedDate.toDateString()}`
+      : `Date must be after ${normalizedDate.toDateString()}`)
+  }
 
-      if (typeof value === 'string')
-        return value.trim().length > 0 || 'Required'
+  static isAfterToday = (include = true) => (value?: Date | null) => {
+    if (!value)
+      return true
 
-      if (typeof value === 'object')
-        return Object.keys(value).length > 0 || 'Required'
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-      return !!value || 'Required'
-    },
+    const comparison = include
+      ? value >= today
+      : value > today
+
+    return comparison || (include
+      ? 'Date must be today or later'
+      : 'Date must be after today')
+  }
+
+  static isBetweenDays = (minDate: Date, maxDate: Date, include = true) => (value?: Date | null) => {
+    if (!value)
+      return true
+
+    const normalizedMinDate = new Date(minDate)
+    normalizedMinDate.setHours(0, 0, 0, 0)
+
+    const normalizedMaxDate = new Date(maxDate)
+    normalizedMaxDate.setHours(0, 0, 0, 0)
+
+    const comparison = include
+      ? value >= normalizedMinDate && value <= normalizedMaxDate
+      : value > normalizedMinDate && value < normalizedMaxDate
+
+    const minDateStr = normalizedMinDate.toDateString()
+    const maxDateStr = normalizedMaxDate.toDateString()
+
+    return comparison || (include
+      ? `Date must be between ${minDateStr} and ${maxDateStr}, inclusive`
+      : `Date must be between ${minDateStr} and ${maxDateStr}`)
   }
 }

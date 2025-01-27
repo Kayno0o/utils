@@ -1,41 +1,39 @@
-import { getRules } from '~'
 import { describe, expect, test as it } from 'bun:test'
+import { Rules } from '~'
 
 describe('isInteger rule', () => {
-  const rules = getRules()
-
   it('should return true for valid integer (strict mode)', () => {
-    const isValid = rules.isInteger(true)(42)
+    const isValid = Rules.isInteger(true)(42)
     expect(isValid).toBe(true)
   })
 
   it('should return error message for invalid integer (strict mode)', () => {
-    const isValid = rules.isInteger(true)('42.5')
+    const isValid = Rules.isInteger(true)('42.5')
     expect(isValid).toBeString()
   })
 
   it('should return true for valid integer string (non-strict mode)', () => {
-    const isValid = rules.isInteger(false)('42')
+    const isValid = Rules.isInteger(false)('42')
     expect(isValid).toBe(true)
   })
 
   it('should return true for float that is effectively an integer (non-strict mode)', () => {
-    const isValid = rules.isInteger(false)('42.0')
+    const isValid = Rules.isInteger(false)('42.0')
     expect(isValid).toBe(true)
   })
 
   it('should return error message for non-integer string (non-strict mode)', () => {
-    const isValid = rules.isInteger(false)('42.5')
+    const isValid = Rules.isInteger(false)('42.5')
     expect(isValid).toBeString()
   })
 
   it('should return true for null value', () => {
-    const isValid = rules.isInteger()(null)
+    const isValid = Rules.isInteger()(null)
     expect(isValid).toBe(true)
   })
 
   it('should return true for undefined value', () => {
-    const isValid = rules.isInteger()(undefined)
+    const isValid = Rules.isInteger()(undefined)
     expect(isValid).toBe(true)
   })
 })

@@ -1,9 +1,7 @@
-import { Faker } from '../'
+import { Faker } from '../src/fakerUtils'
 
-const faker = new Faker()
-
-console.log(faker.name.username())
-console.log(faker.lorem.sentence())
-console.log(faker.lorem.paragraph())
-console.log(faker.lorem.word())
-console.log(faker.internet.email())
+console.log(Faker.name.username())
+console.log(Faker.lorem.sentence())
+console.log(Faker.lorem.paragraph())
+console.log(Faker.lorem.word())
+console.log(Faker.internet.email())

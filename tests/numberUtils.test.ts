@@ -1,5 +1,5 @@
-import { formatEuro, formatFileSize, formatUnit, map, randomInt, round } from '~'
 import { describe, expect, test as it } from 'bun:test'
+import { formatEuro, formatFileSize, formatUnit, map, randomInt, round } from '~'
 
 describe('randomInt function', () => {
   it('within the specified range', () => {

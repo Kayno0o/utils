@@ -1,5 +1,5 @@
-import { colorFromString, hexToHsl, hexToRgb, hslToHex, opacityColor, randomHex, randomString, rgbToHex } from '~'
 import { describe, expect, test as it } from 'bun:test'
+import { colorFromString, hexToHsl, hexToRgb, hslToHex, opacityColor, randomHex, randomString, rgbToHex } from '~'
 
 describe('hexToRgb function', () => {
   it('hex with # and 3 chars', () => {

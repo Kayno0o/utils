@@ -1,5 +1,5 @@
-import { escapeCSV, escapeRegExp, escapeXml, getInitials, getUuidFromIri, matchingSubstring, matchLength, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify } from '~'
 import { describe, expect, test as it } from 'bun:test'
+import { escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, matchingSubstring, matchLength, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify } from '~'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -374,5 +374,37 @@ describe('plural function', () => {
   it('should handle regular plurals', () => {
     const result = plural('cat')
     expect(result).toEqual('cats')
+  })
+})
+
+describe('minifyUUID & expandUUID functions', () => {
+  const uuid = 'ab8e71cc-6c08-4df6-8996-c1885fa1a9f8'
+  const minified = 'q45xzGwITfaJlsGIX6Gp-A'
+
+  it('should correctly minify a UUID', () => {
+    const result = minifyUUID(uuid)
+    expect(result).toEqual(minified)
+  })
+
+  it('should correctly expand a minified UUID', () => {
+    const result = expandUUID(minified)
+    expect(result).toEqual(uuid)
+  })
+
+  it('should return the same UUID after minifying and re-expanding', () => {
+    const generatedUUID = 'de305d54-75b4-431b-adb2-eb6b9e546014'
+    const result = expandUUID(minifyUUID(generatedUUID))
+    expect(result).toEqual(generatedUUID)
+  })
+
+  it('should throw an error for invalid UUIDs', () => {
+    expect(() => minifyUUID('invalid-uuid')).toThrowError('Invalid UUID format')
+    expect(() => expandUUID('invalid-minified')).toThrowError('Invalid minified format')
+  })
+
+  it('should handle edge cases like uppercase UUIDs', () => {
+    const uppercaseUUID = uuid.toUpperCase()
+    const result = minifyUUID(uppercaseUUID)
+    expect(result).toEqual(minified)
   })
 })

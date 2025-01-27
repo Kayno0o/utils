@@ -24,14 +24,6 @@ export function map(value: number, start1: number, stop1: number, start2: number
 }
 
 /**
- * @deprecated use this function instead:
- * ```ts
- * function formatFileSize(bytes: number, si?: boolean, dp?: number)
- * ```
- */
-export const humanFileSize = formatFileSize
-
-/**
  * Format bytes as human-readable text.
  * @param bytes Number of bytes.
  * @param si True to use metric (SI) units, aka powers of 1000. False to use binary (IEC), aka powers of 1024.
