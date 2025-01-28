@@ -1,16 +1,24 @@
-import { createHash, getRandomValues } from 'node:crypto'
-
-export function hashPassword(password: string) {
-  const salt = Array.from(getRandomValues(new Uint8Array(16)))
+export async function hashPassword(password: string) {
+  const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)))
     .map(byte => byte.toString(16).padStart(2, '0'))
     .join('')
 
-  const hash = createHash('sha256').update(password + salt).digest('hex')
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password + salt)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hash = Array.from(new Uint8Array(hashBuffer))
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('')
   return `${salt}:${hash}`
 }
 
-export function comparePasswords(plaintextPassword: string, hashedPassword: string): boolean {
+export async function comparePasswords(plaintextPassword: string, hashedPassword: string): Promise<boolean> {
   const [salt, originalHash] = hashedPassword.split(':')
-  const hash = createHash('sha256').update(plaintextPassword + salt).digest('hex')
+  const encoder = new TextEncoder()
+  const data = encoder.encode(plaintextPassword + salt)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hash = Array.from(new Uint8Array(hashBuffer))
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('')
   return hash === originalHash
 }
