@@ -1,4 +1,3 @@
-import { Buffer } from 'node:buffer'
 import { randomInt } from './numberUtils'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -174,14 +173,22 @@ export function minifyUUID(uuid: string): string {
   if (!UUID_REGEX.test(uuid))
     throw new Error('Invalid UUID format')
 
-  return Buffer.from(uuid.replace(/-/g, ''), 'hex').toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+  const hex = uuid.replace(/-/g, '')
+  const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map(byte => Number.parseInt(byte, 16)))
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
 }
 
 export function expandUUID(minified: string): string {
   if (!MINIFIED_REGEX.test(minified))
     throw new Error('Invalid minified format')
 
-  const hex = Buffer.from(minified.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('hex')
+  const base64 = minified.replace(/-/g, '+').replace(/_/g, '/')
+  const binary = atob(base64)
+  const hex = Array.from(binary, char => char.charCodeAt(0).toString(16).padStart(2, '0')).join('')
+
   if (hex.length !== 32)
     throw new Error('Invalid minified format')
 
