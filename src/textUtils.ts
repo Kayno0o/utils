@@ -37,25 +37,29 @@ export function escapeRegExp(str: string) {
  * @param {boolean} [options.trim] trim leading/trailing whitespace (default=true).
  * @param {boolean} [options.deduplicate] deduplicate successives `replace` char (default=true)
  */
-export function slugify(str: string, options?: {
+export function slugify(str: string, {
+  deduplicate = true,
+  lower = true,
+  replace = '-',
+  trim = true,
+}: {
   deduplicate?: boolean
   lower?: boolean
   replace?: string
   trim?: boolean
-}): string {
-  const replace = options?.replace ?? '-'
+} = {}): string {
   const regexReplace = escapeRegExp(replace)
 
   let result = normalizeAccents(str)
     .replace(/[^A-Z0-9-]/gi, replace)
 
-  if (options?.deduplicate ?? true)
+  if (deduplicate)
     result = result.replace(new RegExp(`${regexReplace}+`, 'g'), replace)
 
-  if (options?.lower ?? true)
+  if (lower)
     result = result.toLowerCase()
 
-  if (options?.trim ?? true)
+  if (trim)
     result = result.replace(new RegExp(`^${regexReplace}*|${regexReplace}*$`, 'g'), '')
 
   return result
