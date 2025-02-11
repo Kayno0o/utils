@@ -126,7 +126,7 @@ export class Rules {
     if (typeof value === 'number')
       return (value !== 0) || 'Required'
 
-    return !!value || 'Required'
+    return Boolean(value) || 'Required'
   }
 
   static phone = (value?: string | number | null): boolean | string => {
@@ -151,7 +151,7 @@ export class Rules {
     if (typeof value === 'object')
       return Object.keys(value).length > 0 || 'Required'
 
-    return !!value || 'Required'
+    return Boolean(value) || 'Required'
   }
 
   static isAfterDay = (date: Date, include = true) => (value?: Date | null) => {
