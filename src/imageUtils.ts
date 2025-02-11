@@ -15,7 +15,7 @@ export function getPlaceholderUrl(props: {
     text: props.text ? encodeURI(props.text.replaceAll(' ', '+').replaceAll('\n', '\\n')) : undefined,
   })
 
-  const path = [props.backgroundColor, props.color, props.format].filter(v => !!v).join('/')
+  const path = [props.backgroundColor, props.color, props.format].filter(v => Boolean(v)).join('/')
 
   return `https://placehold.co/${props.width ?? 100}x${props.height ?? 100}${path ? `/${path}` : ''}${queryString}`
 }
