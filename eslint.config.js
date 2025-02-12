@@ -1,3 +1,3 @@
-import eslint from './src/eslint.js'
+import eslint from '@kaynooo/eslint'
 
 export default eslint.typescript
