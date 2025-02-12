@@ -50,12 +50,5 @@
     "pcss",
     "postcss",
     "github-actions-workflow"
-  ],
-
-  "conventionalCommits.scopes": [
-    "eslint",
-    "doc",
-    "workflow",
-    "npm"
   ]
 }
