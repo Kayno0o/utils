@@ -198,3 +198,22 @@ export function expandUUID(minified: string): string {
 
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
+
+export function toCase(str: string | string[]): string[] {
+  if (Array.isArray(str))
+    return str
+
+  const words = str.match(/[A-Z][a-z]+|[a-z]+/g)
+  if (!words)
+    return []
+  return words.map(word => word.toLowerCase())
+}
+
+export type CaseType = 'kebab' | 'snake' | 'camel' | 'pascal' | 'constant' | 'title'
+
+export const toKebabCase = (str: string | string[]): string => toCase(str).join('-')
+export const toSnakeCase = (str: string | string[]): string => toCase(str).join('_')
+export const toCamelCase = (str: string | string[]): string => toCase(str).map((w, i) => i === 0 ? w : firstUpper(w)).join('')
+export const toPascalCase = (str: string | string[]): string => toCase(str).map(firstUpper).join('')
+export const toConstantCase = (str: string | string[]): string => toCase(str).map(w => w.toUpperCase()).join('_')
+export const toTitleCase = (str: string | string[]): string => toCase(str).map(firstUpper).join(' ')
