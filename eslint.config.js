@@ -1,3 +1,3 @@
-import eslint from '@kaynooo/eslint'
+import { typescript } from '@kaynooo/eslint'
 
-export default eslint.typescript
+export default typescript()
