@@ -137,7 +137,7 @@ export function stringToMsDuration(duration: string | number): number {
   if (!match)
     return 0
 
-  const [_, time, unit] = match
+  const [, time, unit] = match
   let factor = 1
   if (unit === 'm')
     factor = 60

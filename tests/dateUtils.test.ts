@@ -2,8 +2,8 @@ import { describe, expect, test as it } from 'bun:test'
 import dayjs from 'dayjs'
 import { calculateEaster, configureDayjs, formatDate, getFrenchHolidays, isDateBetween, isHoliday, stringToMsDuration } from '../src/dateUtils'
 
-describe('isDateBetween function', () => {
-  configureDayjs(dayjs)
+describe('isDateBetween function', async () => {
+  await configureDayjs(dayjs)
 
   it('should return true if the date is between start and end', () => {
     const result = isDateBetween(dayjs, '2023-05-15', '2023-05-01', '2023-05-30')
