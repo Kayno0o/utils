@@ -1,7 +1,7 @@
 import type { Buffer } from 'node:buffer'
 import type { DiscordWebhookPayload } from './discord'
 
-export async function sendWebhook(url: string, payload: DiscordWebhookPayload, files: { buffer: Buffer, filename: string }[]): Promise<any> {
+export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPayload, files: { buffer: Buffer, filename: string }[]): Promise<any> {
   const formData = new FormData()
 
   formData.append('payload_json', JSON.stringify(payload))
