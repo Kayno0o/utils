@@ -201,12 +201,17 @@ export function expandUUID(minified: string): string {
 
 export function toCase(str: string | string[]): string[] {
   if (Array.isArray(str))
-    return str
+    return str.map(s => s.toLowerCase())
 
-  const words = str.match(/[A-Z][a-z]+|[a-z]+/g)
-  if (!words)
-    return []
-  return words.map(word => word.toLowerCase())
+  // Replace separators with space, then match all word segments
+  const normalized = str
+    .replace(/[_\-]+/g, ' ') // snake_case / kebab-case -> space
+    .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase -> camel Case
+    .replace(/\s+/g, ' ') // collapse multiple spaces
+    .trim()
+
+  const words = normalized.match(/[a-z0-9]+/gi)
+  return words ? words.map(w => w.toLowerCase()) : []
 }
 
 export type CaseType = 'kebab' | 'snake' | 'camel' | 'pascal' | 'constant' | 'title'

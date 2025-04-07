@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, matchingSubstring, matchLength, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify } from '~'
+import { escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, matchingSubstring, matchLength, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamelCase, toCase, toConstantCase, toKebabCase, toPascalCase, toSnakeCase, toTitleCase } from '~'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -406,5 +406,163 @@ describe('minifyUUID & expandUUID functions', () => {
     const uppercaseUUID = uuid.toUpperCase()
     const result = minifyUUID(uppercaseUUID)
     expect(result).toEqual(minified)
+  })
+})
+
+describe('toCase function', () => {
+  it('converts camelCase', () => {
+    expect(toCase('someVariableName')).toEqual(['some', 'variable', 'name'])
+  })
+
+  it('converts PascalCase', () => {
+    expect(toCase('SomeVariableName')).toEqual(['some', 'variable', 'name'])
+  })
+
+  it('converts kebab-case', () => {
+    expect(toCase('kebab-case-input')).toEqual(['kebab', 'case', 'input'])
+  })
+
+  it('converts snake_case', () => {
+    expect(toCase('snake_case_input')).toEqual(['snake', 'case', 'input'])
+  })
+
+  it('handles space-separated input', () => {
+    expect(toCase('already spaced out')).toEqual(['already', 'spaced', 'out'])
+  })
+
+  it('handles multiple separators and extra whitespace', () => {
+    expect(toCase(' messy___input--With   Stuff')).toEqual(['messy', 'input', 'with', 'stuff'])
+  })
+
+  it('returns lowercase words from array input', () => {
+    expect(toCase(['One', 'TWO', 'Three'])).toEqual(['one', 'two', 'three'])
+  })
+
+  it('returns empty array on empty string', () => {
+    expect(toCase('')).toEqual([])
+  })
+
+  it('returns empty array on string with no words', () => {
+    expect(toCase('---__  ')).toEqual([])
+  })
+})
+
+describe('Case conversion functions', () => {
+  const cases: [string, string][] = [
+    ['hello world example', 'hello-world-example'],
+    ['HelloWorldExample', 'hello-world-example'],
+    ['snake_case_example', 'snake-case-example'],
+    ['kebab-case-example', 'kebab-case-example'],
+    [' already_mixedCase-Example__ ', 'already-mixed-case-example'],
+  ]
+
+  it.each(cases)('toKebabCase - "%s"', (input, expected) => {
+    expect(toKebabCase(input)).toBe(expected)
+  })
+
+  it.each(cases)('toSnakeCase - "%s"', (input, expected) => {
+    expect(toSnakeCase(input)).toBe(expected.replace(/-/g, '_'))
+  })
+
+  it.each(cases)('toCamelCase - "%s"', (input, expected) => {
+    const parts = expected.split('-')
+    const expectedCamel = parts[0] + parts.slice(1).map(w => w[0].toUpperCase() + w.slice(1)).join('')
+    expect(toCamelCase(input)).toBe(expectedCamel)
+  })
+
+  it.each(cases)('toPascalCase - "%s"', (input, expected) => {
+    const expectedPascal = expected
+      .split('-')
+      .map(w => w[0].toUpperCase() + w.slice(1))
+      .join('')
+    expect(toPascalCase(input)).toBe(expectedPascal)
+  })
+
+  it.each(cases)('toConstantCase - "%s"', (input, expected) => {
+    expect(toConstantCase(input)).toBe(expected.replace(/-/g, '_').toUpperCase())
+  })
+
+  it.each(cases)('toTitleCase - "%s"', (input, expected) => {
+    const expectedTitle = expected
+      .split('-')
+      .map(w => w[0].toUpperCase() + w.slice(1))
+      .join(' ')
+    expect(toTitleCase(input)).toBe(expectedTitle)
+  })
+
+  it('handles string[] input consistently across converters', () => {
+    const arrayInput = ['one', 'TWO', 'Three']
+
+    expect(toKebabCase(arrayInput)).toBe('one-two-three')
+    expect(toSnakeCase(arrayInput)).toBe('one_two_three')
+    expect(toCamelCase(arrayInput)).toBe('oneTwoThree')
+    expect(toPascalCase(arrayInput)).toBe('OneTwoThree')
+    expect(toConstantCase(arrayInput)).toBe('ONE_TWO_THREE')
+    expect(toTitleCase(arrayInput)).toBe('One Two Three')
+  })
+})
+
+const inputVariants = {
+  kebab: 'hello-world-example',
+  snake: 'hello_world_example',
+  camel: 'helloWorldExample',
+  pascal: 'HelloWorldExample',
+  constant: 'HELLO_WORLD_EXAMPLE',
+  title: 'Hello World Example',
+}
+
+describe('Case conversion between formats', () => {
+  it('converts from kebab-case to all formats', () => {
+    const input = inputVariants.kebab
+    expect(toSnakeCase(input)).toBe('hello_world_example')
+    expect(toCamelCase(input)).toBe('helloWorldExample')
+    expect(toPascalCase(input)).toBe('HelloWorldExample')
+    expect(toConstantCase(input)).toBe('HELLO_WORLD_EXAMPLE')
+    expect(toTitleCase(input)).toBe('Hello World Example')
+  })
+
+  it('converts from snake_case to all formats', () => {
+    const input = inputVariants.snake
+    expect(toKebabCase(input)).toBe('hello-world-example')
+    expect(toCamelCase(input)).toBe('helloWorldExample')
+    expect(toPascalCase(input)).toBe('HelloWorldExample')
+    expect(toConstantCase(input)).toBe('HELLO_WORLD_EXAMPLE')
+    expect(toTitleCase(input)).toBe('Hello World Example')
+  })
+
+  it('converts from camelCase to all formats', () => {
+    const input = inputVariants.camel
+    expect(toKebabCase(input)).toBe('hello-world-example')
+    expect(toSnakeCase(input)).toBe('hello_world_example')
+    expect(toPascalCase(input)).toBe('HelloWorldExample')
+    expect(toConstantCase(input)).toBe('HELLO_WORLD_EXAMPLE')
+    expect(toTitleCase(input)).toBe('Hello World Example')
+  })
+
+  it('converts from PascalCase to all formats', () => {
+    const input = inputVariants.pascal
+    expect(toKebabCase(input)).toBe('hello-world-example')
+    expect(toSnakeCase(input)).toBe('hello_world_example')
+    expect(toCamelCase(input)).toBe('helloWorldExample')
+    expect(toConstantCase(input)).toBe('HELLO_WORLD_EXAMPLE')
+    expect(toTitleCase(input)).toBe('Hello World Example')
+  })
+
+  it('converts from CONSTANT_CASE to all formats', () => {
+    const input = inputVariants.constant
+    expect(toKebabCase(input)).toBe('hello-world-example')
+    expect(toSnakeCase(input)).toBe('hello_world_example')
+    expect(toCamelCase(input)).toBe('helloWorldExample')
+    expect(toPascalCase(input)).toBe('HelloWorldExample')
+    expect(toTitleCase(input)).toBe('Hello World Example')
+  })
+
+  it('converts from Title Case to all formats', () => {
+    const input = inputVariants.title
+    expect(toKebabCase(input)).toBe('hello-world-example')
+    expect(toSnakeCase(input)).toBe('hello_world_example')
+    expect(toCamelCase(input)).toBe('helloWorldExample')
+    expect(toPascalCase(input)).toBe('HelloWorldExample')
+    expect(toConstantCase(input)).toBe('HELLO_WORLD_EXAMPLE')
   })
 })
