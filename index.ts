@@ -1,10 +1,10 @@
 export * from './src/arrayUtils'
 export * from './src/clipboardUtils'
-
 export * from './src/colors/colors'
 export * from './src/colorUtils'
 export * from './src/cryptoUtils'
 export * from './src/dateUtils'
+export * from './src/discordUtils'
 export * from './src/downloadUtils'
 export * from './src/endpointUtils'
 export * from './src/fakerUtils'
