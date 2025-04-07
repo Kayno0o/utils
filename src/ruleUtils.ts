@@ -97,6 +97,23 @@ export class Rules {
     return value.toLowerCase() === value || 'Must be lowercase'
   }
 
+  static isUrl = (str: string, secured = false): true | string => {
+    try {
+      const url = new URL(str)
+
+      if (secured && url.protocol !== 'https:')
+        return 'URL must use HTTPS'
+
+      if (!['http:', 'https:'].includes(url.protocol))
+        return 'Must be an HTTP or HTTPS URL'
+
+      return true
+    }
+    catch {
+      return 'Must be a valid URL'
+    }
+  }
+
   static max = (nb: number, eq = true) => compareNumber(eq ? 'lte' : 'lt', nb)
 
   static maxLength = (length: number) =>
