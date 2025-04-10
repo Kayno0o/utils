@@ -68,16 +68,14 @@ await suite([
   ['randomInt:crypto', () => randomInt(1, 100, true)],
 ], 1_000_000)
 
-const faker = new Faker()
-
 await suite([
-  ['faker.text:paragraph:50', () => faker.lorem({ isCrypto: false, length: 50, type: 'paragraph' })],
-  ['faker.text:paragraph:50:crypto', () => faker.lorem({ isCrypto: true, length: 50, type: 'paragraph' })],
+  ['faker.text:paragraph:50', () => Faker.lorem({ isCrypto: false, length: 50, type: 'paragraph' })],
+  ['faker.text:paragraph:50:crypto', () => Faker.lorem({ isCrypto: true, length: 50, type: 'paragraph' })],
 ])
 
 await suite([
-  ['faker.uuidV4', () => faker.datatype.uuidV4()],
-  ['faker.uuidV4:crypto', () => faker.datatype.uuidV4(true)],
+  ['faker.uuidV4', () => Faker.datatype.uuidV4()],
+  ['faker.uuidV4:crypto', () => Faker.datatype.uuidV4(true)],
 ], 10_000)
 
 await suite([
