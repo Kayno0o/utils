@@ -1,5 +1,8 @@
 type Style = [start: number, end: number]
 
+type StyleKeys = keyof typeof styleMap
+type ColorsType = ((value: string) => string) & { [K in StyleKeys]: ColorsType }
+
 const styleMap = {
   reset: [0, 0],
   bold: [1, 22],
@@ -49,34 +52,25 @@ const styleMap = {
   bgWhiteBright: [107, 49],
 } satisfies Record<string, Style>
 
-type StyleKeys = keyof typeof styleMap
-type ColorsType = ((value: string) => string) & { [K in StyleKeys]: ColorsType }
+const ANSI = '\u001B['
 
-class ColorBuilder {
-  constructor(private styles: Style[] = []) {}
-
-  public apply = (value: string): string => {
-    const open = this.styles.map(style => `\u001B[${style[0]}m`).join('')
-    const close = [...this.styles].reverse().map(style => `\u001B[${style[1]}m`).join('')
-    return `${open}${value}${close}`
-  }
-
-  public addStyle(style: Style): ColorBuilder {
-    return new ColorBuilder([...this.styles, style])
-  }
+function applyStyles(styles: Style[], value: string): string {
+  const open = styles.map(style => `${ANSI}${style[0]}m`).join('')
+  const close = styles.map(style => `${ANSI}${style[1]}m`).reverse().join('')
+  return `${open}${value}${close}`
 }
 
-function makeProxy(builder: ColorBuilder): ColorsType {
-  const fn = (value: string) => builder.apply(value)
-  const proxy = new Proxy(fn, {
+function makeProxy(styles: Style[] = []): ColorsType {
+  const fn = (val: string) => applyStyles(styles, val)
+
+  return new Proxy(fn, {
     get(_, prop: string) {
-      if (prop in styleMap) {
-        return makeProxy(builder.addStyle(styleMap[prop as StyleKeys]))
-      }
-      throw new Error(`Unknown style: ${prop}`)
+      const style = styleMap[prop as StyleKeys]
+      if (!style)
+        throw new Error(`Unknown style: ${prop}`)
+      return makeProxy([...styles, style])
     },
-  })
-  return proxy as ColorsType
+  }) as ColorsType
 }
 
-export const colors = makeProxy(new ColorBuilder())
+export const colors = makeProxy()
