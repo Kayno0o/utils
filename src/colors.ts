@@ -1,7 +1,17 @@
-type Style = [start: number, end: number]
+type Style = [start: number | string, end: number | string]
 
 type StyleKeys = keyof typeof styleMap
-type ColorsType = ((value: string) => string) & { [K in StyleKeys]: ColorsType }
+type ColorsType = (
+  (value: string) => string
+) & {
+  [K in StyleKeys]: ColorsType
+} & {
+  rgb: (r: number, g: number, b: number) => ColorsType
+  bgRgb: (r: number, g: number, b: number) => ColorsType
+}
+
+const FG = 39
+const BG = 49
 
 const styleMap = {
   reset: [0, 0],
@@ -13,43 +23,43 @@ const styleMap = {
   hidden: [8, 28],
   strikethrough: [9, 29],
 
-  black: [30, 39],
-  red: [31, 39],
-  green: [32, 39],
-  yellow: [33, 39],
-  blue: [34, 39],
-  magenta: [35, 39],
-  cyan: [36, 39],
-  white: [37, 39],
-  gray: [90, 39],
-  grey: [90, 39],
+  black: [30, FG],
+  red: [31, FG],
+  green: [32, FG],
+  yellow: [33, FG],
+  blue: [34, FG],
+  magenta: [35, FG],
+  cyan: [36, FG],
+  white: [37, FG],
+  gray: [90, FG],
+  grey: [90, FG],
 
-  bgBlack: [40, 49],
-  bgRed: [41, 49],
-  bgGreen: [42, 49],
-  bgYellow: [43, 49],
-  bgBlue: [44, 49],
-  bgMagenta: [45, 49],
-  bgCyan: [46, 49],
-  bgWhite: [47, 49],
+  blackBright: [90, FG],
+  redBright: [91, FG],
+  greenBright: [92, FG],
+  yellowBright: [93, FG],
+  blueBright: [94, FG],
+  magentaBright: [95, FG],
+  cyanBright: [96, FG],
+  whiteBright: [97, FG],
 
-  blackBright: [90, 39],
-  redBright: [91, 39],
-  greenBright: [92, 39],
-  yellowBright: [93, 39],
-  blueBright: [94, 39],
-  magentaBright: [95, 39],
-  cyanBright: [96, 39],
-  whiteBright: [97, 39],
+  bgBlack: [40, BG],
+  bgRed: [41, BG],
+  bgGreen: [42, BG],
+  bgYellow: [43, BG],
+  bgBlue: [44, BG],
+  bgMagenta: [45, BG],
+  bgCyan: [46, BG],
+  bgWhite: [47, BG],
 
-  bgBlackBright: [100, 49],
-  bgRedBright: [101, 49],
-  bgGreenBright: [102, 49],
-  bgYellowBright: [103, 49],
-  bgBlueBright: [104, 49],
-  bgMagentaBright: [105, 49],
-  bgCyanBright: [106, 49],
-  bgWhiteBright: [107, 49],
+  bgBlackBright: [100, BG],
+  bgRedBright: [101, BG],
+  bgGreenBright: [102, BG],
+  bgYellowBright: [103, BG],
+  bgBlueBright: [104, BG],
+  bgMagentaBright: [105, BG],
+  bgCyanBright: [106, BG],
+  bgWhiteBright: [107, BG],
 } satisfies Record<string, Style>
 
 const ANSI = '\u001B['
@@ -72,10 +82,15 @@ function makeProxy(styles: Style[] = []): ColorsType {
 
   return new Proxy(fn, {
     get(_, prop: string) {
-      const style = styleMap[prop as StyleKeys]
-      if (!style)
-        throw new Error(`Unknown style: ${prop}`)
-      return makeProxy([...styles, style])
+      if (prop === 'rgb') {
+        return (r: number, g: number, b: number) =>
+          makeProxy([...styles, [`38;2;${r};${g};${b}`, FG]])
+      }
+      if (prop === 'bgRgb') {
+        return (r: number, g: number, b: number) =>
+          makeProxy([...styles, [`48;2;${r};${g};${b}`, BG]])
+      }
+      return makeProxy([...styles, styleMap[prop as StyleKeys]])
     },
   }) as ColorsType
 }
