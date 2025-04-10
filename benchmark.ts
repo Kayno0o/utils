@@ -1,12 +1,14 @@
 import { performance } from 'node:perf_hooks'
 import { heapStats } from 'bun:jsc'
-import chalk from 'chalk'
-import { progressBar, randomHex, randomInt, range, searchOne } from './'
+import { colors, progressBar, randomHex, randomInt, range, searchOne } from './index'
 import { Faker } from './src/fakerUtils'
+import { randomString } from './src/textUtils'
 
 interface BenchmarkOptions {
-  iterations: number
+  iterations?: number
   verbose?: boolean
+  /** in ms */
+  warmup?: number
 }
 
 async function warmup(callback: () => any | Promise<any>, duration = 1000) {
@@ -19,12 +21,12 @@ async function warmup(callback: () => any | Promise<any>, duration = 1000) {
 async function benchmark(
   name: string,
   callback: () => any | Promise<any>,
-  { iterations, verbose = true }: BenchmarkOptions,
+  { iterations = 1_000, verbose = true, warmup: warmupMs = 1_000 }: BenchmarkOptions,
 ) {
   if (verbose)
-    console.log(chalk.cyan.bold('[Benchmark]'), name)
+    console.log(colors.cyan.bold('[Benchmark]'), name)
 
-  await warmup(callback, 300)
+  await warmup(callback, warmupMs)
 
   const memBefore = process.memoryUsage.rss()
   let peakMem = memBefore
@@ -44,8 +46,8 @@ async function benchmark(
   const heapAfter = heapStats()
 
   if (verbose) {
-    console.log(chalk.green('[Time]   '), `${timeTaken.toFixed(2)} ms`)
-    console.log(chalk.green('[Memory] '), `${(memAfter / 1024 / 1024).toFixed(2)} MB`)
+    console.log(colors.green('[Time]   '), `${timeTaken.toFixed(2)} ms`)
+    console.log(colors.green('[Memory] '), `${(memAfter / 1024 / 1024).toFixed(2)} MB`)
   }
 
   return {
@@ -57,7 +59,7 @@ async function benchmark(
 
 async function suite(
   benchmarks: [string, () => any | Promise<any>][],
-  iterations: number,
+  options: BenchmarkOptions = {},
 ) {
   const search = process.argv.slice(2).join(' ')
   benchmarks = benchmarks.filter(([name]) => searchOne(search, name))
@@ -71,29 +73,26 @@ async function suite(
   }[] = []
 
   for (const [name, callback] of benchmarks) {
-    const { timeTaken, peakMemoryMB } = await benchmark(name, callback, {
-      iterations,
-      verbose: false,
-    })
+    const { timeTaken, peakMemoryMB } = await benchmark(name, callback, options)
     results.push({ name, timeTaken, peakMemoryMB })
   }
 
   const maxTime = Math.max(...results.map(result => result.timeTaken))
 
-  console.log(chalk.magenta.bold('\n[Comparison]'))
+  console.log(colors.magenta.bold('\n[Comparison]'))
 
   for (const result of results) {
-    const timeColor = [chalk.green, chalk.red][Number(result.timeTaken === maxTime)]
+    const timeColor = [colors.green, colors.red][Number(result.timeTaken === maxTime)]
 
-    console.log(chalk.yellow.bold(result.name))
+    console.log(colors.yellow.bold(result.name))
     console.log(
-      chalk.blue('[Time]   '),
+      colors.blue('[Time]   '),
       progressBar(result.timeTaken, 0, maxTime),
-      timeColor(`${(result.timeTaken / iterations).toFixed(3)} ms`),
+      timeColor(`${(result.timeTaken / (options.iterations ?? 1_000)).toFixed(3)} ms`),
     )
     console.log(
-      chalk.blue('[Memory] '),
-      chalk.gray(`~${result.peakMemoryMB} MB`),
+      colors.blue('[Memory] '),
+      colors.gray(`~${result.peakMemoryMB} MB`),
     )
   }
 }
@@ -103,26 +102,34 @@ console.clear()
 await suite([
   ['randomInt', () => randomInt(1, 100, false)],
   ['randomInt:crypto', () => randomInt(1, 100, true)],
-], 1_000_000)
+], { iterations: 1_000_000 })
 
 await suite([
   ['faker.text:paragraph:50', () => Faker.lorem({ isCrypto: false, length: 50, type: 'paragraph' })],
   ['faker.text:paragraph:50:crypto', () => Faker.lorem({ isCrypto: true, length: 50, type: 'paragraph' })],
-], 1_000)
+], { iterations: 1_000 })
 
 await suite([
   ['faker.uuidV4', () => Faker.datatype.uuidV4()],
   ['faker.uuidV4:crypto', () => Faker.datatype.uuidV4(true)],
-], 10_000)
+], { iterations: 10_000 })
 
 await suite([
   ['randomHex', () => randomHex()],
   ['randomHex:crypto', () => randomHex(true)],
-], 1_000_000)
+], { iterations: 1_000_000 })
 
 await suite([
   ['range:10', () => range(10)],
   ['range:90-100', () => range(90, 100)],
-], 1_000_000)
+], { iterations: 1_000_000 })
+
+const s = randomString(10_000)
+await suite([
+  ['colors', () => colors.red([`red`, colors.bold(s)].join(' '))],
+  ['colors', () => colors.red([`red`, colors.bold(s)].join(' '))],
+  ['colors', () => colors.red(`red ${colors.bold(s)}`)],
+  ['colors', () => `${colors.red('red')} ${colors.red.bold(s)}`],
+], { iterations: 1_000 })
 
 console.log()
