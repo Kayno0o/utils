@@ -1,17 +1,19 @@
-type Style = [start: number | string, end: number | string]
+import type { FunctionKeys, NonFunctionKeys } from './types'
+import { hexToRgb } from './colorUtils'
 
-type StyleKeys = keyof typeof styleMap
-type ColorsType = (
-  (value: string) => string
-) & {
-  [K in StyleKeys]: ColorsType
-} & {
-  rgb: (r: number, g: number, b: number) => ColorsType
-  bgRgb: (r: number, g: number, b: number) => ColorsType
-}
+type Style = [start: number | string, end: number | string]
+type StyleMap = typeof styleMap
+
+type ColorsType =
+  ((value: string) => string) &
+  { [K in NonFunctionKeys<StyleMap>]: ColorsType } &
+  { [K in FunctionKeys<StyleMap>]: StyleMap[K] extends (...args: infer A) => Style ? (...args: A) => ColorsType : never }
+
+type Appearance = 'fg' | 'bg'
 
 const FG = 39
 const BG = 49
+const ANSI = '\u001B['
 
 const styleMap = {
   reset: [0, 0],
@@ -60,9 +62,15 @@ const styleMap = {
   bgMagentaBright: [105, BG],
   bgCyanBright: [106, BG],
   bgWhiteBright: [107, BG],
-} satisfies Record<string, Style>
 
-const ANSI = '\u001B['
+  rgb: (r: number, g: number, b: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as Style,
+  hex: (hex: string, type: Appearance = 'fg') => {
+    const [r, g, b] = hexToRgb(hex)
+    return [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as Style
+  },
+
+  ansi256: (code: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};5;${code}`, type === 'fg' ? FG : BG],
+} satisfies Record<string, Style | ((...args: any) => Style)>
 
 function applyStyles(styles: Style[], value: string): string {
   let open = ''
@@ -81,16 +89,16 @@ function makeProxy(styles: Style[] = []): ColorsType {
   const fn = (val: string) => applyStyles(styles, val)
 
   return new Proxy(fn, {
-    get(_, prop: string) {
-      if (prop === 'rgb') {
-        return (r: number, g: number, b: number) =>
-          makeProxy([...styles, [`38;2;${r};${g};${b}`, FG]])
-      }
-      if (prop === 'bgRgb') {
-        return (r: number, g: number, b: number) =>
-          makeProxy([...styles, [`48;2;${r};${g};${b}`, BG]])
-      }
-      return makeProxy([...styles, styleMap[prop as StyleKeys]])
+    get(_, prop: keyof ColorsType) {
+      const val = styleMap[prop as keyof typeof styleMap]
+
+      if (Array.isArray(val))
+        return makeProxy([...styles, val as Style])
+
+      if (typeof val === 'function')
+        return (...args: any) => makeProxy([...styles, (val as any)(...args) as Style])
+
+      throw new Error(`Unknown style: ${String(prop)}`)
     },
   }) as ColorsType
 }

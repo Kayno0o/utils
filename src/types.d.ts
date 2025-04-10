@@ -40,3 +40,6 @@ export type RecursivePartial<T> = {
     T[P] extends object | undefined ? RecursivePartial<T[P]> :
       T[P];
 }
+
+export type FunctionKeys<T> = { [K in keyof T]: T[K] extends (...args: any[]) => Style ? K : never }[keyof T]
+export type NonFunctionKeys<T> = { [K in keyof T]: T[K] extends (...args: any[]) => Style ? never : K }[keyof T]
