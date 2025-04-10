@@ -43,26 +43,21 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@kaynooo/eslint": "^1.1.3",
     "dayjs": "^1.11.13"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.11.0",
+    "@kaynooo/eslint": "^1.1.3",
     "@types/bun": "^1.2.8",
-    "ansi-colors": "^4.1.3",
     "eslint": "^9.24.0",
-    "eslint-plugin-format": "^1.0.1",
-    "eslint-plugin-github": "^6.0.0",
     "lint-staged": "^15.5.0",
-    "microtime": "^3.1.1",
     "tsup": "^8.4.0",
     "typedoc": "^0.28.2",
     "typedoc-github-theme": "^0.3.0",
     "typescript": "^5.8.3"
   },
   "directories": {
-    "example": "examples",
-    "test": "tests"
+    "example": "./examples",
+    "test": "./tests"
   },
   "lint-staged": {
     "*": "eslint --fix"
