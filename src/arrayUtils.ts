@@ -19,3 +19,7 @@ export function shuffleArray(array: any[]) {
     [array[i], array[j]] = [array[j], array[i]]
   }
 }
+
+export function toArray<T>(value: T | T[]): T[] {
+  return Array.isArray(value) ? value : [value]
+}
