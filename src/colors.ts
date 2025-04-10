@@ -55,9 +55,16 @@ const styleMap = {
 const ANSI = '\u001B['
 
 function applyStyles(styles: Style[], value: string): string {
-  const open = styles.map(style => `${ANSI}${style[0]}m`).join('')
-  const close = styles.map(style => `${ANSI}${style[1]}m`).reverse().join('')
-  return `${open}${value}${close}`
+  let open = ''
+  let close = ''
+
+  for (let i = 0, len = styles.length; i < len; i++) {
+    const [start, end] = styles[i]
+    open += `${ANSI}${start}m`
+    close = `${ANSI}${end}m${close}`
+  }
+
+  return open + value + close
 }
 
 function makeProxy(styles: Style[] = []): ColorsType {
