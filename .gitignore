@@ -178,3 +178,4 @@ dist
 .npmrc
 
 latest.log
+bun.xml
