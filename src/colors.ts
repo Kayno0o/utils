@@ -1,3 +1,4 @@
+import type { FunctionKeys, NonFunctionKeys } from '../types'
 import { hexToRgb } from './color'
 
 type Style = [start: number | string, end: number | string]

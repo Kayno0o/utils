@@ -1,22 +1,18 @@
-export {}
-
-declare global {
-  interface DiscordWebhookPayload {
-    allowed_mentions?: any // allowed mention object (type needs to be defined)
-    applied_tags?: string[] // array of tag ids to apply to the thread
-    attachments?: DiscordWebhookAttachment[] // array of partial attachment objects
-    avatar_url?: string // override the default avatar of the webhook
-    components?: any[] // array of message component (type needs to be defined)
-    content?: string // the message contents (up to 2000 characters)
-    embeds?: DiscordWebhookEmbed[] // array of up to 10 embed objects
-    files?: any[] // file contents (type needs to be defined)
-    flags?: number // message flags combined as a bitfield
-    payload_json?: string // JSON encoded body of non-file params
-    poll?: any // poll request object (type needs to be defined)
-    thread_name?: string // name of thread to create
-    tts?: boolean // true if this is a TTS message
-    username?: string // override the default username of the webhook
-  }
+export interface DiscordWebhookPayload {
+  allowed_mentions?: any // allowed mention object (type needs to be defined)
+  applied_tags?: string[] // array of tag ids to apply to the thread
+  attachments?: DiscordWebhookAttachment[] // array of partial attachment objects
+  avatar_url?: string // override the default avatar of the webhook
+  components?: any[] // array of message component (type needs to be defined)
+  content?: string // the message contents (up to 2000 characters)
+  embeds?: DiscordWebhookEmbed[] // array of up to 10 embed objects
+  files?: any[] // file contents (type needs to be defined)
+  flags?: number // message flags combined as a bitfield
+  payload_json?: string // JSON encoded body of non-file params
+  poll?: any // poll request object (type needs to be defined)
+  thread_name?: string // name of thread to create
+  tts?: boolean // true if this is a TTS message
+  username?: string // override the default username of the webhook
 }
 
 interface DiscordWebhookAttachment {
