@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">0.0&nbsp;%</td>
-            <td class="headerCovTableEntry">16</td>
-            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryLo">66.0&nbsp;%</td>
+            <td class="headerCovTableEntry">47</td>
+            <td class="headerCovTableEntry">31</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-04-11 09:35:48</td>
+            <td class="headerValue">2025-04-11 12:12:50</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -85,8 +85,57 @@
 <span id="L23"><span class="lineNum">      23</span> <span class="tlaUNC">           0 :   dist = (dist * 180) / Math.PI</span></span>
 <span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :   dist = dist * 60 * 1.1515</span></span>
 <span id="L25"><span class="lineNum">      25</span> <span class="tlaUNC">           0 :   dist *= 1.609344</span></span>
-<span id="L26"><span class="lineNum">      26</span>              :   return Math.round(dist)</span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC tlaBgGNC">           1 :   return Math.round(dist)</span></span>
 <span id="L27"><span class="lineNum">      27</span>              : }</span>
+<span id="L28"><span class="lineNum">      28</span>              : </span>
+<span id="L29"><span class="lineNum">      29</span>              : /**</span>
+<span id="L30"><span class="lineNum">      30</span>              :  * Format bytes as human-readable text.</span>
+<span id="L31"><span class="lineNum">      31</span>              :  * @param bytes Number of bytes.</span>
+<span id="L32"><span class="lineNum">      32</span>              :  * @param si True to use metric (SI) units, aka powers of 1000. False to use binary (IEC), aka powers of 1024.</span>
+<span id="L33"><span class="lineNum">      33</span>              :  * @param dp Number of decimal places to display.</span>
+<span id="L34"><span class="lineNum">      34</span>              :  *</span>
+<span id="L35"><span class="lineNum">      35</span>              :  * @author https://stackoverflow.com/users/65387/mpen</span>
+<span id="L36"><span class="lineNum">      36</span>              :  * @see https://stackoverflow.com/a/14919494</span>
+<span id="L37"><span class="lineNum">      37</span>              :  */</span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">          36 : export function getFileSize(bytes: number, si = false, dp = 1) {</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">          31 :   const thresh = si ? 1000 : 1024</span></span>
+<span id="L40"><span class="lineNum">      40</span>              : </span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">          32 :   if (Math.abs(bytes) &lt; thresh)</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">          21 :     return `${bytes} B`</span></span>
+<span id="L43"><span class="lineNum">      43</span>              : </span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          18 :   const units = si</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">          50 :     ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          58 :     : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          13 :   let u = -1</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">          21 :   const r = 10 ** dp</span></span>
+<span id="L49"><span class="lineNum">      49</span>              : </span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           8 :   do {</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">          22 :     bytes /= thresh</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">           4 :     ++u</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          82 :   } while (Math.round(Math.abs(bytes) * r) / r &gt;= thresh &amp;&amp; u &lt; units.length - 1)</span></span>
+<span id="L54"><span class="lineNum">      54</span>              : </span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          42 :   return `${bytes.toFixed(dp)} ${units[u]}`</span></span>
+<span id="L56"><span class="lineNum">      56</span>              : }</span>
+<span id="L57"><span class="lineNum">      57</span>              : </span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">          14 : export function formatUnit(num: number): string {</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">          18 :   if (num &lt; 1000)</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          23 :     return num.toString()</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">          37 :   const units = ['k', 'M', 'B', 'T']</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">          21 :   let unitIndex = -1</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">          22 :   let scaledNum = num</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">          62 :   while (scaledNum &gt;= 1000 &amp;&amp; unitIndex &lt; units.length - 1) {</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">          22 :     scaledNum /= 1000</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          14 :     unitIndex++</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           2 :   }</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">          52 :   return `${scaledNum.toFixed(1)}${units[unitIndex]}`</span></span>
+<span id="L69"><span class="lineNum">      69</span>              : }</span>
+<span id="L70"><span class="lineNum">      70</span>              : </span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">          17 : export function formatEuro(amount: number) {</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">          43 :   return new Intl.NumberFormat('fr-FR', {</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">          20 :     currency: 'EUR',</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          19 :     style: 'currency',</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">          17 :   }).format(amount)</span></span>
+<span id="L76"><span class="lineNum">      76</span>              : }</span>
         </pre>
               </td>
             </tr>
