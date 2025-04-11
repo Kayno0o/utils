@@ -36,9 +36,9 @@ jobs:
 
       - name: Combine docs and coverage
         run: |
-          mkdir -p combined
-          cp -r docs/* combined/
-          cp -r coverage-report/* combined/
+          mkdir -p combined/docs combined/coverage
+          cp -r docs/* combined/docs/
+          cp -r coverage-report/* combined/coverage/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
