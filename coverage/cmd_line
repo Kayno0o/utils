@@ -1,1 +1,1 @@
-genhtml -o coverage-report -c ./assets/gcov.css ./coverage/lcov.info
+genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info
