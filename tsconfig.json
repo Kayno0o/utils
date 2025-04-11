@@ -24,7 +24,11 @@
     "skipLibCheck": true
   },
   "files": ["./index.ts"],
-  "include": ["index.ts", "src"],
+  "include": [
+    "index.ts",
+    "src",
+    "types/**/*.d.ts"
+  ],
   "exclude": [
     "node_modules",
     "dist"
