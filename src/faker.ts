@@ -1,7 +1,7 @@
-import { getRandomElement } from './arrayUtils'
-import { getDaysInMonth } from './dateUtils'
-import { randomInt } from './numberUtils'
-import { firstUpper } from './textUtils'
+import { getRandomElement } from './array'
+import { getDaysInMonth } from './date'
+import { randomInt } from './number'
+import { firstUpper } from './text'
 
 export class Faker {
   private static LOREM_WORDS = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'proin', 'ultricies', 'sed', 'dui', 'scelerisque', 'donec', 'pellentesque', 'diam', 'vel', 'ligula', 'efficitur']

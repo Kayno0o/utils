@@ -1,6 +1,6 @@
 import { describe, expect, test as it } from 'bun:test'
 import dayjs from 'dayjs'
-import { calculateEaster, configureDayjs, formatDate, getFrenchHolidays, isDateBetween, isHoliday, stringToMsDuration } from '../src/dateUtils'
+import { calculateEaster, configureDayjs, formatDate, getFrenchHolidays, isDateBetween, isHoliday, stringToMsDuration } from '~'
 
 describe('isDateBetween function', async () => {
   await configureDayjs(dayjs)

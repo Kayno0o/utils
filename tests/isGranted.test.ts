@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { declareIsGranted } from '../src/isGrantedUtils'
+import { declareIsGranted } from '~'
 
 describe('declareIsGranted function', () => {
   type RoleType = 'ROLE_ADMIN' | 'ROLE_USER'

@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { Faker } from '../src/fakerUtils'
+import { Faker } from '~'
 
 describe('faker.paragraph function', () => {
   const notEmpty = (value: any) => Boolean(value)
@@ -43,7 +43,7 @@ describe('faker.paragraph function', () => {
   })
 })
 
-describe('uuidV4 function', () => {
+describe('faker.uuidV4 function', () => {
   it('should generate a valid UUID v4 string', () => {
     const uuid = Faker.datatype.uuidV4()
     expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)

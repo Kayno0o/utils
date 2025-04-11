@@ -1,4 +1,4 @@
-import { randomInt } from './numberUtils'
+import { randomInt } from './number'
 
 export function getRandomElement<T>(values: T[], isCrypto = false): T {
   const index = randomInt(0, values.length, isCrypto)

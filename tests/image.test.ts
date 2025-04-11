@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { getPlaceholderUrl } from '../src/imageUtils'
+import { getPlaceholderUrl } from '~'
 
 describe('getPlaceholderUrl function', () => {
   it('should return a default URL when no props are provided', () => {

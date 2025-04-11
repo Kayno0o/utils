@@ -1,8 +1,8 @@
 import { performance } from 'node:perf_hooks'
 import { heapStats } from 'bun:jsc'
 import { colors, progressBar, randomHex, randomInt, range, searchOne } from './index'
-import { Faker } from './src/fakerUtils'
-import { randomString } from './src/textUtils'
+import { Faker } from './src/faker'
+import { randomString } from './src/text'
 
 interface BenchmarkOptions {
   iterations?: number
