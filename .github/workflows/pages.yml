@@ -1,0 +1,44 @@
+name: generate-pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.ts'
+      - '**/*.js'
+
+permissions:
+  contents: write
+
+jobs:
+  pages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Build pages
+        run: |
+          bun install
+          bun run doc
+          bun run test:coverage
+
+      - name: Combine docs and coverage
+        run: |
+          mkdir -p combined
+          cp -r docs/* combined/
+          cp -r coverage-report/* combined/
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: combined
+          clean: true
