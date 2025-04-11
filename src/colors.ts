@@ -1,13 +1,13 @@
 import type { FunctionKeys, NonFunctionKeys } from '../types'
 import { hexToRgb } from './color'
 
-type Style = [start: number | string, end: number | string]
+type ColorStyle = [start: number | string, end: number | string]
 type StyleMap = typeof styleMap
 
 type ColorsType =
   ((value: string) => string) &
   { [K in NonFunctionKeys<StyleMap>]: ColorsType } &
-  { [K in FunctionKeys<StyleMap>]: StyleMap[K] extends (...args: infer A) => Style ? (...args: A) => ColorsType : never }
+  { [K in FunctionKeys<StyleMap>]: StyleMap[K] extends (...args: infer A) => ColorStyle ? (...args: A) => ColorsType : never }
 
 type Appearance = 'fg' | 'bg'
 
@@ -63,16 +63,16 @@ const styleMap = {
   bgCyanBright: [106, BG],
   bgWhiteBright: [107, BG],
 
-  rgb: (r: number, g: number, b: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as Style,
+  rgb: (r: number, g: number, b: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle,
   hex: (hex: string, type: Appearance = 'fg') => {
     const [r, g, b] = hexToRgb(hex)
-    return [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as Style
+    return [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle
   },
 
   ansi256: (code: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};5;${code}`, type === 'fg' ? FG : BG],
-} satisfies Record<string, Style | ((...args: any) => Style)>
+} satisfies Record<string, ColorStyle | ((...args: any) => ColorStyle)>
 
-function applyStyles(styles: Style[], value: string): string {
+function applyStyles(styles: ColorStyle[], value: string): string {
   let open = ''
   let close = ''
 
@@ -85,7 +85,7 @@ function applyStyles(styles: Style[], value: string): string {
   return open + value + close
 }
 
-function makeProxy(styles: Style[] = []): ColorsType {
+function makeProxy(styles: ColorStyle[] = []): ColorsType {
   const fn = (val: string) => applyStyles(styles, val)
 
   return new Proxy(fn, {
@@ -93,10 +93,10 @@ function makeProxy(styles: Style[] = []): ColorsType {
       const val = styleMap[prop as keyof typeof styleMap]
 
       if (Array.isArray(val))
-        return makeProxy([...styles, val as Style])
+        return makeProxy([...styles, val as ColorStyle])
 
       if (typeof val === 'function')
-        return (...args: any) => makeProxy([...styles, (val as any)(...args) as Style])
+        return (...args: any) => makeProxy([...styles, (val as any)(...args) as ColorStyle])
 
       throw new Error(`Unknown style: ${String(prop)}`)
     },
