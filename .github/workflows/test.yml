@@ -9,8 +9,7 @@ on:
       - '**/*.js'
 
 jobs:
-  npm:
-    name: npm
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
