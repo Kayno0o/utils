@@ -32,13 +32,13 @@ jobs:
         run: |
           bun install
           bun run doc
-          bun run test:coverage
+          bun run test
 
       - name: Combine docs and coverage
         run: |
           mkdir -p combined/docs combined/coverage
           cp -r docs/* combined/docs/
-          cp -r coverage-report/* combined/coverage/
+          cp -r coverage/* combined/coverage/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
