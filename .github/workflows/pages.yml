@@ -41,8 +41,8 @@ jobs:
           cp -r coverage-report/* combined/coverage/
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: peaceiris/actions-gh-pages@v4
+        if: github.ref == 'refs/heads/main'
         with:
-          branch: gh-pages
-          folder: combined
-          clean: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: combined
