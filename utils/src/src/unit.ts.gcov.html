@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov.info - utils/src/src/unit.ts</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">utils/src/src</a> - unit.ts<span style="font-size: 80%;"> (source / <a href="unit.ts.func-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryLo">0.0&nbsp;%</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2025-04-11 08:58:42</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">-</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+                  <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : /**</span>
+<span id="L2"><span class="lineNum">       2</span>              :  * Calculates the distance between two points on the Earth's surface using the Haversine formula.</span>
+<span id="L3"><span class="lineNum">       3</span>              :  *</span>
+<span id="L4"><span class="lineNum">       4</span>              :  * @param {number} lat1 - The latitude of the first point in degrees.</span>
+<span id="L5"><span class="lineNum">       5</span>              :  * @param {number} lon1 - The longitude of the first point in degrees.</span>
+<span id="L6"><span class="lineNum">       6</span>              :  * @param {number} lat2 - The latitude of the second point in degrees.</span>
+<span id="L7"><span class="lineNum">       7</span>              :  * @param {number} lon2 - The longitude of the second point in degrees.</span>
+<span id="L8"><span class="lineNum">       8</span>              :  * @returns {number} The distance between the two points in kilometers, rounded to the nearest integer.</span>
+<span id="L9"><span class="lineNum">       9</span>              :  */</span>
+<span id="L10"><span class="lineNum">      10</span> <span class="tlaUNC tlaBgUNC">           0 : export function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {</span></span>
+<span id="L11"><span class="lineNum">      11</span> <span class="tlaUNC">           0 :   if (lat1 === lat2 &amp;&amp; lon1 === lon2)</span></span>
+<span id="L12"><span class="lineNum">      12</span> <span class="tlaUNC">           0 :     return 0</span></span>
+<span id="L13"><span class="lineNum">      13</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaUNC">           0 :   const radlat1 = (Math.PI * lat1) / 180</span></span>
+<span id="L15"><span class="lineNum">      15</span> <span class="tlaUNC">           0 :   const radlat2 = (Math.PI * lat2) / 180</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaUNC">           0 :   const theta = lon1 - lon2</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaUNC">           0 :   const radtheta = (Math.PI * theta) / 180</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaUNC">           0 :   let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta)</span></span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaUNC">           0 :   if (dist &gt; 1)</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaUNC">           0 :     dist = 1</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaUNC">           0 :   dist = Math.acos(dist)</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaUNC">           0 :   dist = (dist * 180) / Math.PI</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :   dist = dist * 60 * 1.1515</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaUNC">           0 :   dist *= 1.609344</span></span>
+<span id="L26"><span class="lineNum">      26</span>              :   return Math.round(dist)</span>
+<span id="L27"><span class="lineNum">      27</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.0-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>
