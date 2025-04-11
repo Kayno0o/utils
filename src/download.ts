@@ -1,5 +1,3 @@
-import type { TextDataMimeType, TextMimeType } from './input'
-
 export function downloadFile(blob: Blob, name: string) {
   const blobUrl = URL.createObjectURL(blob)
   const a = document.createElement('a')
