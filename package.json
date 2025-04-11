@@ -33,10 +33,7 @@
     "lint:fix": "eslint . --fix",
     "lint": "eslint .",
     "doc": "typedoc ./src/* --plugin typedoc-github-theme",
-    "test": "bun test",
-    "test:clean": "rm ./coverage/.*.tmp",
-    "test:coverage": "nr test:clean ; NODE_ENV=production bun test --coverage --reporter=junit --reporter-outfile=./bun.xml && bun run test:coverage-to-html",
-    "test:coverage-to-html": "genhtml -o coverage-report -c ./assets/gcov.css ./coverage/lcov.info >/dev/null && echo Generated coverage-report/index.html",
+    "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null",
     "benchmark": "bun benchmark.ts"
   },
   "peerDependencies": {
