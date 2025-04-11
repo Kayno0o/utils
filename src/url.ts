@@ -1,4 +1,4 @@
-import { notEmpty } from './arrayUtils'
+import { notEmpty } from './array'
 
 export function buildUrlQuery(query?: object | null) {
   const output = query

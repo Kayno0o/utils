@@ -1,4 +1,4 @@
-import { randomInt } from './numberUtils'
+import { randomInt } from './number'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 

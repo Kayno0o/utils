@@ -1,4 +1,4 @@
-import { buildUrlQuery } from './urlUtils'
+import { buildUrlQuery } from './url'
 
 /** Build an url from placehold.co */
 export function getPlaceholderUrl(props: {
