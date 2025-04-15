@@ -1,5 +1,5 @@
 import type { FunctionKeys, NonFunctionKeys } from '../types'
-import { hexToRgb } from './color'
+import { ColorConverter } from './color'
 
 type ColorStyle = [start: number | string, end: number | string]
 type StyleMap = typeof styleMap
@@ -65,7 +65,7 @@ const styleMap = {
 
   rgb: (r: number, g: number, b: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle,
   hex: (hex: string, type: Appearance = 'fg') => {
-    const [r, g, b] = hexToRgb(hex)
+    const [r, g, b] = ColorConverter.from('hex', hex).to('rgb')
     return [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle
   },
 
