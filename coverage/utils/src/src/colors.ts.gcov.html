@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-04-11 12:12:50</td>
+            <td class="headerValue">2025-04-15 06:53:58</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -61,7 +61,7 @@
 <pre class="sourceHeading">            Line data    Source code</pre>
 <pre class="source">
 <span id="L1"><span class="lineNum">       1</span>              : import type { FunctionKeys, NonFunctionKeys } from '../types'</span>
-<span id="L2"><span class="lineNum">       2</span> <span class="tlaGNC tlaBgGNC">          35 : import { hexToRgb } from './color'</span></span>
+<span id="L2"><span class="lineNum">       2</span> <span class="tlaGNC tlaBgGNC">          41 : import { ColorConverter } from './color'</span></span>
 <span id="L3"><span class="lineNum">       3</span>              : </span>
 <span id="L4"><span class="lineNum">       4</span>              : type ColorStyle = [start: number | string, end: number | string]</span>
 <span id="L5"><span class="lineNum">       5</span>              : type StyleMap = typeof styleMap</span>
@@ -127,7 +127,7 @@
 <span id="L65"><span class="lineNum">      65</span>              : </span>
 <span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           7 :   rgb: (r: number, g: number, b: number, type: Appearance = 'fg') =&gt; [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle,</span></span>
 <span id="L67"><span class="lineNum">      67</span> <span class="tlaUNC tlaBgUNC">           0 :   hex: (hex: string, type: Appearance = 'fg') =&gt; {</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaUNC">           0 :     const [r, g, b] = hexToRgb(hex)</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaUNC">           0 :     const [r, g, b] = ColorConverter.from('hex', hex).to('rgb')</span></span>
 <span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC tlaBgGNC">           3 :     return [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle</span></span>
 <span id="L70"><span class="lineNum">      70</span>              :   },</span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
