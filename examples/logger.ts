@@ -1,6 +1,5 @@
 import type { LogLevel } from '../index'
-import colors from 'ansi-colors'
-import { declareLogger } from '../index'
+import { colors, declareLogger } from '../index'
 
 const log = declareLogger<'discord' | 'sqlite' | 'rcon'>({ logLevel: import.meta.env.LOG_LEVEL as LogLevel | undefined, serviceColor: {
   discord: colors.bold.yellow,
