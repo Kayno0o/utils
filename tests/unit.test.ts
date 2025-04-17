@@ -1,29 +1,29 @@
 import { describe, expect, test as it } from 'bun:test'
-import { formatEuro, formatUnit, getFileSize } from '~'
+import { formatEuro, formatFileSize, formatUnit } from '~'
 
-describe('getFileSize function', () => {
+describe('formatFileSize function', () => {
   it('handle negative bytes', () => {
-    expect(getFileSize(-1024)).toEqual('-1.0 KiB')
+    expect(formatFileSize(-1024)).toEqual('-1.0 KiB')
   })
 
   it('handle 0', () => {
-    expect(getFileSize(0)).toEqual('0 B')
+    expect(formatFileSize(0)).toEqual('0 B')
   })
 
   it('default parameters', () => {
-    expect(getFileSize(1024)).toEqual('1.0 KiB')
+    expect(formatFileSize(1024)).toEqual('1.0 KiB')
   })
 
   it('metric units', () => {
-    expect(getFileSize(1500000, true)).toEqual('1.5 MB')
+    expect(formatFileSize(1500000, true)).toEqual('1.5 MB')
   })
 
   it('custom decimal places', () => {
-    expect(getFileSize(5368709120, false, 2)).toEqual('5.00 GiB')
+    expect(formatFileSize(5368709120, false, 2)).toEqual('5.00 GiB')
   })
 
   it('handle very large bytes', () => {
-    expect(getFileSize(1234567890345678, false, 2)).toEqual('1.10 PiB')
+    expect(formatFileSize(1234567890345678, false, 2)).toEqual('1.10 PiB')
   })
 })
 
