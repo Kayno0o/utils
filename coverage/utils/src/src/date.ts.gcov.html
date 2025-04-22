@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-04-17 16:54:10</td>
+            <td class="headerValue">2025-04-22 11:59:27</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -176,7 +176,7 @@
 <span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">          36 :   const addDays = (date: Date, days: number): string =&gt; {</span></span>
 <span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          34 :     const result = new Date(date)</span></span>
 <span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">          44 :     result.setDate(result.getDate() + days)</span></span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          44 :     return result.toISOString().split('T')[0]</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">         130 :     return `${result.getFullYear()}-${String(result.getMonth() + 1).padStart(2, '0')}-${String(result.getDate()).padStart(2, '0')}`</span></span>
 <span id="L118"><span class="lineNum">     118</span>              :   }</span>
 <span id="L119"><span class="lineNum">     119</span>              : </span>
 <span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          49 :   holidays['Easter Monday'] = addDays(easter, 1)</span></span>
