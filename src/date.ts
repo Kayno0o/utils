@@ -114,7 +114,7 @@ export function getFrenchHolidays(year: number): string[] {
   const addDays = (date: Date, days: number): string => {
     const result = new Date(date)
     result.setDate(result.getDate() + days)
-    return result.toISOString().split('T')[0]
+    return `${result.getFullYear()}-${String(result.getMonth() + 1).padStart(2, '0')}-${String(result.getDate()).padStart(2, '0')}`
   }
 
   holidays['Easter Monday'] = addDays(easter, 1)
