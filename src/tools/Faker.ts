@@ -1,40 +1,41 @@
-import { getRandomElement } from './array'
-import { getDaysInMonth } from './date'
-import { randomInt } from './number'
-import { firstUpper } from './text'
+import { getRandomElement } from '~/array'
+import { getDaysInMonth } from '~/date'
+import { randomInt } from '~/number'
+import { firstUpper } from '~/text'
 
 export class Faker {
   private static LOREM_WORDS = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'proin', 'ultricies', 'sed', 'dui', 'scelerisque', 'donec', 'pellentesque', 'diam', 'vel', 'ligula', 'efficitur']
 
   static lorem = Object.assign(
-    ({ isCrypto = false, length = 5, type }: {
+    ({ isCrypto = false, length = 5, type, dictionary = this.LOREM_WORDS }: {
       isCrypto?: boolean
       length?: number
       type: 'word' | 'sentence' | 'paragraph'
+      dictionary?: string[]
     }): string => {
       length = Math.max(1, length)
 
       switch (type) {
-        case 'word': return Faker.lorem.word(length, isCrypto)
-        case 'sentence': return Faker.lorem.sentence(length, isCrypto)
-        case 'paragraph': return Faker.lorem.paragraph(length, isCrypto)
+        case 'word': return Faker.lorem.word(length, isCrypto, dictionary)
+        case 'sentence': return Faker.lorem.sentence(length, isCrypto, dictionary)
+        case 'paragraph': return Faker.lorem.paragraph(length, isCrypto, dictionary)
       }
     },
     {
-      paragraph: (length = 1, isCrypto = false): string =>
+      paragraph: (length = 1, isCrypto = false, dictionary = this.LOREM_WORDS): string =>
         Array.from({ length: Math.max(1, length) }, () => {
           const count = randomInt(3, 7, isCrypto)
-          return Faker.lorem.sentence(count, isCrypto)
+          return Faker.lorem.sentence(count, isCrypto, dictionary)
         }).join('\n'),
-      sentence: (length = 1, isCrypto = false): string =>
+      sentence: (length = 1, isCrypto = false, dictionary = this.LOREM_WORDS): string =>
         Array.from({ length: Math.max(1, length) }, () => {
           const count = randomInt(5, 15, isCrypto)
-          const sentence = Faker.lorem.word(count, isCrypto).replace(/ /g, () => Math.random() < 0.1 ? ', ' : ' ')
+          const sentence = Faker.lorem.word(count, isCrypto, dictionary).replace(/ /g, () => Math.random() < 0.1 ? ', ' : ' ')
 
           return `${firstUpper(sentence)}.`
         }).join(' '),
-      word: (length = 1, isCrypto = false): string =>
-        Array.from({ length: Math.max(1, length) }, () => getRandomElement(Faker.LOREM_WORDS, isCrypto)).join(' '),
+      word: (length = 1, isCrypto = false, dictionary = this.LOREM_WORDS): string =>
+        Array.from({ length: Math.max(1, length) }, () => getRandomElement(dictionary, isCrypto)).join(' '),
     },
   )
 

@@ -4,6 +4,11 @@
     "module": "CommonJS",
 
     "moduleResolution": "Node",
+    "paths": {
+      "~/tools/*": ["./src/tools/*.ts"],
+      "~/types": ["./types/index.ts"],
+      "~/*": ["./src/*.ts"]
+    },
     "resolveJsonModule": true,
     "allowJs": true,
 

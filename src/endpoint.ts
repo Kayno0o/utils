@@ -1,4 +1,4 @@
-import type { Key, PartialRecord } from '../types'
+import type { Key, PartialRecord } from '~/types'
 
 export type EndpointArgs<
   EndpointsConst extends Record<Key, string>,

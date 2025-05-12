@@ -1,4 +1,4 @@
-import { colors } from './colors'
+import { colors } from '~/tools/colors'
 
 export type LogLevel = 'info' | 'success' | 'warning' | 'error'
 interface LogType { char: string, color: (str: string) => string, level: number }

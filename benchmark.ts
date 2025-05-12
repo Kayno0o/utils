@@ -1,7 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { colors, progressBar, randomHex, randomInt, range, searchOne } from './index'
-import { Faker } from './src/faker'
-import { randomString } from './src/text'
+import { colors, Faker, progressBar, randomHex, randomInt, randomString, range, searchOne } from './index'
 
 interface BenchmarkOptions {
   iterations?: number
