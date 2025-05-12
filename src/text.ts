@@ -1,4 +1,4 @@
-import { randomInt } from './number'
+import { randomInt } from '~/number'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
@@ -222,3 +222,11 @@ export const toSnake = (input: string | string[]) => toCase(input).join('_')
 export const toPascal = (input: string | string[]) => toCase(input).map(firstUpper).join('')
 export const toConstant = (input: string | string[]) => toCase(input).map(w => w.toUpperCase()).join('_')
 export const toTitle = (input: string | string[]) => toCase(input).map(firstUpper).join(' ')
+
+export function frRankLabel(rank: string) {
+  if (rank === '1')
+    return 'er'
+  if (rank === '2')
+    return 'nd'
+  return 'ème'
+}

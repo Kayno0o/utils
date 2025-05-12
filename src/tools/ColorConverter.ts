@@ -1,11 +1,10 @@
-import { randomInt } from './number'
-
 export type RgbArrayType = [r: number, g: number, b: number]
-export type RgbaArrayType = [r: number, g: number, b: number, a: number]
-export type HslArrayType = [h: number, s: number, l: number]
-export type HslaArrayType = [h: number, s: number, l: number, a: number]
 export interface RgbObjectType { r: number, g: number, b: number, a?: number }
+export type RgbaArrayType = [r: number, g: number, b: number, a: number]
+
+export type HslArrayType = [h: number, s: number, l: number]
 export interface HslObjectType { h: number, s: number, l: number, a?: number }
+export type HslaArrayType = [h: number, s: number, l: number, a: number]
 
 function hexToRgb(hex: string): [number, number, number] | [number, number, number, number] {
   // Remove leading '#' and convert to lowercase
@@ -41,30 +40,13 @@ function hexToRgb(hex: string): [number, number, number] | [number, number, numb
   return a !== undefined ? [r, g, b, a] : [r, g, b]
 }
 
-function rgbToHex(rgb: RgbArrayType | RgbaArrayType): string
-function rgbToHex(r: number, g: number, b: number, a?: number): string
-function rgbToHex(r: RgbArrayType | RgbaArrayType | number, g?: number, b?: number, a?: number): string {
-  if (Array.isArray(r))
-    [r, g, b, a] = r
+function rgbToHex(rgb: RgbArrayType | RgbaArrayType): string {
+  const [r, g, b, a] = rgb
 
   if (a)
-    return `#${((r << 24) | (g! << 16) | (b! << 8) | Math.round((a ?? 1) * 255)).toString(16).padStart(8, '0').toUpperCase()}`
+    return `#${((r << 24) | (g << 16) | (b << 8) | Math.round((a ?? 1) * 255)).toString(16).padStart(8, '0').toUpperCase()}`
 
-  return `#${(r << 16 | g! << 8 | b!).toString(16).padStart(6, '0').toUpperCase()}`
-}
-
-function hslToHex(h: number, s: number, l: number): string {
-  h = (h % 360 + 360) % 360
-  l /= 100
-
-  const a = s * Math.min(l, 1 - l) / 100
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
-    return Math.round(255 * color).toString(16).padStart(2, '0')
-  }
-
-  return `#${f(0)}${f(8)}${f(4)}`
+  return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0').toUpperCase()}`
 }
 
 function hslToRgb(h: number, s: number, l: number): RgbArrayType {
@@ -81,45 +63,16 @@ function hslToRgb(h: number, s: number, l: number): RgbArrayType {
   return [f(0), f(8), f(4)]
 }
 
-export function randomHex(isCrypto = false) {
-  return `#${Math.floor(randomInt(0, 16777215, isCrypto)).toString(16).padStart(6, '0')}`.toUpperCase()
-}
-
-export function opacityColor(hex1: string, hex2: string, a1: number) {
-  const [r1, g1, b1] = hexToRgb(hex1)
-  const [r2, g2, b2] = hexToRgb(hex2)
-
-  const r3 = Math.round(r2 + (r1 - r2) * a1)
-  const g3 = Math.round(g2 + (g1 - g2) * a1)
-  const b3 = Math.round(b2 + (b1 - b2) * a1)
-
-  return rgbToHex(r3, g3, b3)
-}
-
-export function colorFromString(str: string, { hueDecay = 0, l = 65, sRange = [40, 60] }: { hueDecay?: number, l?: number, sRange?: [number, number] } = {}) {
-  let hash = 0
-  for (const char of str) {
-    hash ^= char.charCodeAt(0) + ((hash << 5) - hash)
-  }
-
-  const h = (hash + hueDecay) % 360
-  const s = sRange[0] + (Math.abs(hash) % (sRange[1] - sRange[0]))
-
-  return hslToHex(h, s, l)
-}
-
 function rgbToHsl(rgb: RgbArrayType): HslArrayType
-function rgbToHsl(r: number, g: number, b: number): HslArrayType
-function rgbToHsl(r: RgbArrayType | number, g?: number, b?: number): HslArrayType {
-  if (Array.isArray(r))
-    [r, g, b] = r
+function rgbToHsl(rgb: RgbArrayType): HslArrayType {
+  let [r, g, b] = rgb
 
   r /= 255
-  g! /= 255
-  b! /= 255
+  g /= 255
+  b /= 255
 
-  const max = Math.max(r, g!, b!)
-  const min = Math.min(r, g!, b!)
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
   let h = 0
   let s = 0
   const l = (max + min) / 2
@@ -129,10 +82,10 @@ function rgbToHsl(r: RgbArrayType | number, g?: number, b?: number): HslArrayTyp
     s = l > 0 && l < 1 ? d / (1 - Math.abs(2 * l - 1)) : 0
 
     if (max === r)
-      h = (g! - b!) / d + (g! < b! ? 6 : 0)
-    else if (max === g!)
-      h = (b! - r) / d + 2
-    else h = (r - g!) / d + 4
+      h = (g - b) / d + (g < b ? 6 : 0)
+    else if (max === g)
+      h = (b - r) / d + 2
+    else h = (r - g) / d + 4
 
     h /= 6
   }
@@ -207,15 +160,61 @@ export class ColorConverter {
       case 'rgba':
         return [this.r, this.g, this.b, this.a]
       case 'hex':
-        return rgbToHex(this.r, this.g, this.b)
+        return rgbToHex([this.r, this.g, this.b])
       case 'hexa':
-        return rgbToHex(this.r, this.g, this.b, this.a)
+        return rgbToHex([this.r, this.g, this.b, this.a])
       case 'hsl':
-        return rgbToHsl(this.r, this.g, this.b)
+        return rgbToHsl([this.r, this.g, this.b])
       case 'hsla':
-        return [...rgbToHsl(this.r, this.g, this.b), this.a]
+        return [...rgbToHsl([this.r, this.g, this.b]), this.a]
       default:
         return [this.r, this.g, this.b]
     }
+  }
+
+  /**
+   * Convert sRGB channel (0–255) → linearized channel per WCAG2 (for relative luminance).
+   */
+  private static linearize(channel: number): number {
+    const c = channel / 255
+    return c <= 0.03928
+      ? c / 12.92
+      : ((c + 0.055) / 1.055) ** 2.4
+  }
+
+  /**
+   * Compute relative luminance (0–1) per WCAG2:
+   * L = 0.2126 R + 0.7152 G + 0.0722 B
+   */
+  private getLuminance(): number {
+    const R = ColorConverter.linearize(this.r)
+    const G = ColorConverter.linearize(this.g)
+    const B = ColorConverter.linearize(this.b)
+    return 0.2126 * R + 0.7152 * G + 0.0722 * B
+  }
+
+  /**
+   * Contrast ratio between this color and another:
+   * (L1 + 0.05) / (L2 + 0.05), L1 ≥ L2
+   */
+  public contrastRatio(other: ColorConverter): number {
+    const L1 = this.getLuminance()
+    const L2 = other.getLuminance()
+    const [bright, dark] = L1 >= L2 ? [L1, L2] : [L2, L1]
+    return (bright + 0.05) / (dark + 0.05)
+  }
+
+  /**
+   * Pick black or white as the ideal foreground based on WCAG contrast ratio.
+   */
+  public bestContrastForeground(): ColorConverter {
+    const white = new ColorConverter(255, 255, 255, 1)
+    const black = new ColorConverter(0, 0, 0, 1)
+
+    // compare contrast against white vs. black
+    const contrastWithWhite = this.contrastRatio(white)
+    const contrastWithBlack = this.contrastRatio(black)
+
+    return contrastWithWhite >= contrastWithBlack ? white : black
   }
 }

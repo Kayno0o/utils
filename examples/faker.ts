@@ -1,4 +1,4 @@
-import { Faker } from '../src/faker'
+import { Faker } from '../index'
 
 console.log(Faker.name.username())
 console.log(Faker.lorem.sentence())

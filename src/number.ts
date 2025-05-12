@@ -1,3 +1,5 @@
+import { sfc32, xmur3 } from './crypto'
+
 const arr32 = new Uint32Array(1)
 
 export function randomInt(min: number, max: number, isCrypto?: boolean): number
@@ -34,4 +36,21 @@ export function range(minOrMax: number, max?: number): number[] {
   }
 
   return Array.from({ length: max - minOrMax }, (_, i) => i + minOrMax)
+}
+
+export function numberFromString(
+  str: string,
+  min: number,
+  max: number,
+  { integer = true }: { integer?: boolean } = {},
+): number {
+  const seed = xmur3(str)
+  const rand = sfc32(seed(), seed(), seed(), seed())
+  const r = rand()
+
+  if (integer) {
+    return Math.floor(r * (max - min + 1)) + min
+  }
+
+  return min + r * (max - min)
 }

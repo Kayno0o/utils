@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { getRandomElement, notEmpty, range, uniqueArray } from '~'
+import { getRandomElement, notNullish, range, uniqueArray } from '~'
 
 describe('getRandomElement function', () => {
   it('should return an element from the array', () => {
@@ -43,17 +43,17 @@ describe('range function', () => {
   })
 })
 
-describe('notEmpty function', () => {
+describe('notNullish function', () => {
   it('should return true for non-null, non-undefined values', () => {
-    expect(notEmpty('test')).toBe(true)
-    expect(notEmpty(123)).toBe(true)
-    expect(notEmpty(true)).toBe(true)
-    expect(notEmpty({})).toBe(true)
-    expect(notEmpty([])).toBe(true)
+    expect(notNullish('test')).toBe(true)
+    expect(notNullish(123)).toBe(true)
+    expect(notNullish(true)).toBe(true)
+    expect(notNullish({})).toBe(true)
+    expect(notNullish([])).toBe(true)
   })
 
   it('should return false for null or undefined values', () => {
-    expect(notEmpty(null)).toBe(false)
-    expect(notEmpty(undefined)).toBe(false)
+    expect(notNullish(null)).toBe(false)
+    expect(notNullish(undefined)).toBe(false)
   })
 })

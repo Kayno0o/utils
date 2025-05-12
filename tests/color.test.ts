@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { ColorConverter, colorFromString, opacityColor, randomHex, randomString } from '~'
+import { ColorConverter, opacityColor, randomHex, stringToHex } from '~'
 
 describe('hexToRgb function', () => {
   it('hex with # and 3 chars', () => {
@@ -89,47 +89,66 @@ describe('randomHex function', () => {
 })
 
 describe('opacityColor function', () => {
+  const red = ColorConverter.from('hex', '#f00').to('rgb')
+  const blue = ColorConverter.from('hex', '#00f').to('rgb')
+  const purple = ColorConverter.from('hex', '#800080').to('rgb')
   it('should blend two colors based on the specified opacity', () => {
-    const result = opacityColor('#ff0000', '#0000ff', 0.5) // Red and Blue blend with 50% opacity
-    expect(result).toBe('#800080') // Expected result is purple
+    const result = opacityColor(red, blue, 0.5) // Red and Blue blend with 50% opacity
+    expect(result).toEqual(purple) // Expected result is purple
   })
 
   it('should return the first color when opacity is 1', () => {
-    const result = opacityColor('#ff0000', '#0000ff', 1) // Full opacity for the first color
-    expect(result).toBe('#FF0000')
+    const result = opacityColor(red, blue, 1) // Full opacity for the first color
+    expect(result).toEqual(red)
   })
 
   it('should return the second color when opacity is 0', () => {
-    const result = opacityColor('#ff0000', '#0000ff', 0) // Full opacity for the second color
-    expect(result).toBe('#0000FF')
+    const result = opacityColor(red, blue, 0) // Full opacity for the second color
+    expect(result).toEqual(blue)
   })
 })
 
-describe('colorFromString function', () => {
-  it('should generate a consistent color for the same string', () => {
-    const color1 = colorFromString('hello')
-    const color2 = colorFromString('hello')
-    expect(color1).toBe(color2) // Same color for the same string
+describe('stringToHex function', () => {
+  it('always returns a 6-digit uppercase hex code', () => {
+    const hex = stringToHex('foo')
+    expect(hex).toMatch(/^#[0-9A-F]{6}$/)
   })
 
-  it('should generate different colors for different strings', () => {
-    const color1 = colorFromString('hello')
-    const color2 = colorFromString('world')
-    expect(color1).not.toBe(color2) // Different colors for different strings
+  it('is deterministic: same input → same output', () => {
+    const a = stringToHex('repeat-me')
+    const b = stringToHex('repeat-me')
+    expect(a).toBe(b)
   })
 
-  it('should respect hue decay for the same string', () => {
-    const color1 = colorFromString('test', { hueDecay: 10 })
-    const color2 = colorFromString('test', { hueDecay: 20 })
-    expect(color1).not.toBe(color2) // Different hues due to decay
+  it('produces different colors for different strings', () => {
+    expect(stringToHex('apple')).not.toBe(stringToHex('banana'))
   })
 
-  it('should stay within saturation range', () => {
-    const color = colorFromString(randomString(10), { sRange: [30, 70] })
-    const [, s] = ColorConverter.from('hex', color).to('hsl')
+  it('respects hueOffset', () => {
+    const hex0 = stringToHex('hueTest', { hueOffset: 0 })
+    const hex180 = stringToHex('hueTest', { hueOffset: 180 })
+    const [h0] = ColorConverter.from('hex', hex0).to('hsl')
+    const [h180] = ColorConverter.from('hex', hex180).to('hsl')
+    // difference should be about 180 (mod 360)
+    expect(Math.round((h180 - h0 + 360) % 360)).toBe(180)
+  })
 
-    expect(s).toBeGreaterThanOrEqual(30)
-    expect(s).toBeLessThanOrEqual(70)
+  it('limits saturation to sRange', () => {
+    for (let i = 0; i < 10; i++) {
+      const hex = stringToHex(`sat${i}`, { sRange: [10, 20] })
+      const [, s] = ColorConverter.from('hex', hex).to('hsl')
+      expect(s).toBeGreaterThanOrEqual(10)
+      expect(s).toBeLessThanOrEqual(20)
+    }
+  })
+
+  it('uses fixed lightness when l is a number', () => {
+    const fixed = 42
+    for (let i = 0; i < 5; i++) {
+      const hex = stringToHex(`lum${i}`, { l: fixed })
+      const [, , l] = ColorConverter.from('hex', hex).to('hsl')
+      expect(Math.round(l)).toBe(fixed)
+    }
   })
 })
 

@@ -1,5 +1,5 @@
-import type { Key, RecursivePartial } from '../types'
-import { map } from './number'
+import type { Key, RecursivePartial } from '~/types'
+import { map } from '~/number'
 
 export function getObjectValue(object: any, key: Key): any {
   if (typeof object !== 'object')
