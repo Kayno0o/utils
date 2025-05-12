@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">64.3&nbsp;%</td>
-            <td class="headerCovTableEntry">14</td>
-            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntryLo">28.6&nbsp;%</td>
+            <td class="headerCovTableEntry">35</td>
+            <td class="headerCovTableEntry">10</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-04-22 11:59:27</td>
+            <td class="headerValue">2025-05-12 08:21:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -60,7 +60,7 @@
               <td>
 <pre class="sourceHeading">            Line data    Source code</pre>
 <pre class="source">
-<span id="L1"><span class="lineNum">       1</span> <span class="tlaGNC tlaBgGNC">          37 : import { randomInt } from './number'</span></span>
+<span id="L1"><span class="lineNum">       1</span> <span class="tlaGNC tlaBgGNC">          37 : import { randomInt } from '~/number'</span></span>
 <span id="L2"><span class="lineNum">       2</span>              : </span>
 <span id="L3"><span class="lineNum">       3</span> <span class="tlaGNC">          35 : export function getRandomElement&lt;T&gt;(values: T[], isCrypto = false): T {</span></span>
 <span id="L4"><span class="lineNum">       4</span> <span class="tlaGNC">          54 :   const index = randomInt(0, values.length, isCrypto)</span></span>
@@ -71,20 +71,43 @@
 <span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC">          25 :   return [...new Set(arr)]</span></span>
 <span id="L10"><span class="lineNum">      10</span>              : }</span>
 <span id="L11"><span class="lineNum">      11</span>              : </span>
-<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">          16 : export function notEmpty&lt;T&gt;(value: T | null | undefined): value is T {</span></span>
+<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">          16 : export function notNullish&lt;T&gt;(value: T | null | undefined): value is T {</span></span>
 <span id="L13"><span class="lineNum">      13</span> <span class="tlaGNC">          45 :   return value !== null &amp;&amp; value !== undefined</span></span>
 <span id="L14"><span class="lineNum">      14</span>              : }</span>
 <span id="L15"><span class="lineNum">      15</span>              : </span>
-<span id="L16"><span class="lineNum">      16</span> <span class="tlaUNC tlaBgUNC">           0 : export function shuffleArray(array: any[]) {</span></span>
-<span id="L17"><span class="lineNum">      17</span> <span class="tlaUNC">           0 :   for (let i = array.length - 1; i &gt; 0; i--) {</span></span>
-<span id="L18"><span class="lineNum">      18</span> <span class="tlaUNC">           0 :     const j = Math.floor(Math.random() * (i + 1));</span></span>
-<span id="L19"><span class="lineNum">      19</span> <span class="tlaUNC">           0 :     [array[i], array[j]] = [array[j], array[i]]</span></span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC tlaBgGNC">           1 :   }</span></span>
-<span id="L21"><span class="lineNum">      21</span>              : }</span>
-<span id="L22"><span class="lineNum">      22</span>              : </span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaUNC tlaBgUNC">           0 : export function toArray&lt;T&gt;(value: T | T[]): T[] {</span></span>
-<span id="L24"><span class="lineNum">      24</span>              :   return Array.isArray(value) ? value : [value]</span>
-<span id="L25"><span class="lineNum">      25</span>              : }</span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaUNC tlaBgUNC">           0 : export function isEmpty(value: any): boolean {</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaUNC">           0 :   if (value === null || value === undefined)</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaUNC">           0 :     return true</span></span>
+<span id="L19"><span class="lineNum">      19</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaUNC">           0 :   if (typeof value === 'string')</span></span>
+<span id="L21"><span class="lineNum">      21</span> <span class="tlaUNC">           0 :     return value.trim() === ''</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaUNC">           0 :   if (Array.isArray(value))</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaUNC">           0 :     return value.length === 0</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaUNC">           0 :   if (typeof value === 'object') {</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaUNC">           0 :     if (value instanceof Date)</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaUNC">           0 :       return false</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaUNC">           0 :     if (value instanceof Map || value instanceof Set)</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaUNC">           0 :       return value.size === 0</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaUNC">           0 :     return Object.keys(value).length === 0</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaUNC">           0 :   }</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC tlaBgGNC">           1 :   return false</span></span>
+<span id="L37"><span class="lineNum">      37</span>              : }</span>
+<span id="L38"><span class="lineNum">      38</span>              : </span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaUNC tlaBgUNC">           0 : export function shuffleArray(array: any[]) {</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaUNC">           0 :   for (let i = array.length - 1; i &gt; 0; i--) {</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaUNC">           0 :     const j = Math.floor(Math.random() * (i + 1));</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaUNC">           0 :     [array[i], array[j]] = [array[j], array[i]]</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC tlaBgGNC">           1 :   }</span></span>
+<span id="L44"><span class="lineNum">      44</span>              : }</span>
+<span id="L45"><span class="lineNum">      45</span>              : </span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaUNC tlaBgUNC">           0 : export function toArray&lt;T&gt;(value: T | T[]): T[] {</span></span>
+<span id="L47"><span class="lineNum">      47</span>              :   return Array.isArray(value) ? value : [value]</span>
+<span id="L48"><span class="lineNum">      48</span>              : }</span>
         </pre>
               </td>
             </tr>

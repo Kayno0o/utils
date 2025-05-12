@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
-            <td class="headerCovTableEntry">136</td>
+            <td class="headerCovTableEntryHi">96.5&nbsp;%</td>
+            <td class="headerCovTableEntry">141</td>
             <td class="headerCovTableEntry">136</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-04-22 11:59:27</td>
+            <td class="headerValue">2025-05-12 08:21:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -60,7 +60,7 @@
               <td>
 <pre class="sourceHeading">            Line data    Source code</pre>
 <pre class="source">
-<span id="L1"><span class="lineNum">       1</span> <span class="tlaGNC tlaBgGNC">          37 : import { randomInt } from './number'</span></span>
+<span id="L1"><span class="lineNum">       1</span> <span class="tlaGNC tlaBgGNC">          37 : import { randomInt } from '~/number'</span></span>
 <span id="L2"><span class="lineNum">       2</span>              : </span>
 <span id="L3"><span class="lineNum">       3</span> <span class="tlaGNC">          83 : const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'</span></span>
 <span id="L4"><span class="lineNum">       4</span>              : </span>
@@ -283,7 +283,15 @@
 <span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          56 : export const toSnake = (input: string | string[]) =&gt; toCase(input).join('_')</span></span>
 <span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          72 : export const toPascal = (input: string | string[]) =&gt; toCase(input).map(firstUpper).join('')</span></span>
 <span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">          85 : export const toConstant = (input: string | string[]) =&gt; toCase(input).map(w =&gt; w.toUpperCase()).join('_')</span></span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">          71 : export const toTitle = (input: string | string[]) =&gt; toCase(input).map(firstUpper).join(' ')</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">          72 : export const toTitle = (input: string | string[]) =&gt; toCase(input).map(firstUpper).join(' ')</span></span>
+<span id="L225"><span class="lineNum">     225</span>              : </span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaUNC tlaBgUNC">           0 : export function frRankLabel(rank: string) {</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaUNC">           0 :   if (rank === '1')</span></span>
+<span id="L228"><span class="lineNum">     228</span> <span class="tlaUNC">           0 :     return 'er'</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaUNC">           0 :   if (rank === '2')</span></span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaUNC">           0 :     return 'nd'</span></span>
+<span id="L231"><span class="lineNum">     231</span>              :   return 'ème'</span>
+<span id="L232"><span class="lineNum">     232</span>              : }</span>
         </pre>
               </td>
             </tr>

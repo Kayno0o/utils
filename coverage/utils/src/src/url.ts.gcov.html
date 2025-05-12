@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-04-22 11:59:27</td>
+            <td class="headerValue">2025-05-12 08:21:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -60,12 +60,12 @@
               <td>
 <pre class="sourceHeading">            Line data    Source code</pre>
 <pre class="source">
-<span id="L1"><span class="lineNum">       1</span> <span class="tlaGNC tlaBgGNC">          35 : import { notEmpty } from './array'</span></span>
+<span id="L1"><span class="lineNum">       1</span> <span class="tlaGNC tlaBgGNC">          37 : import { notNullish } from './array'</span></span>
 <span id="L2"><span class="lineNum">       2</span>              : </span>
 <span id="L3"><span class="lineNum">       3</span> <span class="tlaGNC">          16 : export function buildUrlQuery(query?: object | null) {</span></span>
 <span id="L4"><span class="lineNum">       4</span> <span class="tlaGNC">          22 :   const output = query</span></span>
 <span id="L5"><span class="lineNum">       5</span> <span class="tlaGNC">          48 :     ? Object.entries(query).reduce((acc, curr) =&gt; {</span></span>
-<span id="L6"><span class="lineNum">       6</span> <span class="tlaGNC">          27 :         if (notEmpty(curr[1]))</span></span>
+<span id="L6"><span class="lineNum">       6</span> <span class="tlaGNC">          29 :         if (notNullish(curr[1]))</span></span>
 <span id="L7"><span class="lineNum">       7</span> <span class="tlaGNC">          37 :           acc.push(`${curr[0]}=${curr[1]}`)</span></span>
 <span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">          12 :         return acc</span></span>
 <span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC">          15 :       }, [] as string[]).join('&amp;')</span></span>
