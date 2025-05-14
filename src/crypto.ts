@@ -40,7 +40,10 @@ export function xmur3(str: string): () => number {
 // sfc32 PRNG: four 32-bit seeds → uniform [0,1)
 export function sfc32(a: number, b: number, c: number, d: number): () => number {
   return function () {
-    a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0
+    a >>>= 0
+    b >>>= 0
+    c >>>= 0
+    d >>>= 0
     const t = (a + b) | 0
     a = b ^ (b >>> 9)
     b = (c + (c << 3)) | 0
