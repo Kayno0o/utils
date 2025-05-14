@@ -1,31 +1,33 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
+    "lib": ["ESNext", "DOM"],
+    "moduleDetection": "force",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
 
-    "moduleResolution": "Node",
     "paths": {
       "~/tools/*": ["./src/tools/*.ts"],
       "~/types": ["./types/index.ts"],
       "~/*": ["./src/*.ts"]
     },
     "resolveJsonModule": true,
-    "allowJs": true,
-
+    "allowImportingTsExtensions": true,
+    "allowJs": false,
     "strict": true,
     "noFallthroughCasesInSwitch": true,
-
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": true,
+    "noPropertyAccessFromIndexSignature": false,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-
+    "noUnusedParameters": false,
     "declaration": true,
+    "noEmit": true,
     "outDir": "dist",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
   "files": ["./index.ts"],
