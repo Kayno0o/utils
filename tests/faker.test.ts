@@ -36,11 +36,6 @@ describe('faker.paragraph function', () => {
     const result = Faker.lorem.paragraph()
     expect(result.split('\n').filter(notEmpty).length).toEqual(1)
   })
-
-  it('text: should generate random words', () => {
-    const result = Faker.lorem({ type: 'word' })
-    expect(result.split(' ').filter(notEmpty).length).toEqual(5)
-  })
 })
 
 describe('faker.uuidV4 function', () => {

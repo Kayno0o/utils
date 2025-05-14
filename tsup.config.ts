@@ -6,7 +6,6 @@ export default defineConfig({
   entry: ['./index.ts'],
   format: ['cjs', 'esm'],
   minify: true,
-  sourcemap: true,
+  sourcemap: false,
   splitting: false,
-  external: ['dayjs', 'ansi-colors'],
 })

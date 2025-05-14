@@ -93,9 +93,19 @@ function rgbToHsl(rgb: RgbArrayType): HslArrayType {
   return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)]
 }
 
+/**
+ * Convert sRGB channel (0–255) → linearized channel per WCAG2 (for relative luminance).
+ */
+function linearize(channel: number): number {
+  const c = channel / 255
+  return c <= 0.03928
+    ? c / 12.92
+    : ((c + 0.055) / 1.055) ** 2.4
+}
+
 export type ColorType = 'hsl' | 'rgb' | 'hex' | 'hsl' | 'hsla' | 'rgba' | 'hexa'
 
-export class ColorConverter {
+export class Color {
   private r: number
   private g: number
   private b: number
@@ -108,23 +118,23 @@ export class ColorConverter {
     this.a = a
   }
 
-  static from(type: 'hex', value: string | number): ColorConverter
-  static from(type: 'rgb', value: RgbArrayType | RgbaArrayType | RgbObjectType): ColorConverter
-  static from(type: 'hsl', value: HslArrayType | HslaArrayType | HslObjectType): ColorConverter
-  static from(type: ColorType, value: any): ColorConverter {
+  static from(type: 'hex', value: string | number): Color
+  static from(type: 'rgb', value: RgbArrayType | RgbaArrayType | RgbObjectType): Color
+  static from(type: 'hsl', value: HslArrayType | HslaArrayType | HslObjectType): Color
+  static from(type: ColorType, value: any): Color {
     if (type === 'hex') {
       const [r, g, b, a] = hexToRgb(value)
-      return new ColorConverter(r, g, b, a)
+      return new Color(r, g, b, a)
     }
 
     if (type === 'rgb') {
       if (Array.isArray(value)) {
         const [r, g, b, a] = value as RgbArrayType | RgbaArrayType
-        return new ColorConverter(r, g, b, a)
+        return new Color(r, g, b, a)
       }
 
       const { r, g, b, a } = value as RgbObjectType
-      return new ColorConverter(r, g, b, a)
+      return new Color(r, g, b, a)
     }
 
     if (type === 'hsl') {
@@ -139,7 +149,7 @@ export class ColorConverter {
 
       const [r, g, b] = hslToRgb(h, s, l)
 
-      return new ColorConverter(r, g, b, a)
+      return new Color(r, g, b, a)
     }
 
     throw new Error('Invalid input')
@@ -173,23 +183,13 @@ export class ColorConverter {
   }
 
   /**
-   * Convert sRGB channel (0–255) → linearized channel per WCAG2 (for relative luminance).
-   */
-  private static linearize(channel: number): number {
-    const c = channel / 255
-    return c <= 0.03928
-      ? c / 12.92
-      : ((c + 0.055) / 1.055) ** 2.4
-  }
-
-  /**
    * Compute relative luminance (0–1) per WCAG2:
    * L = 0.2126 R + 0.7152 G + 0.0722 B
    */
   private getLuminance(): number {
-    const R = ColorConverter.linearize(this.r)
-    const G = ColorConverter.linearize(this.g)
-    const B = ColorConverter.linearize(this.b)
+    const R = linearize(this.r)
+    const G = linearize(this.g)
+    const B = linearize(this.b)
     return 0.2126 * R + 0.7152 * G + 0.0722 * B
   }
 
@@ -197,7 +197,7 @@ export class ColorConverter {
    * Contrast ratio between this color and another:
    * (L1 + 0.05) / (L2 + 0.05), L1 ≥ L2
    */
-  public contrastRatio(other: ColorConverter): number {
+  public contrastRatio(other: Color): number {
     const L1 = this.getLuminance()
     const L2 = other.getLuminance()
     const [bright, dark] = L1 >= L2 ? [L1, L2] : [L2, L1]
@@ -207,9 +207,9 @@ export class ColorConverter {
   /**
    * Pick black or white as the ideal foreground based on WCAG contrast ratio.
    */
-  public bestContrastForeground(): ColorConverter {
-    const white = new ColorConverter(255, 255, 255, 1)
-    const black = new ColorConverter(0, 0, 0, 1)
+  public bestContrastForeground(): Color {
+    const white = new Color(255, 255, 255, 1)
+    const black = new Color(0, 0, 0, 1)
 
     // compare contrast against white vs. black
     const contrastWithWhite = this.contrastRatio(white)

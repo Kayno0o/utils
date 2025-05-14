@@ -1,6 +1,6 @@
 import type { RgbArrayType } from '~/tools/ColorConverter'
 import { numberFromString, randomInt } from '~/number'
-import { ColorConverter } from '~/tools/ColorConverter'
+import { Color } from '~/tools/ColorConverter'
 
 export function randomHex(isCrypto = false) {
   return `#${Math.floor(randomInt(0, 16777215, isCrypto)).toString(16).padStart(6, '0')}`.toUpperCase()
@@ -30,5 +30,5 @@ export function stringToHex(
   const h = (numberFromString(`${str}|hue`, 0, 360) + hueOffset) % 360
   const s = numberFromString(`${str}|sat`, sRange[0], sRange[1])
 
-  return ColorConverter.from('hsl', [h, s, l]).to('hex')
+  return Color.from('hsl', [h, s, l]).to('hex')
 }
