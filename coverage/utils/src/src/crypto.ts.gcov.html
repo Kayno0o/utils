@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">54.8&nbsp;%</td>
-            <td class="headerCovTableEntry">42</td>
-            <td class="headerCovTableEntry">23</td>
+            <td class="headerCovTableEntryLo">57.8&nbsp;%</td>
+            <td class="headerCovTableEntry">45</td>
+            <td class="headerCovTableEntry">26</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-05-12 08:25:15</td>
+            <td class="headerValue">2025-05-14 09:54:50</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -102,18 +102,21 @@
 <span id="L40"><span class="lineNum">      40</span>              : // sfc32 PRNG: four 32-bit seeds → uniform [0,1)</span>
 <span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">          21 : export function sfc32(a: number, b: number, c: number, d: number): () =&gt; number {</span></span>
 <span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">          14 :   return function () {</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">          52 :     a &gt;&gt;&gt;= 0; b &gt;&gt;&gt;= 0; c &gt;&gt;&gt;= 0; d &gt;&gt;&gt;= 0</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          24 :     const t = (a + b) | 0</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">          20 :     a = b ^ (b &gt;&gt;&gt; 9)</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          25 :     b = (c + (c &lt;&lt; 3)) | 0</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          27 :     c = (c &lt;&lt; 21) | (c &gt;&gt;&gt; 11)</span></span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">          18 :     d = (d + 1) | 0</span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">          29 :     const result = (t + d) | 0</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          23 :     c = (c + result) | 0</span></span>
-<span id="L51"><span class="lineNum">      51</span>              :     // Convert to [0, 1)</span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">          34 :     return (result &gt;&gt;&gt; 0) / 4294967296</span></span>
-<span id="L53"><span class="lineNum">      53</span>              :   }</span>
-<span id="L54"><span class="lineNum">      54</span>              : }</span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">          13 :     a &gt;&gt;&gt;= 0</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          13 :     b &gt;&gt;&gt;= 0</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">          13 :     c &gt;&gt;&gt;= 0</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          13 :     d &gt;&gt;&gt;= 0</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          24 :     const t = (a + b) | 0</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">          20 :     a = b ^ (b &gt;&gt;&gt; 9)</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">          25 :     b = (c + (c &lt;&lt; 3)) | 0</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          27 :     c = (c &lt;&lt; 21) | (c &gt;&gt;&gt; 11)</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">          18 :     d = (d + 1) | 0</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">          29 :     const result = (t + d) | 0</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          23 :     c = (c + result) | 0</span></span>
+<span id="L54"><span class="lineNum">      54</span>              :     // Convert to [0, 1)</span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          34 :     return (result &gt;&gt;&gt; 0) / 4294967296</span></span>
+<span id="L56"><span class="lineNum">      56</span>              :   }</span>
+<span id="L57"><span class="lineNum">      57</span>              : }</span>
         </pre>
               </td>
             </tr>

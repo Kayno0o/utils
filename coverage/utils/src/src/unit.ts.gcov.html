@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-05-12 08:25:15</td>
+            <td class="headerValue">2025-05-14 09:54:50</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -243,91 +243,92 @@
 <span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">          20 :     m3: 1, // base (cubic meter)</span></span>
 <span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          46 :     tsp: 0.00000492892, // teaspoon</span></span>
 <span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">          46 :     tbsp: 0.0000147868, // tablespoon</span></span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          48 :     fl_oz: 0.0000295735, // fluid ounce</span></span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">          42 :     cup: 0.000236588, // cup</span></span>
-<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          40 :     pt: 0.000473176, // pint</span></span>
-<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">          40 :     qt: 0.000946353, // quart</span></span>
-<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">          40 :     gal: 0.00378541, // gallon</span></span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">          44 :     in3: 0.0000163871, // cubic inch</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          32 :     ft3: 0.0283168, // cubic foot</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">           8 :   },</span></span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">          22 :   area: {</span></span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          36 :     mm2: 0.000001, // square millimeter</span></span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          32 :     cm2: 0.0001, // square centimeter</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">          20 :     m2: 1, // base (square meter)</span></span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">          24 :     ha: 10000, // hectare</span></span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">          26 :     km2: 1000000, // square kilometer</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          40 :     in2: 0.00064516, // square inch</span></span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">          36 :     ft2: 0.092903, // square foot</span></span>
-<span id="L200"><span class="lineNum">     200</span> <span class="tlaGNC">          36 :     yd2: 0.836127, // square yard</span></span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">          32 :     ac: 4046.86, // acre</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">          34 :     mi2: 2589988.11, // square mile</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">           4 :   },</span></span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">           4 : }</span></span>
-<span id="L205"><span class="lineNum">     205</span>              : </span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">          60 : export const UnitConverterFn: {</span></span>
-<span id="L207"><span class="lineNum">     207</span>              :   [K in keyof UnitType]: Record&lt;UnitType[K] &amp; string, {</span>
-<span id="L208"><span class="lineNum">     208</span>              :     from: (value: number) =&gt; number</span>
-<span id="L209"><span class="lineNum">     209</span>              :     to: (value: number) =&gt; number</span>
-<span id="L210"><span class="lineNum">     210</span>              :   }&gt;</span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">           6 : } = {</span></span>
-<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">          82 :   byte: createBaseUnitConverters('byte'),</span></span>
-<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">          98 :   distance: createBaseUnitConverters('distance'),</span></span>
-<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">          90 :   weight: createBaseUnitConverters('weight'),</span></span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">          90 :   energy: createBaseUnitConverters('energy'),</span></span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">          98 :   pressure: createBaseUnitConverters('pressure'),</span></span>
-<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">          86 :   speed: createBaseUnitConverters('speed'),</span></span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">          82 :   time: createBaseUnitConverters('time'),</span></span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          90 :   volume: createBaseUnitConverters('volume'),</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          82 :   area: createBaseUnitConverters('area'),</span></span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          36 :   temperature: {</span></span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          20 :     C: {</span></span>
-<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">          50 :       from: (value: number) =&gt; value + 273.15, // C to K</span></span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">          40 :       to: (value: number) =&gt; value - 273.15, // K to C</span></span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">          20 :     F: {</span></span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">          60 :       from: (value: number) =&gt; (value + 459.67) * 5 / 9, // F to K</span></span>
-<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">          48 :       to: (value: number) =&gt; value * 9 / 5 - 459.67, // K to F</span></span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">          50 :     K: baseUnitConverter(1), // base</span></span>
-<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">           4 :   },</span></span>
-<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">           3 : }</span></span>
-<span id="L233"><span class="lineNum">     233</span>              : </span>
-<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">          49 : function baseUnitConverter(factor: number) {</span></span>
-<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">          24 :   return {</span></span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">          46 :     from: (value: number) =&gt; value / factor,</span></span>
-<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">          36 :     to: (value: number) =&gt; value * factor,</span></span>
-<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">           5 :   }</span></span>
-<span id="L239"><span class="lineNum">     239</span>              : }</span>
-<span id="L240"><span class="lineNum">     240</span>              : </span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">          52 : function createBaseUnitConverters&lt;Unit extends keyof typeof unitFactors&gt;(unit: Unit) {</span></span>
-<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          78 :   const unitFactor = unitFactors[unit] as Record&lt;UnitType[Unit], number&gt;</span></span>
-<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">          48 :   const converters: Record&lt;UnitType[Unit], { from: (value: number) =&gt; number, to: (value: number) =&gt; number }&gt; = {} as any</span></span>
-<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">          67 :   for (const unit in unitFactor)</span></span>
-<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">         113 :     converters[unit as UnitType[Unit]] = baseUnitConverter(unitFactor[unit as UnitType[Unit]])</span></span>
-<span id="L246"><span class="lineNum">     246</span>              : </span>
-<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">          37 :   return converters</span></span>
-<span id="L248"><span class="lineNum">     248</span>              : }</span>
-<span id="L249"><span class="lineNum">     249</span>              : </span>
-<span id="L250"><span class="lineNum">     250</span>              : export class UnitConverter&lt;Unit extends keyof UnitType&gt; {</span>
-<span id="L251"><span class="lineNum">     251</span>              :   type: Unit</span>
-<span id="L252"><span class="lineNum">     252</span>              :   unit: UnitType[Unit]</span>
-<span id="L253"><span class="lineNum">     253</span> <span class="tlaGNC">           1 :   value: number</span></span>
-<span id="L254"><span class="lineNum">     254</span>              : </span>
-<span id="L255"><span class="lineNum">     255</span> <span class="tlaUNC tlaBgUNC">           0 :   constructor(type: Unit, unit: UnitType[Unit], value: number) {</span></span>
-<span id="L256"><span class="lineNum">     256</span> <span class="tlaUNC">           0 :     this.type = type</span></span>
-<span id="L257"><span class="lineNum">     257</span> <span class="tlaUNC">           0 :     this.unit = unit</span></span>
-<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC tlaBgGNC">          73 :     this.value = UnitConverterFn[type][unit].from(value)</span></span>
-<span id="L259"><span class="lineNum">     259</span>              :   }</span>
-<span id="L260"><span class="lineNum">     260</span>              : </span>
-<span id="L261"><span class="lineNum">     261</span> <span class="tlaUNC tlaBgUNC">           0 :   static from&lt;Unit extends keyof UnitType&gt;(type: Unit, unit: UnitType[Unit], value: number): UnitConverter&lt;Unit&gt; {</span></span>
-<span id="L262"><span class="lineNum">     262</span> <span class="tlaGNC tlaBgGNC">          50 :     return new UnitConverter&lt;Unit&gt;(type, unit, value)</span></span>
-<span id="L263"><span class="lineNum">     263</span>              :   }</span>
-<span id="L264"><span class="lineNum">     264</span>              : </span>
-<span id="L265"><span class="lineNum">     265</span> <span class="tlaUNC tlaBgUNC">           0 :   to(unit: UnitType[Unit]): number {</span></span>
-<span id="L266"><span class="lineNum">     266</span> <span class="tlaGNC tlaBgGNC">          60 :     return UnitConverterFn[this.type][unit].to(this.value)</span></span>
-<span id="L267"><span class="lineNum">     267</span>              :   }</span>
-<span id="L268"><span class="lineNum">     268</span> <span class="tlaGNC">           2 : }</span></span>
+<span id="L184"><span class="lineNum">     184</span>              :     // eslint-disable-next-line camelcase</span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">          48 :     fl_oz: 0.0000295735, // fluid ounce</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          42 :     cup: 0.000236588, // cup</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">          40 :     pt: 0.000473176, // pint</span></span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">          40 :     qt: 0.000946353, // quart</span></span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">          40 :     gal: 0.00378541, // gallon</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          44 :     in3: 0.0000163871, // cubic inch</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">          32 :     ft3: 0.0283168, // cubic foot</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">           8 :   },</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          22 :   area: {</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          36 :     mm2: 0.000001, // square millimeter</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">          32 :     cm2: 0.0001, // square centimeter</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">          20 :     m2: 1, // base (square meter)</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">          24 :     ha: 10000, // hectare</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          26 :     km2: 1000000, // square kilometer</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">          40 :     in2: 0.00064516, // square inch</span></span>
+<span id="L200"><span class="lineNum">     200</span> <span class="tlaGNC">          36 :     ft2: 0.092903, // square foot</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">          36 :     yd2: 0.836127, // square yard</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">          32 :     ac: 4046.86, // acre</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">          34 :     mi2: 2589988.11, // square mile</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">           4 :   },</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">           4 : }</span></span>
+<span id="L206"><span class="lineNum">     206</span>              : </span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">          60 : export const UnitConverterFn: {</span></span>
+<span id="L208"><span class="lineNum">     208</span>              :   [K in keyof UnitType]: Record&lt;UnitType[K] &amp; string, {</span>
+<span id="L209"><span class="lineNum">     209</span>              :     from: (value: number) =&gt; number</span>
+<span id="L210"><span class="lineNum">     210</span>              :     to: (value: number) =&gt; number</span>
+<span id="L211"><span class="lineNum">     211</span>              :   }&gt;</span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">           6 : } = {</span></span>
+<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">          82 :   byte: createBaseUnitConverters('byte'),</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">          98 :   distance: createBaseUnitConverters('distance'),</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">          90 :   weight: createBaseUnitConverters('weight'),</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">          90 :   energy: createBaseUnitConverters('energy'),</span></span>
+<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">          98 :   pressure: createBaseUnitConverters('pressure'),</span></span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">          86 :   speed: createBaseUnitConverters('speed'),</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          82 :   time: createBaseUnitConverters('time'),</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          90 :   volume: createBaseUnitConverters('volume'),</span></span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          82 :   area: createBaseUnitConverters('area'),</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          36 :   temperature: {</span></span>
+<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">          20 :     C: {</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">          50 :       from: (value: number) =&gt; value + 273.15, // C to K</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          40 :       to: (value: number) =&gt; value - 273.15, // K to C</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">          12 :     },</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">          20 :     F: {</span></span>
+<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">          60 :       from: (value: number) =&gt; (value + 459.67) * 5 / 9, // F to K</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">          48 :       to: (value: number) =&gt; value * 9 / 5 - 459.67, // K to F</span></span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">          12 :     },</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">          50 :     K: baseUnitConverter(1), // base</span></span>
+<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">           4 :   },</span></span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">           3 : }</span></span>
+<span id="L234"><span class="lineNum">     234</span>              : </span>
+<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">          49 : function baseUnitConverter(factor: number) {</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">          24 :   return {</span></span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">          46 :     from: (value: number) =&gt; value / factor,</span></span>
+<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">          36 :     to: (value: number) =&gt; value * factor,</span></span>
+<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">           5 :   }</span></span>
+<span id="L240"><span class="lineNum">     240</span>              : }</span>
+<span id="L241"><span class="lineNum">     241</span>              : </span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          52 : function createBaseUnitConverters&lt;Unit extends keyof typeof unitFactors&gt;(unit: Unit) {</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">          78 :   const unitFactor = unitFactors[unit] as Record&lt;UnitType[Unit], number&gt;</span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">          48 :   const converters: Record&lt;UnitType[Unit], { from: (value: number) =&gt; number, to: (value: number) =&gt; number }&gt; = {} as any</span></span>
+<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">          67 :   for (const unit in unitFactor)</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">         113 :     converters[unit as UnitType[Unit]] = baseUnitConverter(unitFactor[unit as UnitType[Unit]])</span></span>
+<span id="L247"><span class="lineNum">     247</span>              : </span>
+<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">          37 :   return converters</span></span>
+<span id="L249"><span class="lineNum">     249</span>              : }</span>
+<span id="L250"><span class="lineNum">     250</span>              : </span>
+<span id="L251"><span class="lineNum">     251</span>              : export class UnitConverter&lt;Unit extends keyof UnitType&gt; {</span>
+<span id="L252"><span class="lineNum">     252</span>              :   type: Unit</span>
+<span id="L253"><span class="lineNum">     253</span>              :   unit: UnitType[Unit]</span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">           1 :   value: number</span></span>
+<span id="L255"><span class="lineNum">     255</span>              : </span>
+<span id="L256"><span class="lineNum">     256</span> <span class="tlaUNC tlaBgUNC">           0 :   constructor(type: Unit, unit: UnitType[Unit], value: number) {</span></span>
+<span id="L257"><span class="lineNum">     257</span> <span class="tlaUNC">           0 :     this.type = type</span></span>
+<span id="L258"><span class="lineNum">     258</span> <span class="tlaUNC">           0 :     this.unit = unit</span></span>
+<span id="L259"><span class="lineNum">     259</span> <span class="tlaGNC tlaBgGNC">          73 :     this.value = UnitConverterFn[type][unit].from(value)</span></span>
+<span id="L260"><span class="lineNum">     260</span>              :   }</span>
+<span id="L261"><span class="lineNum">     261</span>              : </span>
+<span id="L262"><span class="lineNum">     262</span> <span class="tlaUNC tlaBgUNC">           0 :   static from&lt;Unit extends keyof UnitType&gt;(type: Unit, unit: UnitType[Unit], value: number): UnitConverter&lt;Unit&gt; {</span></span>
+<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC tlaBgGNC">          50 :     return new UnitConverter&lt;Unit&gt;(type, unit, value)</span></span>
+<span id="L264"><span class="lineNum">     264</span>              :   }</span>
+<span id="L265"><span class="lineNum">     265</span>              : </span>
+<span id="L266"><span class="lineNum">     266</span> <span class="tlaUNC tlaBgUNC">           0 :   to(unit: UnitType[Unit]): number {</span></span>
+<span id="L267"><span class="lineNum">     267</span> <span class="tlaGNC tlaBgGNC">          60 :     return UnitConverterFn[this.type][unit].to(this.value)</span></span>
+<span id="L268"><span class="lineNum">     268</span>              :   }</span>
+<span id="L269"><span class="lineNum">     269</span> <span class="tlaGNC">           2 : }</span></span>
         </pre>
               </td>
             </tr>

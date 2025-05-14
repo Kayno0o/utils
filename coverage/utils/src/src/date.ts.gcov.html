@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-05-12 08:25:15</td>
+            <td class="headerValue">2025-05-14 09:54:50</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -61,9 +61,9 @@
 <pre class="sourceHeading">            Line data    Source code</pre>
 <pre class="source">
 <span id="L1"><span class="lineNum">       1</span>              : import type dayjs from 'dayjs'</span>
-<span id="L2"><span class="lineNum">       2</span> <span class="tlaGNC tlaBgGNC">          33 : import fr from 'dayjs/locale/fr'</span></span>
-<span id="L3"><span class="lineNum">       3</span>              : </span>
-<span id="L4"><span class="lineNum">       4</span> <span class="tlaGNC">          13 : export async function configureDayjs(djs: typeof dayjs) {</span></span>
+<span id="L2"><span class="lineNum">       2</span>              : </span>
+<span id="L3"><span class="lineNum">       3</span> <span class="tlaGNC tlaBgGNC">          13 : export async function configureDayjs(djs: typeof dayjs) {</span></span>
+<span id="L4"><span class="lineNum">       4</span> <span class="tlaGNC">          55 :   const fr = (await import('dayjs/locale/fr')).default</span></span>
 <span id="L5"><span class="lineNum">       5</span> <span class="tlaGNC">          17 :   djs.locale(fr)</span></span>
 <span id="L6"><span class="lineNum">       6</span>              : </span>
 <span id="L7"><span class="lineNum">       7</span> <span class="tlaGNC">          67 :   const isSameOrAfter = await import('dayjs/plugin/isSameOrAfter')</span></span>
