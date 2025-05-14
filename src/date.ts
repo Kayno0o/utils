@@ -1,7 +1,7 @@
 import type dayjs from 'dayjs'
-import fr from 'dayjs/locale/fr'
 
 export async function configureDayjs(djs: typeof dayjs) {
+  const fr = (await import('dayjs/locale/fr')).default
   djs.locale(fr)
 
   const isSameOrAfter = await import('dayjs/plugin/isSameOrAfter')
