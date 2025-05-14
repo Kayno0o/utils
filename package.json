@@ -42,12 +42,12 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
-    "@kaynooo/eslint": "^1.1.4",
-    "@types/bun": "^1.2.9",
-    "eslint": "^9.24.0",
-    "lint-staged": "^15.5.0",
+    "@kaynooo/eslint": "^1.1.6",
+    "@types/bun": "^1.2.13",
+    "eslint": "^9.26.0",
+    "lint-staged": "^16.0.0",
     "tsup": "^8.4.0",
-    "typedoc": "^0.28.2",
+    "typedoc": "^0.28.4",
     "typedoc-github-theme": "^0.3.0",
     "typescript": "^5.8.3"
   },
