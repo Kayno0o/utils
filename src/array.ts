@@ -46,3 +46,23 @@ export function shuffleArray(array: any[]) {
 export function toArray<T>(value: T | T[]): T[] {
   return Array.isArray(value) ? value : [value]
 }
+
+export function splitArray<T>(array: T[], parts: number): T[][] {
+  if (parts <= 0)
+    throw new Error('Parts must be greater than 0')
+
+  const result: T[][] = []
+  const minChunkSize = Math.floor(array.length / parts)
+  const remainder = array.length % parts
+
+  let start = 0
+
+  for (let i = 0; i < parts; i++) {
+    const extra = i < remainder ? 1 : 0
+    const end = start + minChunkSize + extra
+    result.push(array.slice(start, end))
+    start = end
+  }
+
+  return result
+}
