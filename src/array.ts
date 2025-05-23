@@ -47,7 +47,7 @@ export function toArray<T>(value: T | T[]): T[] {
   return Array.isArray(value) ? value : [value]
 }
 
-export function splitArray<T>(array: T[], parts: number): T[][] {
+export function chunkArray<T>(array: T[], parts: number): T[][] {
   if (parts <= 0)
     throw new Error('Parts must be greater than 0')
 
