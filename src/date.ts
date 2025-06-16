@@ -1,3 +1,4 @@
+// TODO remove use of dayjs
 import type dayjs from 'dayjs'
 
 export async function configureDayjs(djs: typeof dayjs) {
