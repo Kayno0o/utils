@@ -1,83 +1,71 @@
 import { colors } from '~/tools/colors'
 
-export type LogLevel = 'info' | 'success' | 'warning' | 'error'
-interface LogType { char: string, color: (str: string) => string, level: number }
+interface LogType { char: string, color?: (str: string) => string, level?: number }
 
-const baseLogTypes: Record<LogLevel, LogType> = {
+const baseLogTypes = {
   error: {
     char: 'X',
     color: colors.red,
     level: 0,
-  },
-  info: {
-    char: '?',
-    color: colors.cyan,
-    level: 3,
-  },
-  success: {
-    char: '+',
-    color: colors.green,
-    level: 2,
   },
   warning: {
     char: '!',
     color: colors.yellow,
     level: 1,
   },
+  success: {
+    char: '+',
+    color: colors.green,
+    level: 2,
+  },
+  info: {
+    char: '?',
+    color: colors.cyan,
+    level: 3,
+  },
+} satisfies Record<string, LogType>
+
+interface LoggerOptions<Level extends string> {
+  logTypes: Record<Level, LogType>
+  /** @default info */
+  logLevel?: number
+  onLog?: (log: string) => void | Promise<void>
 }
 
-type LoggerOptions<Services extends string | undefined> = {
-  logTypes?: Record<LogLevel, LogType>
-  /** @default info */
-  logLevel?: LogLevel
-  onLog?: (log: string) => void | Promise<void>
-} & (Services extends string
-  ? { serviceColor: Record<Services, (value: string) => string> }
-  : { serviceColor?: undefined })
-
-type LogFnArgs<
-  Services extends string | undefined,
-> = Services extends string
-  ? [level: LogLevel, service: Services, ...messages: any[]]
-  : [level: LogLevel, ...messages: any[]]
-
-export function declareLogger<
-  Services extends string | undefined = undefined,
->({
-  logTypes = baseLogTypes,
-  logLevel = 'info',
-  serviceColor,
-  onLog,
-}: LoggerOptions<Services>) {
-  const log = (...args: LogFnArgs<Services>) => {
-    const [level, serviceOrMessages, ...messages] = args
-    const service = serviceColor ? (serviceOrMessages as Services) : undefined
-
+/**
+ * will only log if logTypes.[type].level <= option.logLevel
+ */
+export function declareCustomLogger<
+  Level extends string,
+>({ logTypes, logLevel, onLog }: LoggerOptions<Level>) {
+  const log = (level: Level, ...messages: any[]) => {
     const logType = logTypes[level]
 
-    const actualMessages = serviceColor
-      ? messages
-      : [serviceOrMessages, ...messages].filter(Boolean) // Ensure no undefined values are included in the messages
-
     const envLogLevel = Number.isNaN(Number(logLevel))
-      ? logType.level
+      ? (logType.level ?? 0)
       : Number(logLevel)
 
-    const prepend
-      = serviceColor && service
-        ? `${logType.char} ${serviceColor[service](service.toLocaleUpperCase())}`
-        : logType.char
-
-    if (logType.level <= envLogLevel) {
+    if ((logType.level ?? 0) <= envLogLevel) {
       console.log(
-        logType.color(prepend),
-        ...actualMessages,
+        logType.color ? logType.color(logType.char) : logType.char,
+        ...messages,
       )
     }
 
     if (onLog)
-      onLog(`[${new Date().toISOString()}] ${level.toUpperCase()} ${prepend} ${actualMessages.join(' ')}\n`)
+      onLog(`[${new Date().toISOString()}] ${level.toUpperCase()} ${logType.char} ${messages.join(' ')}\n`)
   }
 
   return log
+}
+
+/**
+ * `error: 0, warning: 1, success: 2, info: 3`
+ * will only log if level <= option.logLevel
+ */
+export function declareLogger(options?: { logLevel?: number, onLog?: (log: string) => void | Promise<void> }) {
+  return declareCustomLogger({
+    logTypes: baseLogTypes,
+    ...options,
+  })
 }

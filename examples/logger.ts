@@ -1,22 +1,22 @@
-import type { LogLevel } from '../index'
-import { colors, declareLogger } from '../index'
+import { colors, declareCustomLogger, declareLogger } from '../index'
 
-const log = declareLogger<'discord' | 'sqlite' | 'rcon'>({ logLevel: import.meta.env.LOG_LEVEL as LogLevel | undefined, serviceColor: {
-  discord: colors.bold.yellow,
-  rcon: colors.bold.blue,
-  sqlite: colors.bold.magenta,
-} })
+const baseLogger = declareLogger({ logLevel: 2 })
+baseLogger('success', 'messages')
+baseLogger('info', 'not logged')
 
-log('error', 'sqlite', 'type', 'messages')
+const customLogger = declareCustomLogger({
+  logTypes: {
+    command: {
+      char: '$',
+      color: colors.gray,
+      level: 2,
+    },
+    twig: {
+      char: '%',
+    },
+  },
+  logLevel: 2,
+})
 
-const logWithoutService = declareLogger({})
-logWithoutService('success', 'type', 'messages')
-
-const loggerWithoutType = declareLogger<'discord' | 'sqlite' | 'rcon'>({ logLevel: import.meta.env.LOG_LEVEL as LogLevel | undefined, serviceColor: {
-  discord: colors.bold.yellow,
-  rcon: colors.bold.blue,
-  sqlite: colors.bold.magenta,
-} })
-
-loggerWithoutType('warning', 'rcon', 'not type', 'messages')
-loggerWithoutType('info', 'rcon', 'info')
+customLogger('command', 'bun run main.ts')
+customLogger('twig', 'my twig template is initialized')
