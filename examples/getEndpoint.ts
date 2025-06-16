@@ -5,21 +5,9 @@ const endpoints = {
   projects: '/api/projects',
   test: '/api/test/{test}',
   test2: '/api/test/{test}',
-}
+} as const
 
-export interface MyEndpointType {
-  project: {
-    uuid: string
-  }
-  test: {
-    test: 'path'
-  }
-  test2: {
-    test: 'path' | '123'
-  }
-}
-
-const getEndpoint = declareGetEndpoint<typeof endpoints, MyEndpointType>(endpoints)
+const getEndpoint = declareGetEndpoint(endpoints)
 
 console.log(getEndpoint(['project', { uuid: 'test123' }])) // /api/projects/test123
 console.log(getEndpoint(['projects'])) // /api/projects
