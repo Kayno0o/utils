@@ -1,8 +1,8 @@
 import { colors } from '~/tools/colors'
 
-interface LogType { char: string, color?: (str: string) => string, level?: number }
+interface LogType { char: string, color?: (str: string) => string, level?: number, log?: (...args: any[]) => void | Promise<void> }
 
-const baseLogTypes = {
+export const baseLogTypes = {
   error: {
     char: 'X',
     color: colors.red,
@@ -46,7 +46,7 @@ export function declareCustomLogger<
       : Number(logLevel)
 
     if ((logType.level ?? 0) <= envLogLevel) {
-      console.log(
+      (logType.log ?? console.log)(
         logType.color ? logType.color(logType.char) : logType.char,
         ...messages,
       )
