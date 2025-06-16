@@ -3,7 +3,7 @@ import { randomInt } from '~/number'
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
 export function randomString(length: number, charset?: string, isCrypto = false): string {
-  charset ||= wordChars
+  charset ??= wordChars
 
   if (isCrypto) {
     let id = ''
@@ -131,8 +131,10 @@ export function matchingSubstring(str1: string, str2: string): string {
   return str1.substring(0, length)
 }
 
+const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+
 export function getUuidFromIri(iri: string): string | null {
-  const match = iri.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)
+  const match = UUID_REGEX.exec(iri)
   return match ? match[0] : null
 }
 
@@ -170,11 +172,11 @@ export function plural(singular: string): string {
   return `${singular}s`
 }
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const STRICT_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MINIFIED_REGEX = /^[\w-]+$/
 
 export function minifyUUID(uuid: string): string {
-  if (!UUID_REGEX.test(uuid))
+  if (!STRICT_UUID_REGEX.test(uuid))
     throw new Error('Invalid UUID format')
 
   const hex = uuid.replace(/-/g, '')
@@ -205,7 +207,7 @@ export function toCase(str: string | string[]): string[] {
 
   // Replace separators with space, then match all word segments
   const normalized = str
-    .replace(/[_\-]+/g, ' ') // snake_case / kebab-case -> space
+    .replace(/[_-]+/g, ' ') // snake_case / kebab-case -> space
     .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase -> camel Case
     .replace(/\s+/g, ' ') // collapse multiple spaces
     .trim()
