@@ -204,7 +204,7 @@ const unitFactors: { [Unit in keyof UnitType]?: Record<UnitType[Unit], number> }
   },
 }
 
-export const UnitConverterFn: {
+const UnitConverterFn: {
   [K in keyof UnitType]: Record<UnitType[K] & string, {
     from: (value: number) => number
     to: (value: number) => number
