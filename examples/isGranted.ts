@@ -1,8 +1,8 @@
 import { declareIsGranted } from '../index'
 
-export type RoleType = 'ROLE_ADMIN' | 'ROLE_USER'
+type RoleType = 'ROLE_ADMIN' | 'ROLE_USER'
 
-export const RoleHierarchy: Record<RoleType, RoleType[]> = {
+const RoleHierarchy: Record<RoleType, RoleType[]> = {
   ROLE_ADMIN: ['ROLE_USER'],
   ROLE_USER: [],
 }

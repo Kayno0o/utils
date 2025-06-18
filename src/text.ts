@@ -218,12 +218,29 @@ export function toCase(str: string | string[]): string[] {
 
 export type CaseType = 'kebab' | 'snake' | 'camel' | 'pascal' | 'constant' | 'title'
 
-export const toCamel = (input: string | string[]) => toCase(input).map((w, i) => i === 0 ? w : firstUpper(w)).join('')
-export const toKebab = (input: string | string[]) => toCase(input).join('-')
-export const toSnake = (input: string | string[]) => toCase(input).join('_')
-export const toPascal = (input: string | string[]) => toCase(input).map(firstUpper).join('')
-export const toConstant = (input: string | string[]) => toCase(input).map(w => w.toUpperCase()).join('_')
-export const toTitle = (input: string | string[]) => toCase(input).map(firstUpper).join(' ')
+export function toCamel(input: string | string[]) {
+  return toCase(input).map((w, i) => i === 0 ? w : firstUpper(w)).join('')
+}
+
+export function toKebab(input: string | string[]) {
+  return toCase(input).join('-')
+}
+
+export function toSnake(input: string | string[]) {
+  return toCase(input).join('_')
+}
+
+export function toPascal(input: string | string[]) {
+  return toCase(input).map(firstUpper).join('')
+}
+
+export function toConstant(input: string | string[]) {
+  return toCase(input).map(w => w.toUpperCase()).join('_')
+}
+
+export function toTitle(input: string | string[]) {
+  return toCase(input).map(firstUpper).join(' ')
+}
 
 export function frRankLabel(rank: string) {
   if (rank === '1')

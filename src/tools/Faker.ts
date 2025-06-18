@@ -14,8 +14,8 @@ const OBJECTS = ['table', 'mountain', 'lamp', 'book', 'window', 'river', 'cloud'
 const EMAIL_PROVIDER = ['@gmail.com', '@yahoo.com', '@orange.fr']
 const UUID_V4_TEMPLATE = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 
-export const Faker = {
-  lorem: {
+export class Faker {
+  static lorem = {
     paragraph: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
       Array.from({ length: Math.max(1, length) }, () => {
         const count = randomInt(3, 7, isCrypto)
@@ -30,9 +30,9 @@ export const Faker = {
       }).join(' '),
     word: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
       Array.from({ length: Math.max(1, length) }, () => getRandomElement(dictionary, isCrypto)).join(' '),
-  },
+  }
 
-  date: {
+  static date = {
     date: ({
       endYear = new Date().getFullYear() + 4,
       startYear = new Date().getFullYear() - 4,
@@ -52,22 +52,22 @@ export const Faker = {
       const year = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear
       return year.toString()
     },
-  },
+  }
 
-  name: {
+  static name = {
     firstName: () => getRandomElement(FIRST_NAMES),
     fullname: () => `${Faker.name.firstName()} ${Faker.name.lastName()}`,
     lastName: () => getRandomElement(LAST_NAMES),
     username: () => firstUpper(getRandomElement(ADJECTIVES)) + firstUpper(getRandomElement(OBJECTS)),
-  },
+  }
 
-  internet: {
+  static internet = {
     email: () => {
       return Faker.name.fullname().toLocaleLowerCase().replace(' ', '.') + getRandomElement(EMAIL_PROVIDER)
     },
-  },
+  }
 
-  datatype: {
+  static datatype = {
     uuidV4: (isCrypto = false): string => {
       return UUID_V4_TEMPLATE.replace(/[xy]/g, (c) => {
         const r = randomInt(0, 16, isCrypto)
@@ -75,5 +75,5 @@ export const Faker = {
         return v.toString(16)
       })
     },
-  },
+  }
 }
