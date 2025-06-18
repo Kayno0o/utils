@@ -3,7 +3,7 @@ import { randomInt } from '~/number'
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
 export function randomString(length: number, charset?: string, isCrypto = false): string {
-  charset ??= wordChars
+  charset ||= wordChars
 
   if (isCrypto) {
     let id = ''
