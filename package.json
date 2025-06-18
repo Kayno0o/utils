@@ -33,7 +33,7 @@
     "build": "tsup",
     "lint:fix": "eslint . --fix",
     "lint": "eslint .",
-    "doc": "typedoc ./src/* --plugin typedoc-github-theme",
+    "doc": "typedoc ./src/**/*.ts --plugin typedoc-github-theme",
     "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null",
     "benchmark": "bun benchmark.ts"
   },
