@@ -2,29 +2,6 @@ import { colors } from '~/tools/colors'
 
 interface LogType { char: string, color?: (str: string) => string, level?: number, log?: (...args: any[]) => void | Promise<void> }
 
-const baseLogTypes = {
-  error: {
-    char: 'X',
-    color: colors.red,
-    level: 0,
-  },
-  warning: {
-    char: '!',
-    color: colors.yellow,
-    level: 1,
-  },
-  success: {
-    char: '+',
-    color: colors.green,
-    level: 2,
-  },
-  info: {
-    char: '?',
-    color: colors.cyan,
-    level: 3,
-  },
-} satisfies Record<string, LogType>
-
 interface LoggerOptions<Level extends string> {
   logTypes: Record<Level, LogType>
   /** @default info */
@@ -65,7 +42,28 @@ export function declareCustomLogger<
  */
 export function declareLogger(options?: { logLevel?: number, onLog?: (log: string) => void | Promise<void> }) {
   return declareCustomLogger({
-    logTypes: baseLogTypes,
+    logTypes: {
+      error: {
+        char: 'X',
+        color: colors.red,
+        level: 0,
+      },
+      warning: {
+        char: '!',
+        color: colors.yellow,
+        level: 1,
+      },
+      success: {
+        char: '+',
+        color: colors.green,
+        level: 2,
+      },
+      info: {
+        char: '?',
+        color: colors.cyan,
+        level: 3,
+      },
+    },
     ...options,
   })
 }
