@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryHi">96.5&nbsp;%</td>
-            <td class="headerCovTableEntry">142</td>
-            <td class="headerCovTableEntry">137</td>
+            <td class="headerCovTableEntryHi">96.6&nbsp;%</td>
+            <td class="headerCovTableEntry">148</td>
+            <td class="headerCovTableEntry">143</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-06-18 07:59:42</td>
+            <td class="headerValue">2025-06-18 12:28:59</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -280,20 +280,37 @@
 <span id="L218"><span class="lineNum">     218</span>              : </span>
 <span id="L219"><span class="lineNum">     219</span>              : export type CaseType = 'kebab' | 'snake' | 'camel' | 'pascal' | 'constant' | 'title'</span>
 <span id="L220"><span class="lineNum">     220</span>              : </span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          95 : export const toCamel = (input: string | string[]) =&gt; toCase(input).map((w, i) =&gt; i === 0 ? w : firstUpper(w)).join('')</span></span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          56 : export const toKebab = (input: string | string[]) =&gt; toCase(input).join('-')</span></span>
-<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">          56 : export const toSnake = (input: string | string[]) =&gt; toCase(input).join('_')</span></span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">          72 : export const toPascal = (input: string | string[]) =&gt; toCase(input).map(firstUpper).join('')</span></span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          85 : export const toConstant = (input: string | string[]) =&gt; toCase(input).map(w =&gt; w.toUpperCase()).join('_')</span></span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">          72 : export const toTitle = (input: string | string[]) =&gt; toCase(input).map(firstUpper).join(' ')</span></span>
-<span id="L227"><span class="lineNum">     227</span>              : </span>
-<span id="L228"><span class="lineNum">     228</span> <span class="tlaUNC tlaBgUNC">           0 : export function frRankLabel(rank: string) {</span></span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaUNC">           0 :   if (rank === '1')</span></span>
-<span id="L230"><span class="lineNum">     230</span> <span class="tlaUNC">           0 :     return 'er'</span></span>
-<span id="L231"><span class="lineNum">     231</span> <span class="tlaUNC">           0 :   if (rank === '2')</span></span>
-<span id="L232"><span class="lineNum">     232</span> <span class="tlaUNC">           0 :     return 'nd'</span></span>
-<span id="L233"><span class="lineNum">     233</span>              :   return 'ème'</span>
-<span id="L234"><span class="lineNum">     234</span>              : }</span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          16 : export function toCamel(input: string | string[]) {</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          70 :   return toCase(input).map((w, i) =&gt; i === 0 ? w : firstUpper(w)).join('')</span></span>
+<span id="L223"><span class="lineNum">     223</span>              : }</span>
+<span id="L224"><span class="lineNum">     224</span>              : </span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          16 : export function toKebab(input: string | string[]) {</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">          31 :   return toCase(input).join('-')</span></span>
+<span id="L227"><span class="lineNum">     227</span>              : }</span>
+<span id="L228"><span class="lineNum">     228</span>              : </span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">          16 : export function toSnake(input: string | string[]) {</span></span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">          31 :   return toCase(input).join('_')</span></span>
+<span id="L231"><span class="lineNum">     231</span>              : }</span>
+<span id="L232"><span class="lineNum">     232</span>              : </span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">          16 : export function toPascal(input: string | string[]) {</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">          46 :   return toCase(input).map(firstUpper).join('')</span></span>
+<span id="L235"><span class="lineNum">     235</span>              : }</span>
+<span id="L236"><span class="lineNum">     236</span>              : </span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">          16 : export function toConstant(input: string | string[]) {</span></span>
+<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">          57 :   return toCase(input).map(w =&gt; w.toUpperCase()).join('_')</span></span>
+<span id="L239"><span class="lineNum">     239</span>              : }</span>
+<span id="L240"><span class="lineNum">     240</span>              : </span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">          16 : export function toTitle(input: string | string[]) {</span></span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          47 :   return toCase(input).map(firstUpper).join(' ')</span></span>
+<span id="L243"><span class="lineNum">     243</span>              : }</span>
+<span id="L244"><span class="lineNum">     244</span>              : </span>
+<span id="L245"><span class="lineNum">     245</span> <span class="tlaUNC tlaBgUNC">           0 : export function frRankLabel(rank: string) {</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaUNC">           0 :   if (rank === '1')</span></span>
+<span id="L247"><span class="lineNum">     247</span> <span class="tlaUNC">           0 :     return 'er'</span></span>
+<span id="L248"><span class="lineNum">     248</span> <span class="tlaUNC">           0 :   if (rank === '2')</span></span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaUNC">           0 :     return 'nd'</span></span>
+<span id="L250"><span class="lineNum">     250</span>              :   return 'ème'</span>
+<span id="L251"><span class="lineNum">     251</span>              : }</span>
         </pre>
               </td>
             </tr>
