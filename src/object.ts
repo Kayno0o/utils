@@ -69,3 +69,24 @@ export function interpolate<T extends object | number>(
 
   throw new TypeError('start and end must both be numbers or objects')
 }
+
+export function toJSONWithGetters(obj: object) {
+  const jsonObj = Object.assign({}, obj)
+
+  const addGetters = (obj: any, target: any) => {
+    if (obj === Object.prototype)
+      return
+    const props = Object.getOwnPropertyNames(obj)
+    for (const key of props) {
+      const desc = Object.getOwnPropertyDescriptor(obj, key)
+      const hasGetter = desc && typeof desc.get === 'function'
+      if (hasGetter)
+        target[key] = obj[key]
+    }
+    addGetters(Object.getPrototypeOf(obj), target)
+  }
+
+  addGetters(Object.getPrototypeOf(obj), jsonObj)
+
+  return jsonObj
+}
