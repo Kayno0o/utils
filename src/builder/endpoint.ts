@@ -31,21 +31,34 @@ export function declareGetEndpoint<
   EndpointsConst extends Record<Key, string>,
   CustomTypes extends PartialRecord<keyof EndpointsConst, Record<string, any>> = {},
 >(ENDPOINTS: EndpointsConst) {
-  return <T extends keyof EndpointsConst>(
-    args: EndpointArgs<EndpointsConst, T, CustomTypes>,
-  ): string => {
-    const [name, params] = args
-    const endpoint: string = ENDPOINTS[name]
+  function getEndpoint<T extends keyof EndpointsConst>(
+    args: EndpointArgs<EndpointsConst, T, CustomTypes>
+  ): string
+  function getEndpoint<T extends keyof EndpointsConst>(
+    endpoint: T,
+    ...params: HasKeys<ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>> extends true
+      ? [ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>]
+      : [] | [undefined]
+  ): string
+  function getEndpoint<T extends keyof EndpointsConst>(
+    argsOrEndpoint: EndpointArgs<EndpointsConst, T, CustomTypes> | T,
+    params?: ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>,
+  ): string {
+    const [name, resolvedParams] = Array.isArray(argsOrEndpoint)
+      ? argsOrEndpoint
+      : [argsOrEndpoint, params]
 
-    if (!params) {
+    const endpoint: string = ENDPOINTS[name]
+    if (!resolvedParams) {
       return endpoint
     }
-
-    return Object.entries(params).reduce(
+    return Object.entries(resolvedParams).reduce(
       (acc, [key, value]) => acc.replaceAll(`{${key}}`, String(value)),
       endpoint,
     )
   }
+
+  return getEndpoint
 }
 
 export function declareIsEndpoint<
