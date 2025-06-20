@@ -210,32 +210,43 @@ function getUnitFactors() {
   return unitFactors
 }
 
-const UnitConverterFn: {
-  [K in keyof UnitType]: Record<UnitType[K] & string, {
+let unitConverterFn: {
+  [K in keyof UnitType]?: Record<UnitType[K] & string, {
     from: (value: number) => number
     to: (value: number) => number
   }>
-} = {
-  byte: createBaseUnitConverters('byte'),
-  distance: createBaseUnitConverters('distance'),
-  weight: createBaseUnitConverters('weight'),
-  energy: createBaseUnitConverters('energy'),
-  pressure: createBaseUnitConverters('pressure'),
-  speed: createBaseUnitConverters('speed'),
-  time: createBaseUnitConverters('time'),
-  volume: createBaseUnitConverters('volume'),
-  area: createBaseUnitConverters('area'),
-  temperature: {
-    C: {
-      from: (value: number) => value + 273.15, // C to K
-      to: (value: number) => value - 273.15, // K to C
+} = {}
+
+function getUnitConverterFn() {
+  unitConverterFn ??= {
+    byte: createBaseUnitConverters('byte'),
+    distance: createBaseUnitConverters('distance'),
+    weight: createBaseUnitConverters('weight'),
+    energy: createBaseUnitConverters('energy'),
+    pressure: createBaseUnitConverters('pressure'),
+    speed: createBaseUnitConverters('speed'),
+    time: createBaseUnitConverters('time'),
+    volume: createBaseUnitConverters('volume'),
+    area: createBaseUnitConverters('area'),
+    temperature: {
+      C: {
+        from: (value: number) => value + 273.15, // C to K
+        to: (value: number) => value - 273.15, // K to C
+      },
+      F: {
+        from: (value: number) => (value + 459.67) * 5 / 9, // F to K
+        to: (value: number) => value * 9 / 5 - 459.67, // K to F
+      },
+      K: baseUnitConverter(1), // base
     },
-    F: {
-      from: (value: number) => (value + 459.67) * 5 / 9, // F to K
-      to: (value: number) => value * 9 / 5 - 459.67, // K to F
-    },
-    K: baseUnitConverter(1), // base
-  },
+  }
+
+  return unitConverterFn as {
+    [K in keyof UnitType]: Record<UnitType[K] & string, {
+      from: (value: number) => number
+      to: (value: number) => number
+    }>
+  }
 }
 
 function baseUnitConverter(factor: number) {
@@ -262,7 +273,7 @@ export class UnitConverter<Unit extends keyof UnitType> {
   constructor(type: Unit, unit: UnitType[Unit], value: number) {
     this.type = type
     this.unit = unit
-    this.value = UnitConverterFn[type][unit].from(value)
+    this.value = getUnitConverterFn()[type][unit].from(value)
   }
 
   static from<Unit extends keyof UnitType>(type: Unit, unit: UnitType[Unit], value: number): UnitConverter<Unit> {
@@ -270,6 +281,6 @@ export class UnitConverter<Unit extends keyof UnitType> {
   }
 
   to(unit: UnitType[Unit]): number {
-    return UnitConverterFn[this.type][unit].to(this.value)
+    return getUnitConverterFn()[this.type][unit].to(this.value)
   }
 }
