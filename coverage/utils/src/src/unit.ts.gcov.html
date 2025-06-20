@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryMed">88.1&nbsp;%</td>
-            <td class="headerCovTableEntry">202</td>
-            <td class="headerCovTableEntry">178</td>
+            <td class="headerCovTableEntryLo">22.0&nbsp;%</td>
+            <td class="headerCovTableEntry">209</td>
+            <td class="headerCovTableEntry">46</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-06-18 12:38:32</td>
+            <td class="headerValue">2025-06-20 09:34:56</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -164,177 +164,188 @@
 <span id="L102"><span class="lineNum">     102</span>              : </span>
 <span id="L103"><span class="lineNum">     103</span> <span class="tlaGNC">          41 : let unitFactors: { [Unit in keyof UnitType]?: Record&lt;UnitType[Unit], number&gt; } = {}</span></span>
 <span id="L104"><span class="lineNum">     104</span>              : </span>
-<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">          34 : function getUnitFactors() {</span></span>
-<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">          42 :   unitFactors ??= {</span></span>
-<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">          26 :     byte: {</span></span>
-<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">          22 :       B: 1, // base (byte)</span></span>
-<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">          30 :       kB: 1024, // kilobyte</span></span>
-<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">          36 :       MB: 1024 ** 2, // megabyte</span></span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">          42 :       GB: 1024 ** 3, // gigabyte</span></span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">          48 :       TB: 1024 ** 4, // terabyte</span></span>
-<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">          54 :       PB: 1024 ** 5, // petabyte</span></span>
-<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">          60 :       EB: 1024 ** 6, // exabyte</span></span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          66 :       ZB: 1024 ** 7, // zettabyte</span></span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">          66 :       YB: 1024 ** 8, // yottabyte</span></span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          34 :     distance: {</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">          32 :       mm: 0.001, // millimeter</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          30 :       cm: 0.01, // centimeter</span></span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">          22 :       m: 1, // base (meter)</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">          30 :       km: 1000, // kilometer</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">          34 :       in: 0.0254, // inch</span></span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">          34 :       ft: 0.3048, // foot</span></span>
-<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">          34 :       yd: 0.9144, // yard</span></span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">          38 :       mi: 1609.344, // mile</span></span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">          26 :       nmi: 1852, // nautical mile</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">          30 :     weight: {</span></span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">          32 :       mg: 0.001, // milligram</span></span>
-<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">          22 :       g: 1, // base (gram)</span></span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">          30 :       kg: 1000, // kilogram</span></span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC">          26 :       t: 1000000, // metric ton</span></span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">          38 :       oz: 28.34952, // ounce</span></span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">          40 :       lb: 453.59237, // pound</span></span>
-<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">          42 :       st: 6350.29318, // stone</span></span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">          36 :       gr: 0.06479891, // grain</span></span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">          30 :     energy: {</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">          22 :       J: 1, // base (joule)</span></span>
-<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">          30 :       kJ: 1000, // kilojoule</span></span>
-<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">          28 :       MJ: 1000000, // megajoule</span></span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">          34 :       cal: 4.184, // calorie</span></span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">          34 :       kcal: 4184, // kilocalorie</span></span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">          30 :       Wh: 3600, // watt-hour</span></span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">          38 :       kWh: 3600000, // kilowatt-hour</span></span>
-<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">          38 :       BTU: 1055.06, // British thermal unit</span></span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">          76 :       eV: 1.602176634e-19, // electronvolt</span></span>
-<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">          34 :     pressure: {</span></span>
-<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">          24 :       Pa: 1, // base (pascal)</span></span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">          32 :       kPa: 1000, // kilopascal</span></span>
-<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">          30 :       hPa: 100, // hectopascal</span></span>
-<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">          30 :       bar: 100000, // bar</span></span>
-<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">          36 :       atm: 101325, // standard atmosphere</span></span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC">          38 :       psi: 6894.76, // pounds per square inch</span></span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">          40 :       mmHg: 133.322, // millimeters of mercury</span></span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">          34 :       inHg: 3386.39, // inches of mercury</span></span>
-<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">          28 :     speed: {</span></span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">          30 :       'm/s': 1, // base (meters per second)</span></span>
-<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">          46 :       'km/h': 0.277778, // kilometers per hour</span></span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">          38 :       'mph': 0.44704, // miles per hour</span></span>
-<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">          38 :       'kn': 0.514444, // knots</span></span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">          36 :       'ft/s': 0.3048, // feet per second</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">          26 :     time: {</span></span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">          44 :       ns: 1e-9, // nanosecond</span></span>
-<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          50 :       μs: 1e-6, // microsecond</span></span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">          32 :       ms: 0.001, // millisecond</span></span>
-<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">          22 :       s: 1, // base (second)</span></span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">          28 :       min: 60, // minute</span></span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          28 :       h: 3600, // hour</span></span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">          30 :       d: 86400, // day</span></span>
-<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">          34 :       wk: 604800, // week</span></span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">          36 :       mo: 2629746, // month (average)</span></span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">          32 :       yr: 31556952, // year (average)</span></span>
-<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          30 :     volume: {</span></span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">          46 :       mm3: 0.000000001, // cubic millimeter</span></span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">          40 :       cm3: 0.000001, // cubic centimeter</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          38 :       ml: 0.000001, // milliliter (same as cm³)</span></span>
-<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">          30 :       L: 0.001, // liter</span></span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          24 :       m3: 1, // base (cubic meter)</span></span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">          50 :       tsp: 0.00000492892, // teaspoon</span></span>
-<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          50 :       tbsp: 0.0000147868, // tablespoon</span></span>
-<span id="L187"><span class="lineNum">     187</span>              :       // eslint-disable-next-line camelcase</span>
-<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC">          52 :       fl_oz: 0.0000295735, // fluid ounce</span></span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">          46 :       cup: 0.000236588, // cup</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          44 :       pt: 0.000473176, // pint</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">          44 :       qt: 0.000946353, // quart</span></span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">          44 :       gal: 0.00378541, // gallon</span></span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          48 :       in3: 0.0000163871, // cubic inch</span></span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          36 :       ft3: 0.0283168, // cubic foot</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">          26 :     area: {</span></span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">          40 :       mm2: 0.000001, // square millimeter</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          36 :       cm2: 0.0001, // square centimeter</span></span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">          24 :       m2: 1, // base (square meter)</span></span>
-<span id="L200"><span class="lineNum">     200</span> <span class="tlaGNC">          28 :       ha: 10000, // hectare</span></span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">          30 :       km2: 1000000, // square kilometer</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">          44 :       in2: 0.00064516, // square inch</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">          40 :       ft2: 0.092903, // square foot</span></span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">          40 :       yd2: 0.836127, // square yard</span></span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">          36 :       ac: 4046.86, // acre</span></span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">          38 :       mi2: 2589988.11, // square mile</span></span>
-<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">           6 :     },</span></span>
-<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">           8 :   }</span></span>
-<span id="L209"><span class="lineNum">     209</span>              : </span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">          40 :   return unitFactors</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaUNC tlaBgUNC">           0 : function getUnitFactors() {</span></span>
+<span id="L106"><span class="lineNum">     106</span> <span class="tlaUNC">           0 :   unitFactors ??= {</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaUNC">           0 :     byte: {</span></span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaUNC">           0 :       B: 1, // base (byte)</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaUNC">           0 :       kB: 1024, // kilobyte</span></span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaUNC">           0 :       MB: 1024 ** 2, // megabyte</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaUNC">           0 :       GB: 1024 ** 3, // gigabyte</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaUNC">           0 :       TB: 1024 ** 4, // terabyte</span></span>
+<span id="L113"><span class="lineNum">     113</span> <span class="tlaUNC">           0 :       PB: 1024 ** 5, // petabyte</span></span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaUNC">           0 :       EB: 1024 ** 6, // exabyte</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaUNC">           0 :       ZB: 1024 ** 7, // zettabyte</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaUNC">           0 :       YB: 1024 ** 8, // yottabyte</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaUNC">           0 :     distance: {</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaUNC">           0 :       mm: 0.001, // millimeter</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaUNC">           0 :       cm: 0.01, // centimeter</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaUNC">           0 :       m: 1, // base (meter)</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaUNC">           0 :       km: 1000, // kilometer</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaUNC">           0 :       in: 0.0254, // inch</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaUNC">           0 :       ft: 0.3048, // foot</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaUNC">           0 :       yd: 0.9144, // yard</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaUNC">           0 :       mi: 1609.344, // mile</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaUNC">           0 :       nmi: 1852, // nautical mile</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaUNC">           0 :     weight: {</span></span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaUNC">           0 :       mg: 0.001, // milligram</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaUNC">           0 :       g: 1, // base (gram)</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaUNC">           0 :       kg: 1000, // kilogram</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaUNC">           0 :       t: 1000000, // metric ton</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaUNC">           0 :       oz: 28.34952, // ounce</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaUNC">           0 :       lb: 453.59237, // pound</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaUNC">           0 :       st: 6350.29318, // stone</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaUNC">           0 :       gr: 0.06479891, // grain</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaUNC">           0 :     energy: {</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaUNC">           0 :       J: 1, // base (joule)</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaUNC">           0 :       kJ: 1000, // kilojoule</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaUNC">           0 :       MJ: 1000000, // megajoule</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaUNC">           0 :       cal: 4.184, // calorie</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaUNC">           0 :       kcal: 4184, // kilocalorie</span></span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaUNC">           0 :       Wh: 3600, // watt-hour</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaUNC">           0 :       kWh: 3600000, // kilowatt-hour</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaUNC">           0 :       BTU: 1055.06, // British thermal unit</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaUNC">           0 :       eV: 1.602176634e-19, // electronvolt</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L150"><span class="lineNum">     150</span> <span class="tlaUNC">           0 :     pressure: {</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaUNC">           0 :       Pa: 1, // base (pascal)</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaUNC">           0 :       kPa: 1000, // kilopascal</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaUNC">           0 :       hPa: 100, // hectopascal</span></span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaUNC">           0 :       bar: 100000, // bar</span></span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaUNC">           0 :       atm: 101325, // standard atmosphere</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaUNC">           0 :       psi: 6894.76, // pounds per square inch</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaUNC">           0 :       mmHg: 133.322, // millimeters of mercury</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaUNC">           0 :       inHg: 3386.39, // inches of mercury</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaUNC">           0 :     speed: {</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaUNC">           0 :       'm/s': 1, // base (meters per second)</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaUNC">           0 :       'km/h': 0.277778, // kilometers per hour</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaUNC">           0 :       'mph': 0.44704, // miles per hour</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaUNC">           0 :       'kn': 0.514444, // knots</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaUNC">           0 :       'ft/s': 0.3048, // feet per second</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaUNC">           0 :     time: {</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaUNC">           0 :       ns: 1e-9, // nanosecond</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaUNC">           0 :       μs: 1e-6, // microsecond</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaUNC">           0 :       ms: 0.001, // millisecond</span></span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaUNC">           0 :       s: 1, // base (second)</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaUNC">           0 :       min: 60, // minute</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaUNC">           0 :       h: 3600, // hour</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaUNC">           0 :       d: 86400, // day</span></span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaUNC">           0 :       wk: 604800, // week</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaUNC">           0 :       mo: 2629746, // month (average)</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaUNC">           0 :       yr: 31556952, // year (average)</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaUNC">           0 :     volume: {</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaUNC">           0 :       mm3: 0.000000001, // cubic millimeter</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaUNC">           0 :       cm3: 0.000001, // cubic centimeter</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaUNC">           0 :       ml: 0.000001, // milliliter (same as cm³)</span></span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaUNC">           0 :       L: 0.001, // liter</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaUNC">           0 :       m3: 1, // base (cubic meter)</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaUNC">           0 :       tsp: 0.00000492892, // teaspoon</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaUNC">           0 :       tbsp: 0.0000147868, // tablespoon</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaUNC">           0 :       // eslint-disable-next-line camelcase</span></span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaUNC">           0 :       fl_oz: 0.0000295735, // fluid ounce</span></span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaUNC">           0 :       cup: 0.000236588, // cup</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaUNC">           0 :       pt: 0.000473176, // pint</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaUNC">           0 :       qt: 0.000946353, // quart</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaUNC">           0 :       gal: 0.00378541, // gallon</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaUNC">           0 :       in3: 0.0000163871, // cubic inch</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaUNC">           0 :       ft3: 0.0283168, // cubic foot</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaUNC">           0 :     area: {</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaUNC">           0 :       mm2: 0.000001, // square millimeter</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaUNC">           0 :       cm2: 0.0001, // square centimeter</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaUNC">           0 :       m2: 1, // base (square meter)</span></span>
+<span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC">           0 :       ha: 10000, // hectare</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaUNC">           0 :       km2: 1000000, // square kilometer</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaUNC">           0 :       in2: 0.00064516, // square inch</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaUNC">           0 :       ft2: 0.092903, // square foot</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaUNC">           0 :       yd2: 0.836127, // square yard</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaUNC">           0 :       ac: 4046.86, // acre</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaUNC">           0 :       mi2: 2589988.11, // square mile</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaUNC">           0 :   }</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC tlaBgGNC">          22 :   return unitFactors</span></span>
 <span id="L211"><span class="lineNum">     211</span>              : }</span>
 <span id="L212"><span class="lineNum">     212</span>              : </span>
-<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">          46 : const UnitConverterFn: {</span></span>
-<span id="L214"><span class="lineNum">     214</span>              :   [K in keyof UnitType]: Record&lt;UnitType[K] &amp; string, {</span>
+<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">          42 : let unitConverterFn: {</span></span>
+<span id="L214"><span class="lineNum">     214</span>              :   [K in keyof UnitType]?: Record&lt;UnitType[K] &amp; string, {</span>
 <span id="L215"><span class="lineNum">     215</span>              :     from: (value: number) =&gt; number</span>
 <span id="L216"><span class="lineNum">     216</span>              :     to: (value: number) =&gt; number</span>
 <span id="L217"><span class="lineNum">     217</span>              :   }&gt;</span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           6 : } = {</span></span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          82 :   byte: createBaseUnitConverters('byte'),</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          98 :   distance: createBaseUnitConverters('distance'),</span></span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          90 :   weight: createBaseUnitConverters('weight'),</span></span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          90 :   energy: createBaseUnitConverters('energy'),</span></span>
-<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">          98 :   pressure: createBaseUnitConverters('pressure'),</span></span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">          86 :   speed: createBaseUnitConverters('speed'),</span></span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          82 :   time: createBaseUnitConverters('time'),</span></span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">          90 :   volume: createBaseUnitConverters('volume'),</span></span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">          82 :   area: createBaseUnitConverters('area'),</span></span>
-<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">          36 :   temperature: {</span></span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">          20 :     C: {</span></span>
-<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">          50 :       from: (value: number) =&gt; value + 273.15, // C to K</span></span>
-<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">          40 :       to: (value: number) =&gt; value - 273.15, // K to C</span></span>
-<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">          20 :     F: {</span></span>
-<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">          60 :       from: (value: number) =&gt; (value + 459.67) * 5 / 9, // F to K</span></span>
-<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">          48 :       to: (value: number) =&gt; value * 9 / 5 - 459.67, // K to F</span></span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">          12 :     },</span></span>
-<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">          50 :     K: baseUnitConverter(1), // base</span></span>
-<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">           4 :   },</span></span>
-<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">           3 : }</span></span>
-<span id="L240"><span class="lineNum">     240</span>              : </span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">          49 : function baseUnitConverter(factor: number) {</span></span>
-<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          24 :   return {</span></span>
-<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">          46 :     from: (value: number) =&gt; value / factor,</span></span>
-<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">          36 :     to: (value: number) =&gt; value * factor,</span></span>
-<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">           5 :   }</span></span>
-<span id="L246"><span class="lineNum">     246</span>              : }</span>
-<span id="L247"><span class="lineNum">     247</span>              : </span>
-<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">          52 : function createBaseUnitConverters&lt;Unit extends keyof UnitType&gt;(unit: Unit) {</span></span>
-<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">          88 :   const unitFactor = getUnitFactors()[unit] as Record&lt;UnitType[Unit], number&gt;</span></span>
-<span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">          48 :   const converters: Record&lt;UnitType[Unit], { from: (value: number) =&gt; number, to: (value: number) =&gt; number }&gt; = {} as any</span></span>
-<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">          67 :   for (const unit in unitFactor)</span></span>
-<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">          59 :     converters[unit as UnitType[Unit]] = baseUnitConverter(unitFactor[unit as UnitType[Unit]])</span></span>
-<span id="L253"><span class="lineNum">     253</span>              : </span>
-<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">          37 :   return converters</span></span>
-<span id="L255"><span class="lineNum">     255</span>              : }</span>
-<span id="L256"><span class="lineNum">     256</span>              : </span>
-<span id="L257"><span class="lineNum">     257</span>              : export class UnitConverter&lt;Unit extends keyof UnitType&gt; {</span>
-<span id="L258"><span class="lineNum">     258</span>              :   type: Unit</span>
-<span id="L259"><span class="lineNum">     259</span>              :   unit: UnitType[Unit]</span>
-<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">           1 :   value: number</span></span>
-<span id="L261"><span class="lineNum">     261</span>              : </span>
-<span id="L262"><span class="lineNum">     262</span> <span class="tlaUNC tlaBgUNC">           0 :   constructor(type: Unit, unit: UnitType[Unit], value: number) {</span></span>
-<span id="L263"><span class="lineNum">     263</span> <span class="tlaUNC">           0 :     this.type = type</span></span>
-<span id="L264"><span class="lineNum">     264</span> <span class="tlaUNC">           0 :     this.unit = unit</span></span>
-<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC tlaBgGNC">          73 :     this.value = UnitConverterFn[type][unit].from(value)</span></span>
-<span id="L266"><span class="lineNum">     266</span>              :   }</span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           7 : } = {}</span></span>
+<span id="L219"><span class="lineNum">     219</span>              : </span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaUNC tlaBgUNC">           0 : function getUnitConverterFn() {</span></span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaUNC">           0 :   unitConverterFn ??= {</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaUNC">           0 :     byte: createBaseUnitConverters('byte'),</span></span>
+<span id="L223"><span class="lineNum">     223</span> <span class="tlaUNC">           0 :     distance: createBaseUnitConverters('distance'),</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaUNC">           0 :     weight: createBaseUnitConverters('weight'),</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaUNC">           0 :     energy: createBaseUnitConverters('energy'),</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaUNC">           0 :     pressure: createBaseUnitConverters('pressure'),</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaUNC">           0 :     speed: createBaseUnitConverters('speed'),</span></span>
+<span id="L228"><span class="lineNum">     228</span> <span class="tlaUNC">           0 :     time: createBaseUnitConverters('time'),</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaUNC">           0 :     volume: createBaseUnitConverters('volume'),</span></span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaUNC">           0 :     area: createBaseUnitConverters('area'),</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaUNC">           0 :     temperature: {</span></span>
+<span id="L232"><span class="lineNum">     232</span> <span class="tlaUNC">           0 :       C: {</span></span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaUNC">           0 :         from: (value: number) =&gt; value + 273.15, // C to K</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaUNC">           0 :         to: (value: number) =&gt; value - 273.15, // K to C</span></span>
+<span id="L235"><span class="lineNum">     235</span> <span class="tlaUNC">           0 :       },</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaUNC">           0 :       F: {</span></span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaUNC">           0 :         from: (value: number) =&gt; (value + 459.67) * 5 / 9, // F to K</span></span>
+<span id="L238"><span class="lineNum">     238</span> <span class="tlaUNC">           0 :         to: (value: number) =&gt; value * 9 / 5 - 459.67, // K to F</span></span>
+<span id="L239"><span class="lineNum">     239</span> <span class="tlaUNC">           0 :       },</span></span>
+<span id="L240"><span class="lineNum">     240</span> <span class="tlaUNC">           0 :       K: baseUnitConverter(1), // base</span></span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaUNC">           0 :     },</span></span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaUNC">           0 :   }</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC tlaBgGNC">          25 :   return unitConverterFn as {</span></span>
+<span id="L245"><span class="lineNum">     245</span>              :     [K in keyof UnitType]: Record&lt;UnitType[K] &amp; string, {</span>
+<span id="L246"><span class="lineNum">     246</span>              :       from: (value: number) =&gt; number</span>
+<span id="L247"><span class="lineNum">     247</span>              :       to: (value: number) =&gt; number</span>
+<span id="L248"><span class="lineNum">     248</span>              :     }&gt;</span>
+<span id="L249"><span class="lineNum">     249</span>              :   }</span>
+<span id="L250"><span class="lineNum">     250</span>              : }</span>
+<span id="L251"><span class="lineNum">     251</span>              : </span>
+<span id="L252"><span class="lineNum">     252</span> <span class="tlaUNC tlaBgUNC">           0 : function baseUnitConverter(factor: number) {</span></span>
+<span id="L253"><span class="lineNum">     253</span> <span class="tlaUNC">           0 :   return {</span></span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaUNC">           0 :     from: (value: number) =&gt; value / factor,</span></span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaUNC">           0 :     to: (value: number) =&gt; value * factor,</span></span>
+<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC tlaBgGNC">           4 :   }</span></span>
+<span id="L257"><span class="lineNum">     257</span>              : }</span>
+<span id="L258"><span class="lineNum">     258</span>              : </span>
+<span id="L259"><span class="lineNum">     259</span> <span class="tlaUNC tlaBgUNC">           0 : function createBaseUnitConverters&lt;Unit extends keyof UnitType&gt;(unit: Unit) {</span></span>
+<span id="L260"><span class="lineNum">     260</span> <span class="tlaUNC">           0 :   const unitFactor = getUnitFactors()[unit] as Record&lt;UnitType[Unit], number&gt;</span></span>
+<span id="L261"><span class="lineNum">     261</span> <span class="tlaUNC">           0 :   const converters: Record&lt;UnitType[Unit], { from: (value: number) =&gt; number, to: (value: number) =&gt; number }&gt; = {} as any</span></span>
+<span id="L262"><span class="lineNum">     262</span> <span class="tlaUNC">           0 :   for (const unit in unitFactor)</span></span>
+<span id="L263"><span class="lineNum">     263</span> <span class="tlaUNC">           0 :     converters[unit as UnitType[Unit]] = baseUnitConverter(unitFactor[unit as UnitType[Unit]])</span></span>
+<span id="L264"><span class="lineNum">     264</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC tlaBgGNC">          20 :   return converters</span></span>
+<span id="L266"><span class="lineNum">     266</span>              : }</span>
 <span id="L267"><span class="lineNum">     267</span>              : </span>
-<span id="L268"><span class="lineNum">     268</span> <span class="tlaUNC tlaBgUNC">           0 :   static from&lt;Unit extends keyof UnitType&gt;(type: Unit, unit: UnitType[Unit], value: number): UnitConverter&lt;Unit&gt; {</span></span>
-<span id="L269"><span class="lineNum">     269</span> <span class="tlaGNC tlaBgGNC">          50 :     return new UnitConverter&lt;Unit&gt;(type, unit, value)</span></span>
-<span id="L270"><span class="lineNum">     270</span>              :   }</span>
-<span id="L271"><span class="lineNum">     271</span>              : </span>
-<span id="L272"><span class="lineNum">     272</span> <span class="tlaUNC tlaBgUNC">           0 :   to(unit: UnitType[Unit]): number {</span></span>
-<span id="L273"><span class="lineNum">     273</span> <span class="tlaGNC tlaBgGNC">          60 :     return UnitConverterFn[this.type][unit].to(this.value)</span></span>
-<span id="L274"><span class="lineNum">     274</span>              :   }</span>
-<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">           2 : }</span></span>
+<span id="L268"><span class="lineNum">     268</span>              : export class UnitConverter&lt;Unit extends keyof UnitType&gt; {</span>
+<span id="L269"><span class="lineNum">     269</span>              :   type: Unit</span>
+<span id="L270"><span class="lineNum">     270</span>              :   unit: UnitType[Unit]</span>
+<span id="L271"><span class="lineNum">     271</span> <span class="tlaGNC">           1 :   value: number</span></span>
+<span id="L272"><span class="lineNum">     272</span>              : </span>
+<span id="L273"><span class="lineNum">     273</span> <span class="tlaUNC tlaBgUNC">           0 :   constructor(type: Unit, unit: UnitType[Unit], value: number) {</span></span>
+<span id="L274"><span class="lineNum">     274</span> <span class="tlaUNC">           0 :     this.type = type</span></span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaUNC">           0 :     this.unit = unit</span></span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC tlaBgGNC">          78 :     this.value = getUnitConverterFn()[type][unit].from(value)</span></span>
+<span id="L277"><span class="lineNum">     277</span>              :   }</span>
+<span id="L278"><span class="lineNum">     278</span>              : </span>
+<span id="L279"><span class="lineNum">     279</span> <span class="tlaUNC tlaBgUNC">           0 :   static from&lt;Unit extends keyof UnitType&gt;(type: Unit, unit: UnitType[Unit], value: number): UnitConverter&lt;Unit&gt; {</span></span>
+<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC tlaBgGNC">          50 :     return new UnitConverter&lt;Unit&gt;(type, unit, value)</span></span>
+<span id="L281"><span class="lineNum">     281</span>              :   }</span>
+<span id="L282"><span class="lineNum">     282</span>              : </span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaUNC tlaBgUNC">           0 :   to(unit: UnitType[Unit]): number {</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC tlaBgGNC">          65 :     return getUnitConverterFn()[this.type][unit].to(this.value)</span></span>
+<span id="L285"><span class="lineNum">     285</span>              :   }</span>
+<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">           2 : }</span></span>
         </pre>
               </td>
             </tr>
