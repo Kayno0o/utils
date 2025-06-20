@@ -1,3 +1,5 @@
+.PHONY: build commit deploy full-major full-minor full-patch lint major minor patch publish push
+
 build:
 	bun run build
 
