@@ -1,29 +1,31 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
-
-    "moduleResolution": "Node",
+    "lib": ["ESNext", "DOM"],
+    "moduleDetection": "force",
+    "experimentalDecorators": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "paths": {
       "~": ["../index.ts"]
     },
     "resolveJsonModule": true,
-    "allowJs": true,
-
+    "allowImportingTsExtensions": true,
+    "allowJs": false,
     "strict": true,
     "noFallthroughCasesInSwitch": true,
-
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": true,
+    "noPropertyAccessFromIndexSignature": false,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-
+    "noUnusedParameters": false,
     "declaration": true,
+    "noEmit": true,
     "outDir": "dist",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "skipLibCheck": true
   }
 }

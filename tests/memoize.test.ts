@@ -1,7 +1,7 @@
 /* eslint-disable ts/class-literal-property-style */
 /* eslint-disable ts/no-unused-expressions */
 import { beforeEach, describe, expect, it } from 'bun:test'
-import { Memoize } from '~'
+import { Memoize } from '../index'
 
 class TestService {
   private _value = 'initial'
