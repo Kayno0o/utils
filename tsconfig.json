@@ -3,6 +3,7 @@
     "target": "ESNext",
     "lib": ["ESNext", "DOM"],
     "moduleDetection": "force",
+    "experimentalDecorators": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
 
