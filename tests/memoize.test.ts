@@ -23,22 +23,22 @@ class TestService {
     this._count = newCount
   }
 
-  @Memoize<string>()
+  @Memoize()
   get expensiveOperation(): string {
     return `computed-${Math.random()}-${Date.now()}`
   }
 
-  @Memoize<string>({ clearOn: ['value'] })
+  @Memoize({ clearOn: ['value'] })
   get dependentComputation(): string {
     return `dependent-${this.value}-${Math.random()}`
   }
 
-  @Memoize<number>({ ttl: 100 })
+  @Memoize({ ttl: 100 })
   get timedComputation(): number {
     return Math.random()
   }
 
-  @Memoize<string>({ clearOn: ['value', 'count'] })
+  @Memoize({ clearOn: ['value', 'count'] })
   get multiDependentComputation(): string {
     return `multi-${this.value}-${this.count}-${Math.random()}`
   }
@@ -55,7 +55,7 @@ class Calculator {
     this._multiplier = value
   }
 
-  @Memoize<number>({ clearOn: ['multiplier'] })
+  @Memoize({ clearOn: ['multiplier'] })
   get expensiveCalculation(): number {
     let result = 0
     for (let i = 0; i < 1000; i++) {
@@ -170,12 +170,12 @@ describe('Memoize decorator', () => {
   describe('edge cases', () => {
     it('should handle null/undefined return values', () => {
       class NullService {
-        @Memoize<null>()
+        @Memoize()
         get nullValue(): null {
           return null
         }
 
-        @Memoize<undefined>()
+        @Memoize()
         get undefinedValue(): undefined {
           return undefined
         }
@@ -190,7 +190,7 @@ describe('Memoize decorator', () => {
 
     it('should handle complex object returns', () => {
       class ObjectService {
-        @Memoize<object>()
+        @Memoize()
         get complexObject(): object {
           return { id: Math.random(), nested: { value: 'test' } }
         }
