@@ -1,65 +1,17 @@
-export function Memoize<T>(options?: { clearOn?: string[], ttl?: number }): {
-  (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor
-  (target: any, propertyKey: string): void
-}
+export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
+  return function <This, Return>(
+    originalMethod: (this: This) => Return,
+    context: ClassGetterDecoratorContext<This, Return>,
+  ) {
+    const methodName = String(context.name)
+    const cacheKey = `_${methodName}_cache`
+    const cacheSetKey = `_${methodName}_cached`
+    const timestampKey = `_${methodName}_timestamp`
 
-export function Memoize<T>(options?: { clearOn?: string[], ttl?: number }) {
-  return function (target: any, propertyKey: string, descriptor?: PropertyDescriptor) {
-    descriptor ||= Object.getOwnPropertyDescriptor(target, propertyKey)
-
-    if (!descriptor?.get) {
-      throw new Error(`@Memoize can only be applied to getters`)
-    }
-
-    const originalGetter = descriptor.get as () => T
-    const cacheKey = `_${propertyKey}_cache`
-    const cacheSetKey = `_${propertyKey}_cached`
-    const timestampKey = `_${propertyKey}_timestamp`
-
-    if (options?.clearOn) {
-      for (const prop of options.clearOn) {
-        const setupKey = `_${prop}_memoize_setup`
-
-        if (!target[setupKey]) {
-          target[setupKey] = true
-
-          const existingDescriptor = Object.getOwnPropertyDescriptor(target, prop)
-
-          if (existingDescriptor) {
-            const originalGet = existingDescriptor.get
-            const originalSet = existingDescriptor.set
-            const hasValue = 'value' in existingDescriptor
-
-            Object.defineProperty(target, prop, {
-              get() {
-                if (originalGet) {
-                  return originalGet.call(this)
-                } if (hasValue) {
-                  return this[`_${prop}_value`] ?? existingDescriptor.value
-                }
-                return undefined
-              },
-              set(value: any) {
-                this._clearMemoizedCaches?.(prop)
-
-                if (originalSet) {
-                  originalSet.call(this, value)
-                }
-                else if (hasValue) {
-                  this[`_${prop}_value`] = value
-                }
-              },
-              enumerable: existingDescriptor.enumerable ?? true,
-              configurable: true,
-            })
-          }
-        }
-      }
-    }
-
-    descriptor.get = function (): T {
+    return function (this: This): Return {
       const now = Date.now()
 
+      // Initialize cache clearing mechanism if not present
       if (!(this as any)._clearMemoizedCaches) {
         (this as any)._memoizedGetters = (this as any)._memoizedGetters || new Map()
         ;(this as any)._clearMemoizedCaches = (changedProp: string) => {
@@ -71,10 +23,39 @@ export function Memoize<T>(options?: { clearOn?: string[], ttl?: number }) {
         }
       }
 
+      // Register this getter's dependencies
       if (options?.clearOn) {
-        (this as any)._memoizedGetters.set(propertyKey, options.clearOn)
+        (this as any)._memoizedGetters.set(methodName, options.clearOn)
+
+        // Setup clearOn properties
+        for (const prop of options.clearOn) {
+          const setupKey = `_${prop}_memoize_setup`
+
+          if (!((this as any)[setupKey])) {
+            (this as any)[setupKey] = true
+
+            // Store original value if it exists
+            const originalValue = (this as any)[prop]
+            let currentValue = originalValue
+
+            // Define property with cache clearing
+            Object.defineProperty(this, prop, {
+              get() {
+                return currentValue
+              },
+              set(value: any) {
+                currentValue = value
+                // Clear all memoized caches that depend on this property
+                ;(this as any)._clearMemoizedCaches?.(prop)
+              },
+              enumerable: true,
+              configurable: true,
+            })
+          }
+        }
       }
 
+      // Check if cached and not expired
       if ((this as any)[cacheSetKey]) {
         if (!options?.ttl || (now - (this as any)[timestampKey]) < options.ttl) {
           return (this as any)[cacheKey]
@@ -82,14 +63,13 @@ export function Memoize<T>(options?: { clearOn?: string[], ttl?: number }) {
         (this as any)[cacheSetKey] = false
       }
 
-      const result = originalGetter.call((this as any))
+      // Calculate and cache
+      const result = originalMethod.call(this)
       ;(this as any)[cacheKey] = result
       ;(this as any)[cacheSetKey] = true
       ;(this as any)[timestampKey] = now
 
       return result
     }
-
-    return descriptor
   }
 }
