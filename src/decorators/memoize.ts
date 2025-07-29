@@ -34,19 +34,41 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
           if (!(this as any)[setupKey]) {
             (this as any)[setupKey] = true
 
-            let currentValue = (this as any)[prop]
+            // get existing property descriptor
+            const existingDesc = Object.getOwnPropertyDescriptor(this, prop)
+              || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), prop)
 
-            Object.defineProperty((this as any), prop, {
-              get() {
-                return currentValue
-              },
-              set(value: any) {
-                currentValue = value
-                ;(this as any)._clearMemoizedCaches?.(prop)
-              },
-              enumerable: true,
-              configurable: true,
-            })
+            if (existingDesc && existingDesc.set) {
+              // property already has a setter, wrap it
+              const originalSetter = existingDesc.set
+              const originalGetter = existingDesc.get
+
+              Object.defineProperty(this, prop, {
+                get: originalGetter,
+                set(value: any) {
+                  originalSetter.call(this, value)
+                  ;(this as any)._clearMemoizedCaches?.(prop)
+                },
+                enumerable: existingDesc.enumerable,
+                configurable: true,
+              })
+            }
+            else {
+              // property doesn't exist or is a simple value, create getter/setter
+              let currentValue = (this as any)[prop]
+
+              Object.defineProperty(this, prop, {
+                get() {
+                  return currentValue
+                },
+                set(value: any) {
+                  currentValue = value
+                  ;(this as any)._clearMemoizedCaches?.(prop)
+                },
+                enumerable: true,
+                configurable: true,
+              })
+            }
           }
         }
       }
@@ -58,7 +80,7 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
         (this as any)[cacheSetKey] = false
       }
 
-      const result = originalGetter.call((this as any))
+      const result = originalGetter.call(this)
       ;(this as any)[cacheKey] = result
       ;(this as any)[cacheSetKey] = true
       ;(this as any)[timestampKey] = now
