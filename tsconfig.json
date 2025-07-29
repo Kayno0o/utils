@@ -4,13 +4,13 @@
     "lib": ["ESNext", "DOM"],
     "moduleDetection": "force",
     "experimentalDecorators": true,
-    "module": "ESNext",
+    "module": "Preserve",
     "moduleResolution": "Bundler",
-
     "paths": {
       "~/tools/*": ["./src/tools/*.ts"],
       "~/types": ["./types/index.ts"],
-      "~/*": ["./src/*.ts"]
+      "~/*": ["./src/*.ts"],
+      "~": ["./index.ts"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
@@ -35,7 +35,8 @@
   "include": [
     "index.ts",
     "src",
-    "types/**/*.d.ts"
+    "types/**/*.d.ts",
+    "examples"
   ],
   "exclude": [
     "node_modules",
