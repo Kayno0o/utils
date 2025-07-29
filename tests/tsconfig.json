@@ -1,31 +1,6 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["ESNext", "DOM"],
-    "moduleDetection": "force",
-    "experimentalDecorators": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "paths": {
-      "~": ["../index.ts"]
-    },
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
-    "allowJs": false,
-    "strict": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "declaration": true,
-    "noEmit": true,
-    "outDir": "dist",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "skipLibCheck": true
-  }
+  "extends": "../tsconfig.json",
+  "include": [
+    "./*.ts"
+  ]
 }
