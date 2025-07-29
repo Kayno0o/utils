@@ -1,4 +1,4 @@
-import { Memoize } from '../index'
+import { delay, Memoize } from '../index'
 
 // example 1: basic caching
 class DataProcessor {
@@ -93,12 +93,7 @@ const weather = new WeatherService()
 console.log('Temperature:', weather.currentTemperature)
 console.log('Temperature (cached):', weather.currentTemperature)
 console.log('Waiting for cache to expire...')
-await new Promise<void>((resolve) => {
-  setTimeout(() => {
-    console.log('Temperature (after TTL expired):', weather.currentTemperature)
-    resolve()
-  }, 6000)
-})
+await delay(6000, () => console.log('Temperature (after TTL expired):', weather.currentTemperature))
 
 console.log('\n=== ClearOn Example ===')
 const profile = new UserProfile()
