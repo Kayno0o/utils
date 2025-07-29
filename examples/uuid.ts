@@ -1,4 +1,4 @@
-import { expandUUID, Faker, minifyUUID } from '../index'
+import { expandUUID, Faker, minifyUUID } from '~'
 
 const uuid = Faker.datatype.uuidV4()
 const minified = minifyUUID(uuid)

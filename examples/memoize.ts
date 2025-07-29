@@ -1,4 +1,4 @@
-import { delay, Memoize } from '../index'
+import { delay, Memoize } from '~'
 
 // example 1: basic caching
 class DataProcessor {
