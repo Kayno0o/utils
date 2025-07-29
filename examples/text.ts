@@ -1,4 +1,4 @@
-import { toCamel, toConstant, toKebab, toPascal, toSnake, toTitle } from '../index'
+import { toCamel, toConstant, toKebab, toPascal, toSnake, toTitle } from '~'
 
 console.log(toPascal('pascalCase')) // PascalCase
 console.log(toCamel('camel-case')) // camelCase

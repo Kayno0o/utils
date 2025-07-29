@@ -1,4 +1,4 @@
-import { declareGetEndpoint } from '../index'
+import { declareGetEndpoint } from '~'
 
 const endpoints = {
   project: '/api/projects/{uuid}',

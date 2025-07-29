@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { calculateEaster, configureDayjs, formatDate, getFrenchHolidays } from '../index'
+import { calculateEaster, configureDayjs, formatDate, getFrenchHolidays } from '~'
 
 configureDayjs(dayjs)
 
