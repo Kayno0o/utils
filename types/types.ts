@@ -45,3 +45,11 @@ export type RecursivePartial<T> = {
 export type FunctionKeys<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T]
 // eslint-disable-next-line ts/no-unsafe-function-type
 export type NonFunctionKeys<T> = { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]
+
+export type DotNotation<T, Prefix extends string = ''> = {
+  [K in keyof T]: T[K] extends string
+    ? `${Prefix}${K & string}`
+    : T[K] extends Record<string, any>
+      ? DotNotation<T[K], `${Prefix}${K & string}.`>
+      : never
+}[keyof T]
