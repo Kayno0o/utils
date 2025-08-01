@@ -26,8 +26,10 @@ const fr = {
     no: 'Non',
     cancel: 'Annuler',
   },
+  missing_in_en: '',
 } as const satisfies TranslationObject
 
+/** error since "missing_in_en" key is not in `EN` translations */
 const en: TranslationStructure<typeof fr> = {
   commands: {
     help: {
