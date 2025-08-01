@@ -1,5 +1,6 @@
 export * from './src/array'
 export * from './src/builder/endpoint'
+export * from './src/builder/i18n'
 export * from './src/builder/isGranted'
 export * from './src/builder/logger'
 export * from './src/clipboard'
