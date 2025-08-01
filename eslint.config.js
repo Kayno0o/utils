@@ -1,3 +1,7 @@
 import { typescript } from '@kaynooo/eslint'
 
-export default typescript()
+export default typescript({
+  mergeOptions: {
+    ignores: ['./README.md'],
+  },
+})
