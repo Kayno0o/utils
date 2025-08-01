@@ -80,11 +80,7 @@ export function declareI18n<
     variables: Record<ExtractVariablesFromKey<PrimaryTranslation, K>, string | number>
   ): string
 
-  function t<K extends I18nKey>(
-    locale: LocaleType,
-    key: K,
-    variables?: Record<string, string | number>,
-  ): string {
+  function t<K extends I18nKey>(locale: LocaleType, key: K, variables?: Record<string, string | number>): string {
     const localeTranslations = translations[locale]
 
     let template = getNestedValue(localeTranslations, key) as string

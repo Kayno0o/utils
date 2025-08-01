@@ -15,11 +15,7 @@ function warmup(callback: () => void, duration = 1000) {
   }
 }
 
-function benchmark(
-  name: string,
-  callback: () => void,
-  { iterations = 1_000, verbose = true, warmup: warmupMs = 1_000 }: BenchmarkOptions,
-) {
+function benchmark(name: string, callback: () => void, { iterations = 1_000, verbose = true, warmup: warmupMs = 1_000 }: BenchmarkOptions) {
   if (verbose)
     console.log(colors.cyan.bold('[Benchmark]'), name)
 
@@ -41,10 +37,7 @@ function benchmark(
   return timeTaken
 }
 
-function suite(
-  benchmarks: [string, () => void][],
-  options: BenchmarkOptions = {},
-) {
+function suite(benchmarks: [string, () => void][], options: BenchmarkOptions = {}) {
   const search = process.argv.slice(2).join(' ')
   benchmarks = benchmarks.filter(([name]) => searchOne(search, name))
   if (!benchmarks.length)
@@ -67,11 +60,7 @@ function suite(
   for (const result of results) {
     const timeColor = [colors.green, colors.red][Number(result.timeTaken === maxTime)]
 
-    console.log(
-      ' '.repeat(longestName - result.name.length) + colors.yellow.bold(result.name),
-      progressBar(result.timeTaken, 0, maxTime),
-      timeColor(`${(result.timeTaken / (options.iterations ?? 1_000)).toFixed(10)} ms`),
-    )
+    console.log(' '.repeat(longestName - result.name.length) + colors.yellow.bold(result.name), progressBar(result.timeTaken, 0, maxTime), timeColor(`${(result.timeTaken / (options.iterations ?? 1_000)).toFixed(10)} ms`))
   }
 }
 

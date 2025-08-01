@@ -30,16 +30,19 @@ export function mergeObjects<T extends object>(obj1: T | RecursivePartial<T>, ob
 export function interpolate<T extends number>(start: T, end: T, framesNb: number): T[]
 export function interpolate<T extends object>(start: RecursivePartial<T>, end: RecursivePartial<T>, framesNb: number): T[]
 
-export function interpolate<T extends object | number>(
-  start: RecursivePartial<T>,
-  end: RecursivePartial<T>,
-  framesNb: number,
-): T[] {
+export function interpolate<T extends object | number>(start: RecursivePartial<T>, end: RecursivePartial<T>, framesNb: number): T[] {
   const frames: any[] = []
 
   if (typeof start === 'number' && typeof end === 'number') {
-    for (let i = 0; i <= framesNb; i++)
-      frames.push(map(i, 0, framesNb, start, end))
+    for (let i = 0; i <= framesNb; i++) {
+      frames.push(map(
+        i,
+        0,
+        framesNb,
+        start,
+        end,
+      ))
+    }
 
     return frames
   }
@@ -52,12 +55,27 @@ export function interpolate<T extends object | number>(
 
       for (const key in end) {
         if (Object.prototype.hasOwnProperty.call(end, key)) {
-          if (typeof end[key] === 'number' && typeof start[key] === 'number')
-            interpolatedFrame[key] = map(i, 0, framesNb, start[key], end[key]) as any
-          else if (Array.isArray(end[key]) && Array.isArray(start[key]))
-            interpolatedFrame[key] = end[key].map((_: any, index: number) => map(i, 0, framesNb, (start[key] as any)[index], (end[key] as any)[index])) as any
-          else
+          if (typeof end[key] === 'number' && typeof start[key] === 'number') {
+            interpolatedFrame[key] = map(
+              i,
+              0,
+              framesNb,
+              start[key],
+              end[key],
+            ) as any
+          }
+          else if (Array.isArray(end[key]) && Array.isArray(start[key])) {
+            interpolatedFrame[key] = end[key].map((_: any, index: number) => map(
+              i,
+              0,
+              framesNb,
+              (start[key] as any)[index],
+              (end[key] as any)[index],
+            )) as any
+          }
+          else {
             interpolatedFrame[key] = end[key] as any
+          }
         }
       }
 

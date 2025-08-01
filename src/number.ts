@@ -21,7 +21,13 @@ export function randomInt(minOrMax: number, max?: number | boolean, isCrypto?: b
 }
 
 /** @see https://processing.org/reference/map_.html */
-export function map(value: number, start1: number, stop1: number, start2: number, stop2: number): number {
+export function map(
+  value: number,
+  start1: number,
+  stop1: number,
+  start2: number,
+  stop2: number,
+): number {
   return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
 }
 
@@ -38,12 +44,7 @@ export function range(minOrMax: number, max?: number): number[] {
   return Array.from({ length: max - minOrMax }, (_, i) => i + minOrMax)
 }
 
-export function numberFromString(
-  str: string,
-  min: number,
-  max: number,
-  { integer = true }: { integer?: boolean } = {},
-): number {
+export function numberFromString(str: string, min: number, max: number, { integer = true }: { integer?: boolean } = {}): number {
   const seed = xmur3(str)
   const rand = sfc32(seed(), seed(), seed(), seed())
   const r = rand()

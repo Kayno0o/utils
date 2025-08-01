@@ -40,10 +40,7 @@ export function declareGetEndpoint<
       ? [ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>]
       : [] | [undefined]
   ): string
-  function getEndpoint<T extends keyof EndpointsConst>(
-    argsOrEndpoint: EndpointArgs<EndpointsConst, T, CustomTypes> | T,
-    params?: ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>,
-  ): string {
+  function getEndpoint<T extends keyof EndpointsConst>(argsOrEndpoint: EndpointArgs<EndpointsConst, T, CustomTypes> | T, params?: ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>): string {
     const [name, resolvedParams] = Array.isArray(argsOrEndpoint)
       ? argsOrEndpoint
       : [argsOrEndpoint, params]
@@ -52,10 +49,7 @@ export function declareGetEndpoint<
     if (!resolvedParams) {
       return endpoint
     }
-    return Object.entries(resolvedParams).reduce(
-      (acc, [key, value]) => acc.replaceAll(`{${key}}`, String(value)),
-      endpoint,
-    )
+    return Object.entries(resolvedParams).reduce((acc, [key, value]) => acc.replaceAll(`{${key}}`, String(value)), endpoint)
   }
 
   return getEndpoint

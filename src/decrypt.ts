@@ -36,7 +36,7 @@ export function decryptMonoalphabet(input: string, alphabet: Record<string, stri
   let output = ''
 
   for (const c of input) {
-    if (/\s/.test(c)) {
+    if ((/\s/).test(c)) {
       output += c
       continue
     }

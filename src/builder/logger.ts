@@ -23,10 +23,7 @@ export function declareCustomLogger<
       : Number(logLevel)
 
     if ((logType.level ?? 0) <= envLogLevel) {
-      (logType.log ?? console.log)(
-        logType.color ? logType.color(logType.char) : logType.char,
-        ...messages,
-      )
+      (logType.log ?? console.log)(logType.color ? logType.color(logType.char) : logType.char, ...messages)
     }
 
     if (onLog)
