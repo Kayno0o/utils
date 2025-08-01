@@ -1,120 +1,116 @@
-import { delay, Memoize } from '~'
+import { Memoize } from '~/decorators/memoize'
 
-// example 1: basic caching
-class DataProcessor {
-  private rawData = [1, 2, 3, 4, 5]
+class Calculator {
+  private _multiplier = 1
+  private computationCount = 0
 
-  @Memoize()
+  get multiplier() { return this._multiplier }
+  set multiplier(value: number) { this._multiplier = value }
+
+  // Memoized getter (existing functionality)
+  @Memoize({ clearOn: ['multiplier'] })
   get expensiveCalculation(): number {
-    console.log('Computing expensive calculation for the first time...')
-    return this.rawData.reduce((sum, n) => sum + n * n, 0)
+    console.log('Computing expensive calculation...')
+    let result = 0
+    for (let i = 0; i < 1000; i++) {
+      result += i * this.multiplier
+    }
+    return result
+  }
+
+  // Memoized method (new functionality)
+  @Memoize()
+  fibonacci(n: number): number {
+    console.log(`Computing fibonacci(${n})`)
+    this.computationCount++
+
+    if (n <= 1)
+      return n
+    return this.fibonacci(n - 1) + this.fibonacci(n - 2)
+  }
+
+  // Memoized method with TTL
+  @Memoize({ ttl: 2000 })
+  fetchData(id: string, options?: { cache?: boolean }): string {
+    console.log(`Fetching data for ${id} with options:`, options)
+    return `Data for ${id} - ${Date.now()}`
+  }
+
+  // Memoized method that clears when multiplier changes
+  @Memoize({ clearOn: ['multiplier'] })
+  compute(base: number, power: number): number {
+    console.log(`Computing ${base}^${power} * ${this.multiplier}`)
+    return base ** power * this.multiplier
+  }
+
+  getComputationCount() {
+    return this.computationCount
+  }
+
+  resetComputationCount() {
+    this.computationCount = 0
   }
 }
 
-// example 2: TTL (Time-To-Live) caching
-class WeatherService {
-  private apiCallCount = 0
+// Example usage
+async function demonstrateMemoizedMethods() {
+  const calc = new Calculator()
 
-  @Memoize({ ttl: 5000 }) // Cache for 5 seconds
-  get currentTemperature(): number {
-    console.log(`API call #${++this.apiCallCount}`)
-    return Math.floor(Math.random() * 30) + 10 // Simulate API call
-  }
+  console.log('=== Memoized Methods Demo ===\n')
+
+  // 1. Basic method memoization
+  console.log('1. Fibonacci with memoization:')
+  calc.resetComputationCount()
+
+  console.log('fibonacci(10):', calc.fibonacci(10))
+  console.log('fibonacci(10) again:', calc.fibonacci(10)) // Should use cache
+  console.log('fibonacci(8):', calc.fibonacci(8)) // Should use cache from previous computation
+  console.log('Computation count:', calc.getComputationCount())
+  console.log()
+
+  // 2. Method with different arguments
+  console.log('2. Methods with different arguments:')
+  console.log('compute(2, 3):', calc.compute(2, 3))
+  console.log('compute(2, 3) again:', calc.compute(2, 3)) // Cached
+  console.log('compute(3, 2):', calc.compute(3, 2)) // Different args, not cached
+  console.log('compute(2, 3) again:', calc.compute(2, 3)) // Still cached
+  console.log()
+
+  // 3. Cache invalidation with clearOn
+  console.log('3. Cache invalidation:')
+  console.log('compute(2, 4):', calc.compute(2, 4))
+  console.log('compute(2, 4) again:', calc.compute(2, 4)) // Cached
+
+  calc.multiplier = 2 // This should clear the cache
+  console.log('After changing multiplier:')
+  console.log('compute(2, 4):', calc.compute(2, 4)) // Recomputed
+  console.log()
+
+  // 4. TTL expiration
+  console.log('4. TTL expiration:')
+  console.log('fetchData("user1"):', calc.fetchData('user1'))
+  console.log('fetchData("user1") again:', calc.fetchData('user1')) // Cached
+
+  console.log('Waiting for TTL to expire...')
+  await new Promise(resolve => setTimeout(resolve, 2100))
+
+  console.log('fetchData("user1") after TTL:', calc.fetchData('user1')) // Recomputed
+  console.log()
+
+  // 5. Methods with complex arguments
+  console.log('5. Complex arguments:')
+  const opts1 = { cache: true }
+  const opts2 = { cache: true }
+  const opts3 = { cache: false }
+
+  console.log('fetchData("user2", opts1):', calc.fetchData('user2', opts1))
+  console.log('fetchData("user2", opts2):', calc.fetchData('user2', opts2)) // Same structure, cached
+  console.log('fetchData("user2", opts3):', calc.fetchData('user2', opts3)) // Different structure, not cached
 }
 
-// example 3: cache invalidation with clearOn
-class UserProfile {
-  private _userId = 'user123'
-  private _settings: any = { theme: 'dark' }
-
-  get userId() { return this._userId }
-  set userId(value: string) { this._userId = value }
-
-  get settings() { return this._settings }
-  set settings(value: any) { this._settings = value }
-
-  @Memoize({ clearOn: ['userId'] })
-  get userDisplayName(): string {
-    console.log('Fetching display name from database...')
-    return `Display name for ${this._userId}`
-  }
-
-  @Memoize({ clearOn: ['userId', 'settings'] })
-  get userPreferences(): string {
-    console.log('Computing user preferences...')
-    return `${this._userId} prefers ${this._settings.theme} theme`
-  }
+try {
+  demonstrateMemoizedMethods()
 }
-
-// example 4: complex calculation with multiple dependencies
-class ShoppingCart {
-  private _items: { id: string, price: number, quantity: number }[] = []
-  private _discountCode = ''
-  private _taxRate = 0.08
-
-  get items() { return this._items }
-  set items(value: typeof this._items) { this._items = value }
-
-  get discountCode() { return this._discountCode }
-  set discountCode(value: string) { this._discountCode = value }
-
-  get taxRate() { return this._taxRate }
-  set taxRate(value: number) { this._taxRate = value }
-
-  @Memoize({ clearOn: ['items'] })
-  get subtotal(): number {
-    console.log('Calculating subtotal...')
-    return this._items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-  }
-
-  @Memoize({ clearOn: ['items', 'discountCode'] })
-  get discountAmount(): number {
-    console.log('Calculating discount...')
-    const subtotal = this.subtotal
-    return this._discountCode === 'SAVE10' ? subtotal * 0.1 : 0
-  }
-
-  @Memoize({ clearOn: ['items', 'discountCode', 'taxRate'] })
-  get total(): number {
-    console.log('Calculating final total...')
-    const afterDiscount = this.subtotal - this.discountAmount
-    return afterDiscount + (afterDiscount * this._taxRate)
-  }
+catch (e) {
+  console.error(e)
 }
-
-// examples
-console.log('=== Basic Example ===')
-const processor = new DataProcessor()
-console.log('First call:', processor.expensiveCalculation)
-console.log('Second call:', processor.expensiveCalculation)
-
-console.log('\n=== TTL Example ===')
-const weather = new WeatherService()
-console.log('Temperature:', weather.currentTemperature)
-console.log('Temperature (cached):', weather.currentTemperature)
-console.log('Waiting for cache to expire...')
-await delay(6000, () => console.log('Temperature (after TTL expired):', weather.currentTemperature))
-
-console.log('\n=== ClearOn Example ===')
-const profile = new UserProfile()
-console.log('Display name:', profile.userDisplayName)
-console.log('Display name (cached):', profile.userDisplayName)
-profile.userId = 'user456'
-console.log('Display name (cache cleared):', profile.userDisplayName)
-
-console.log('\n=== Shopping Cart Example ===')
-const cart = new ShoppingCart()
-cart.items = [
-  { id: '1', price: 10, quantity: 2 },
-  { id: '2', price: 15, quantity: 1 },
-]
-
-console.log('Subtotal:', cart.subtotal)
-console.log('Total:', cart.total)
-console.log('Total (cached):', cart.total)
-
-cart.discountCode = 'SAVE10'
-console.log('Total (after discount):', cart.total)
-
-cart.items = [...cart.items, { id: '3', price: 5, quantity: 3 }]
-console.log('Total (after adding item):', cart.total)
