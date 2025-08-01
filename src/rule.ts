@@ -39,7 +39,7 @@ export class Rules {
     if (!value)
       return true
 
-    return /^(?:[^<>()[\]\\.,;:\s@"]+(?:\.[^<>()[\]\\.,;:\s@"]+)*|".+")@(?:\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]|(?:[a-z\-0-9]+\.)+[a-z]{2,})$/i
+    return (/^(?:[^<>()[\]\\.,;:\s@"]+(?:\.[^<>()[\]\\.,;:\s@"]+)*|".+")@(?:\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]|(?:[a-z\-0-9]+\.)+[a-z]{2,})$/i)
       .test(value) || 'Invalid email'
   }
 
@@ -47,7 +47,7 @@ export class Rules {
     if (!value)
       return true
 
-    return /^[a-z_]+$/.test(value) || 'Must contain lowercase letters and underscores only'
+    return (/^[a-z_]+$/).test(value) || 'Must contain lowercase letters and underscores only'
   }
 
   static isDateBetweenHours = (minHour = 0, maxHour = 24, include = true) => (date?: Date | null) => {
@@ -80,7 +80,7 @@ export class Rules {
     if (!value)
       return true
 
-    return /^[a-z0-9_]+$/.test(value) || 'Must contain lowercase letters, numbers, and underscores only'
+    return (/^[a-z0-9_]+$/).test(value) || 'Must contain lowercase letters, numbers, and underscores only'
   }
 
   static isWeekDay = (date?: Date | null) => {
@@ -149,7 +149,7 @@ export class Rules {
   static phone = (value?: string | number | null): boolean | string => {
     if (!value)
       return true
-    return /^(?:\+?33 ?|0)[1-9](?:[-. ]?\d{2}){4}$/.test(value.toString()) || 'Invalid phone number'
+    return (/^(?:\+?33 ?|0)[1-9](?:[-. ]?\d{2}){4}$/).test(value.toString()) || 'Invalid phone number'
   }
 
   static required = (value?: any): boolean | string => {

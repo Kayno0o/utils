@@ -11,7 +11,7 @@ function hexToRgb(hex: string): [number, number, number] | [number, number, numb
   const cleanHex = hex.startsWith('#') ? hex.slice(1).toLowerCase() : hex.toLowerCase()
 
   // Validate hex characters
-  if (!/^[a-f0-9]+$/.test(cleanHex))
+  if (!(/^[a-f0-9]+$/).test(cleanHex))
     return [0, 0, 0]
 
   const len = cleanHex.length

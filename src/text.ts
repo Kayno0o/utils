@@ -105,7 +105,7 @@ export function escapeCSV(value: string | number): string {
 
   stringValue = stringValue.replace(/"/g, '""')
 
-  if (/[",\n]/.test(stringValue)) {
+  if ((/[",\n]/).test(stringValue)) {
     stringValue = `"${stringValue}"`
   }
 
@@ -157,7 +157,7 @@ export function progressBar(value: number, min: number, max: number, { emptyChar
 
 /** handle common pluralization rules */
 export function plural(singular: string): string {
-  if (singular.endsWith('y') && !/[aeiou]y$/.test(singular))
+  if (singular.endsWith('y') && !(/[aeiou]y$/).test(singular))
     return `${singular.slice(0, -1)}ies`
 
   if (singular.endsWith('s') || singular.endsWith('x') || singular.endsWith('z') || singular.endsWith('ch') || singular.endsWith('sh'))

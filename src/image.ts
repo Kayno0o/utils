@@ -51,7 +51,13 @@ export async function convertImage(imageUrl: string, options?: {
 
       canvas.width = width
       canvas.height = height
-      ctx.drawImage(img, 0, 0, width, height)
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        width,
+        height,
+      )
 
       resolve(canvas.toDataURL(options?.format ?? 'image/webp', options?.quality ?? 0.8))
     }

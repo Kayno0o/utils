@@ -184,7 +184,7 @@ function getUnitFactors() {
       m3: 1, // base (cubic meter)
       tsp: 0.00000492892, // teaspoon
       tbsp: 0.0000147868, // tablespoon
-      // eslint-disable-next-line camelcase
+
       fl_oz: 0.0000295735, // fluid ounce
       cup: 0.000236588, // cup
       pt: 0.000473176, // pint
