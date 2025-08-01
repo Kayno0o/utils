@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryHi">97.1&nbsp;%</td>
-            <td class="headerCovTableEntry">35</td>
-            <td class="headerCovTableEntry">34</td>
+            <td class="headerCovTableEntryHi">96.6&nbsp;%</td>
+            <td class="headerCovTableEntry">29</td>
+            <td class="headerCovTableEntry">28</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-08-01 08:58:44</td>
+            <td class="headerValue">2025-08-01 09:03:42</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -102,50 +102,44 @@
 <span id="L40"><span class="lineNum">      40</span>              :       ? [ResolveParams&lt;EndpointsConst[T], CustomTypes[T] extends Record&lt;string, any&gt; ? CustomTypes[T] : {}&gt;]</span>
 <span id="L41"><span class="lineNum">      41</span>              :       : [] | [undefined]</span>
 <span id="L42"><span class="lineNum">      42</span>              :   ): string</span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           1 :   function getEndpoint&lt;T extends keyof EndpointsConst&gt;(</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          16 :     argsOrEndpoint: EndpointArgs&lt;EndpointsConst, T, CustomTypes&gt; | T,</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           8 :     params?: ResolveParams&lt;EndpointsConst[T], CustomTypes[T] extends Record&lt;string, any&gt; ? CustomTypes[T] : {}&gt;,</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           5 :   ): string {</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          62 :     const [name, resolvedParams] = Array.isArray(argsOrEndpoint)</span></span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">          14 :       ? argsOrEndpoint</span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           4 :       : [argsOrEndpoint, params]</span></span>
-<span id="L50"><span class="lineNum">      50</span>              : </span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">          37 :     const endpoint: string = ENDPOINTS[name]</span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">          27 :     if (!resolvedParams) {</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          15 :       return endpoint</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">           4 :     }</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          44 :     return Object.entries(resolvedParams).reduce(</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          65 :       (acc, [key, value]) =&gt; acc.replaceAll(`{${key}}`, String(value)),</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           8 :       endpoint,</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           3 :     )</span></span>
-<span id="L59"><span class="lineNum">      59</span>              :   }</span>
-<span id="L60"><span class="lineNum">      60</span>              : </span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">          19 :   return getEndpoint</span></span>
-<span id="L62"><span class="lineNum">      62</span>              : }</span>
-<span id="L63"><span class="lineNum">      63</span>              : </span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           5 : export function declareIsEndpoint&lt;</span></span>
-<span id="L65"><span class="lineNum">      65</span>              :   EndpointsConst extends Record&lt;Key, string&gt;,</span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          15 : &gt;(ENDPOINTS: EndpointsConst) {</span></span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           7 :   return &lt;T extends keyof EndpointsConst = keyof EndpointsConst&gt;(</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           9 :     args: any,</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           5 :   ): args is EndpointArgs&lt;EndpointsConst, T&gt; =&gt; {</span></span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">          30 :     if (!Array.isArray(args))</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">          30 :   function getEndpoint&lt;T extends keyof EndpointsConst&gt;(argsOrEndpoint: EndpointArgs&lt;EndpointsConst, T, CustomTypes&gt; | T, params?: ResolveParams&lt;EndpointsConst[T], CustomTypes[T] extends Record&lt;string, any&gt; ? CustomTypes[T] : {}&gt;): string {</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          62 :     const [name, resolvedParams] = Array.isArray(argsOrEndpoint)</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">          14 :       ? argsOrEndpoint</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           4 :       : [argsOrEndpoint, params]</span></span>
+<span id="L47"><span class="lineNum">      47</span>              : </span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">          37 :     const endpoint: string = ENDPOINTS[name]</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">          27 :     if (!resolvedParams) {</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          15 :       return endpoint</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">           4 :     }</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">         120 :     return Object.entries(resolvedParams).reduce((acc, [key, value]) =&gt; acc.replaceAll(`{${key}}`, String(value)), endpoint)</span></span>
+<span id="L53"><span class="lineNum">      53</span>              :   }</span>
+<span id="L54"><span class="lineNum">      54</span>              : </span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          19 :   return getEndpoint</span></span>
+<span id="L56"><span class="lineNum">      56</span>              : }</span>
+<span id="L57"><span class="lineNum">      57</span>              : </span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           5 : export function declareIsEndpoint&lt;</span></span>
+<span id="L59"><span class="lineNum">      59</span>              :   EndpointsConst extends Record&lt;Key, string&gt;,</span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          15 : &gt;(ENDPOINTS: EndpointsConst) {</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           7 :   return &lt;T extends keyof EndpointsConst = keyof EndpointsConst&gt;(</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           9 :     args: any,</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           5 :   ): args is EndpointArgs&lt;EndpointsConst, T&gt; =&gt; {</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">          30 :     if (!Array.isArray(args))</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">          16 :       return false</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          44 :     if (args.length &lt; 1 || args.length &gt; 2)</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">          16 :       return false</span></span>
+<span id="L68"><span class="lineNum">      68</span>              : </span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          32 :     const [name, values] = args</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">          26 :     if (!ENDPOINTS[name])</span></span>
 <span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">          16 :       return false</span></span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">          44 :     if (args.length &lt; 1 || args.length &gt; 2)</span></span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">          16 :       return false</span></span>
-<span id="L74"><span class="lineNum">      74</span>              : </span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">          32 :     const [name, values] = args</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">          26 :     if (!ENDPOINTS[name])</span></span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">          16 :       return false</span></span>
-<span id="L78"><span class="lineNum">      78</span>              : </span>
-<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">          27 :     if (args.length === 1)</span></span>
-<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">          15 :       return true</span></span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">          83 :     if (args.length === 2 &amp;&amp; (values === undefined || typeof values === 'object'))</span></span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">          11 :       return true</span></span>
-<span id="L83"><span class="lineNum">      83</span>              : </span>
-<span id="L84"><span class="lineNum">      84</span> <span class="tlaUNC tlaBgUNC">           0 :     return false</span></span>
-<span id="L85"><span class="lineNum">      85</span>              :   }</span>
-<span id="L86"><span class="lineNum">      86</span>              : }</span>
+<span id="L72"><span class="lineNum">      72</span>              : </span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">          27 :     if (args.length === 1)</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          15 :       return true</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">          83 :     if (args.length === 2 &amp;&amp; (values === undefined || typeof values === 'object'))</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">          11 :       return true</span></span>
+<span id="L77"><span class="lineNum">      77</span>              : </span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaUNC tlaBgUNC">           0 :     return false</span></span>
+<span id="L79"><span class="lineNum">      79</span>              :   }</span>
+<span id="L80"><span class="lineNum">      80</span>              : }</span>
         </pre>
               </td>
             </tr>

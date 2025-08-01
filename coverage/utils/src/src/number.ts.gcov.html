@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryHi">94.3&nbsp;%</td>
-            <td class="headerCovTableEntry">35</td>
-            <td class="headerCovTableEntry">33</td>
+            <td class="headerCovTableEntryHi">94.4&nbsp;%</td>
+            <td class="headerCovTableEntry">36</td>
+            <td class="headerCovTableEntry">34</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-08-01 08:58:44</td>
+            <td class="headerValue">2025-08-01 09:03:42</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -83,39 +83,40 @@
 <span id="L21"><span class="lineNum">      21</span>              : }</span>
 <span id="L22"><span class="lineNum">      22</span>              : </span>
 <span id="L23"><span class="lineNum">      23</span>              : /** @see https://processing.org/reference/map_.html */</span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">          46 : export function map(value: number, start1: number, stop1: number, start2: number, stop2: number): number {</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">          73 :   return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))</span></span>
-<span id="L26"><span class="lineNum">      26</span>              : }</span>
-<span id="L27"><span class="lineNum">      27</span>              : </span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">          28 : export function round(nb: number, precision = 2) {</span></span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">          58 :   return Math.round(nb * (10 ** precision)) / (10 ** precision)</span></span>
-<span id="L30"><span class="lineNum">      30</span>              : }</span>
-<span id="L31"><span class="lineNum">      31</span>              : </span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">          24 : export function range(minOrMax: number, max?: number): number[] {</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">          27 :   if (max === undefined) {</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">          19 :     max = minOrMax</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">          15 :     minOrMax = 0</span></span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           2 :   }</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           6 : export function map(</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           7 :   value: number,</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">           8 :   start1: number,</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">           7 :   stop1: number,</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">           8 :   start2: number,</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">           7 :   stop2: number,</span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">           3 : ): number {</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">          73 :   return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))</span></span>
+<span id="L32"><span class="lineNum">      32</span>              : }</span>
+<span id="L33"><span class="lineNum">      33</span>              : </span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">          28 : export function round(nb: number, precision = 2) {</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">          58 :   return Math.round(nb * (10 ** precision)) / (10 ** precision)</span></span>
+<span id="L36"><span class="lineNum">      36</span>              : }</span>
 <span id="L37"><span class="lineNum">      37</span>              : </span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">          68 :   return Array.from({ length: max - minOrMax }, (_, i) =&gt; i + minOrMax)</span></span>
-<span id="L39"><span class="lineNum">      39</span>              : }</span>
-<span id="L40"><span class="lineNum">      40</span>              : </span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">           6 : export function numberFromString(</span></span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           5 :   str: string,</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           5 :   min: number,</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           7 :   max: number,</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">          23 :   { integer = true }: { integer?: boolean } = {},</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           3 : ): number {</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          26 :   const seed = xmur3(str)</span></span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">          53 :   const rand = sfc32(seed(), seed(), seed(), seed())</span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">          19 :   const r = rand()</span></span>
-<span id="L50"><span class="lineNum">      50</span>              : </span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">          17 :   if (integer) {</span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">          44 :     return Math.floor(r * (max - min + 1)) + min</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaUNC tlaBgUNC">           0 :   }</span></span>
-<span id="L54"><span class="lineNum">      54</span>              : </span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaUNC">           0 :   return min + r * (max - min)</span></span>
-<span id="L56"><span class="lineNum">      56</span>              : }</span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">          24 : export function range(minOrMax: number, max?: number): number[] {</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">          27 :   if (max === undefined) {</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">          19 :     max = minOrMax</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">          15 :     minOrMax = 0</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           2 :   }</span></span>
+<span id="L43"><span class="lineNum">      43</span>              : </span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          68 :   return Array.from({ length: max - minOrMax }, (_, i) =&gt; i + minOrMax)</span></span>
+<span id="L45"><span class="lineNum">      45</span>              : }</span>
+<span id="L46"><span class="lineNum">      46</span>              : </span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          49 : export function numberFromString(str: string, min: number, max: number, { integer = true }: { integer?: boolean } = {}): number {</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">          26 :   const seed = xmur3(str)</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">          53 :   const rand = sfc32(seed(), seed(), seed(), seed())</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          19 :   const r = rand()</span></span>
+<span id="L51"><span class="lineNum">      51</span>              : </span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">          17 :   if (integer) {</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          44 :     return Math.floor(r * (max - min + 1)) + min</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaUNC tlaBgUNC">           0 :   }</span></span>
+<span id="L55"><span class="lineNum">      55</span>              : </span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaUNC">           0 :   return min + r * (max - min)</span></span>
+<span id="L57"><span class="lineNum">      57</span>              : }</span>
         </pre>
               </td>
             </tr>
