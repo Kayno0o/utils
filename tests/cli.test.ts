@@ -164,4 +164,28 @@ describe('parseArgs function', () => {
     })
     expect(result.ts).toBe(true)
   })
+
+  it('should handle format-only options without type', () => {
+    const result = parseArgs({
+      args: ['--items=a,b,c'],
+      options: {
+        items: {
+          format: (value: string) => value.split(','),
+        },
+      },
+    })
+    expect(result.items).toEqual(['a', 'b', 'c'])
+  })
+
+  it('should handle format-only options with complex parsing', () => {
+    const result = parseArgs({
+      args: ['--config={"key":"value"}'],
+      options: {
+        config: {
+          format: (value: string) => JSON.parse(value) as { key: string },
+        },
+      },
+    })
+    expect(result.config).toEqual({ key: 'value' })
+  })
 })
