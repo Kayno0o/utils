@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">41.7&nbsp;%</td>
-            <td class="headerCovTableEntry">211</td>
-            <td class="headerCovTableEntry">88</td>
+            <td class="headerCovTableEntryLo">49.7&nbsp;%</td>
+            <td class="headerCovTableEntry">175</td>
+            <td class="headerCovTableEntry">87</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-09-16 12:21:37</td>
+            <td class="headerValue">2025-09-16 14:08:23</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -369,47 +369,8 @@
 <span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">          30 :   if (missingRequired.length)</span></span>
 <span id="L308"><span class="lineNum">     308</span> <span class="tlaGNC">         105 :     throw new Error(`Some required options were not found: ${missingRequired.map(o =&gt; o.name).join(', ')}`)</span></span>
 <span id="L309"><span class="lineNum">     309</span>              : </span>
-<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">          14 :   return result as ParsedValues&lt;T&gt;</span></span>
+<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">          13 :   return result as ParsedValues&lt;T&gt;</span></span>
 <span id="L311"><span class="lineNum">     311</span>              : }</span>
-<span id="L312"><span class="lineNum">     312</span>              : </span>
-<span id="L313"><span class="lineNum">     313</span> <span class="tlaGNC">          20 : if (import.meta.main) {</span></span>
-<span id="L314"><span class="lineNum">     314</span> <span class="tlaUNC tlaBgUNC">           0 :   const result = parseArgs({</span></span>
-<span id="L315"><span class="lineNum">     315</span> <span class="tlaUNC">           0 :     args: process.argv.splice(2),</span></span>
-<span id="L316"><span class="lineNum">     316</span> <span class="tlaUNC">           0 :     help: {</span></span>
-<span id="L317"><span class="lineNum">     317</span> <span class="tlaUNC">           0 :       name: 'cli',</span></span>
-<span id="L318"><span class="lineNum">     318</span> <span class="tlaUNC">           0 :       shortDescription: 'Parse cli arguments',</span></span>
-<span id="L319"><span class="lineNum">     319</span> <span class="tlaUNC">           0 :       footerBlocks: [{ title: 'Credits', content: ['Author: Kayno0o', 'License: MIT'] }],</span></span>
-<span id="L320"><span class="lineNum">     320</span> <span class="tlaUNC">           0 :       keywords: ['command', 'option'],</span></span>
-<span id="L321"><span class="lineNum">     321</span> <span class="tlaUNC">           0 :     },</span></span>
-<span id="L322"><span class="lineNum">     322</span> <span class="tlaUNC">           0 :     options: {</span></span>
-<span id="L323"><span class="lineNum">     323</span> <span class="tlaUNC">           0 :       ts: {</span></span>
-<span id="L324"><span class="lineNum">     324</span> <span class="tlaUNC">           0 :         type: 'boolean',</span></span>
-<span id="L325"><span class="lineNum">     325</span> <span class="tlaUNC">           0 :         required: true,</span></span>
-<span id="L326"><span class="lineNum">     326</span> <span class="tlaUNC">           0 :         description: 'Set language to TypeScript',</span></span>
-<span id="L327"><span class="lineNum">     327</span> <span class="tlaUNC">           0 :         alias: 'typescript',</span></span>
-<span id="L328"><span class="lineNum">     328</span> <span class="tlaUNC">           0 :       },</span></span>
-<span id="L329"><span class="lineNum">     329</span> <span class="tlaUNC">           0 :       file: {</span></span>
-<span id="L330"><span class="lineNum">     330</span> <span class="tlaUNC">           0 :         type: 'path',</span></span>
-<span id="L331"><span class="lineNum">     331</span> <span class="tlaUNC">           0 :         default: './.env',</span></span>
-<span id="L332"><span class="lineNum">     332</span> <span class="tlaUNC">           0 :         short: 'f',</span></span>
-<span id="L333"><span class="lineNum">     333</span> <span class="tlaUNC">           0 :         description: 'Path of file to read',</span></span>
-<span id="L334"><span class="lineNum">     334</span> <span class="tlaUNC">           0 :       },</span></span>
-<span id="L335"><span class="lineNum">     335</span> <span class="tlaUNC">           0 :       day: {</span></span>
-<span id="L336"><span class="lineNum">     336</span> <span class="tlaUNC">           0 :         type: 'date',</span></span>
-<span id="L337"><span class="lineNum">     337</span> <span class="tlaUNC">           0 :         default: (new Date()).toLocaleDateString(),</span></span>
-<span id="L338"><span class="lineNum">     338</span> <span class="tlaUNC">           0 :         short: 'd',</span></span>
-<span id="L339"><span class="lineNum">     339</span> <span class="tlaUNC">           0 :       },</span></span>
-<span id="L340"><span class="lineNum">     340</span> <span class="tlaUNC">           0 :       nb: {</span></span>
-<span id="L341"><span class="lineNum">     341</span> <span class="tlaUNC">           0 :         format: (value: string | undefined) =&gt; String(Number(value) + 10),</span></span>
-<span id="L342"><span class="lineNum">     342</span> <span class="tlaUNC">           0 :         required: true,</span></span>
-<span id="L343"><span class="lineNum">     343</span> <span class="tlaUNC">           0 :         default: 123,</span></span>
-<span id="L344"><span class="lineNum">     344</span> <span class="tlaUNC">           0 :         alias: 'number-dir',</span></span>
-<span id="L345"><span class="lineNum">     345</span> <span class="tlaUNC">           0 :       },</span></span>
-<span id="L346"><span class="lineNum">     346</span> <span class="tlaUNC">           0 :     },</span></span>
-<span id="L347"><span class="lineNum">     347</span> <span class="tlaUNC">           0 :   })</span></span>
-<span id="L348"><span class="lineNum">     348</span>              : </span>
-<span id="L349"><span class="lineNum">     349</span> <span class="tlaUNC">           0 :   console.log(result)</span></span>
-<span id="L350"><span class="lineNum">     350</span>              : }</span>
         </pre>
               </td>
             </tr>
