@@ -42,13 +42,13 @@
   },
   "devDependencies": {
     "@kaynooo/eslint": "^1.1.13",
-    "@types/bun": "^1.2.19",
-    "eslint": "^9.32.0",
-    "lint-staged": "^16.1.2",
+    "@types/bun": "^1.2.22",
+    "eslint": "^9.35.0",
+    "lint-staged": "^16.1.6",
     "tsup": "^8.5.0",
-    "typedoc": "^0.28.8",
-    "typedoc-github-theme": "^0.3.0",
-    "typescript": "5.8.3"
+    "typedoc": "^0.28.13",
+    "typedoc-github-theme": "^0.3.1",
+    "typescript": "5.9.2"
   },
   "directories": {
     "example": "./examples",
