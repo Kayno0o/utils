@@ -20,7 +20,19 @@ interface TypedOptionDefinition<T extends OptionType, Type, FormatType = Type> {
   description?: string
   default?: FormatType
   example?: string | string[]
-  format?: (value: any) => FormatType
+  format?: (value: string) => FormatType
+  validate?: (value: FormatType) => true | string
+}
+
+interface FormatOnlyOptionDefinition<FormatType> {
+  alias?: string | string[]
+  type?: never
+  short?: AlphabetChar
+  required?: boolean
+  description?: string
+  default?: FormatType
+  example?: string | string[]
+  format: (value: string) => FormatType
   validate?: (value: FormatType) => true | string
 }
 
@@ -28,13 +40,22 @@ type OptionDefinition =
   | TypedOptionDefinition<'boolean', boolean, any>
   | TypedOptionDefinition<'string' | 'path' | 'date', string, any>
   | TypedOptionDefinition<NumberOptionType, number, any>
+  | FormatOnlyOptionDefinition<any>
 
 type ParseArgsConfig<T extends Record<string, OptionDefinition>> = T
 
 type ParsedValues<T extends Record<string, OptionDefinition>> = {
   [K in keyof T]: T[K]['required'] extends true
-    ? T[K]['format'] extends (value: any) => infer R ? R : OptionValueType<T[K]['type']>
-    : T[K]['format'] extends (value: any) => infer R ? R | undefined : OptionValueType<T[K]['type']> | undefined
+    ? T[K]['format'] extends (value: string) => infer R
+      ? R
+      : T[K]['type'] extends OptionType
+        ? OptionValueType<T[K]['type']>
+        : never
+    : T[K]['format'] extends (value: string) => infer R
+      ? R | undefined
+      : T[K]['type'] extends OptionType
+        ? OptionValueType<T[K]['type']> | undefined
+        : never
 }
 
 interface ArgsHelpConfig {
@@ -53,22 +74,22 @@ interface ArgsConfig<T extends Record<string, OptionDefinition>> {
 }
 
 class OptionFormatError extends Error {
-  constructor(option: TypedOptionDefinition<any, any>, value: any) {
+  constructor(option: TypedOptionDefinition<any, any>, value: string | undefined) {
     super(`Invalid value: ${value}\nExpected value of type: ${option.type}`)
   }
 }
 
-function parseBoolOption(option: TypedOptionDefinition<'boolean', boolean>, value: any): boolean {
-  if (value === 'true' || value === '1' || value === true || value === undefined)
+function parseBoolOption(option: TypedOptionDefinition<'boolean', boolean>, value: string | undefined): boolean {
+  if (value === 'true' || value === '1' || value === undefined)
     return true
 
-  if (value === 'false' || value === '0' || value === false)
+  if (value === 'false' || value === '0')
     return false
 
   throw new OptionFormatError(option, value)
 }
 
-function parseFloatOption(option: TypedOptionDefinition<NumberOptionType, number>, value: any): number | undefined {
+function parseFloatOption(option: TypedOptionDefinition<NumberOptionType, number>, value: string | undefined): number | undefined {
   if (value === undefined)
     return undefined
 
@@ -86,7 +107,7 @@ function parseFloatOption(option: TypedOptionDefinition<NumberOptionType, number
   return nb
 }
 
-function parseIntOption(option: TypedOptionDefinition<NumberOptionType, number>, value: any): number | undefined {
+function parseIntOption(option: TypedOptionDefinition<NumberOptionType, number>, value: string | undefined): number | undefined {
   if (value === undefined)
     return undefined
 
@@ -104,7 +125,7 @@ function parseIntOption(option: TypedOptionDefinition<NumberOptionType, number>,
   return nb
 }
 
-function parseNumberOption(option: TypedOptionDefinition<NumberOptionType, number>, value: any): number | undefined {
+function parseNumberOption(option: TypedOptionDefinition<NumberOptionType, number>, value: string | undefined): number | undefined {
   if (value === undefined)
     return undefined
 
@@ -122,7 +143,10 @@ function parseNumberOption(option: TypedOptionDefinition<NumberOptionType, numbe
   return nb
 }
 
-function parseDateOption(option: TypedOptionDefinition<StringOptionType, string>, value: any): Date {
+function parseDateOption(option: TypedOptionDefinition<StringOptionType, string>, value: string | undefined): Date | undefined {
+  if (value === undefined)
+    return undefined
+
   const date = new Date(value)
 
   if (!(date instanceof Date) || Number.isNaN(date))
@@ -131,16 +155,22 @@ function parseDateOption(option: TypedOptionDefinition<StringOptionType, string>
   return date
 }
 
-function parsePathOption(option: TypedOptionDefinition<StringOptionType, string>, value: any): string {
+function parsePathOption(option: TypedOptionDefinition<StringOptionType, string>, value: string | undefined): string | undefined {
+  if (value === undefined)
+    return undefined
+
   if (!existsSync(value))
     throw new OptionFormatError(option, value)
 
   return value
 }
 
-function parseOption(option: OptionDefinition & { name: string }, value?: any): any {
-  if (option.format)
+function parseOption(option: OptionDefinition & { name: string }, value: string | undefined): any {
+  if (option.format && value !== undefined)
     return option.format(value)
+
+  if (!option.type)
+    throw new Error(`Option ${option.name} must have either a 'type' or 'format' function`)
 
   if (option.type === 'boolean')
     return parseBoolOption(option, value)
@@ -199,7 +229,7 @@ function help(config: ArgsHelpConfig, options: (OptionDefinition & { name: strin
     if (option.default !== undefined)
       command += `[=${colors.underline(String(option.default))}]`
 
-    command += ` (${option.type})`
+    command += ` (${option.type || 'custom'})`
 
     optionsContent.push(command)
 
@@ -267,7 +297,7 @@ export function parseArgs<
     if (result[option.name] !== undefined)
       continue
 
-    result[option.name] = option.default
+    result[option.name] = parseOption(option, option.default)
   }
 
   if (result.help && config.help)
@@ -308,7 +338,7 @@ if (import.meta.main) {
         short: 'd',
       },
       nb: {
-        type: 'float',
+        format: (value: string | undefined) => String(Number(value) + 10),
         required: true,
         default: 123,
         alias: 'number-dir',
