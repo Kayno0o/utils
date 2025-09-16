@@ -5,7 +5,7 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
     const isGetter = descriptor?.get
     const isMethod = descriptor?.value && typeof descriptor.value === 'function'
 
-    if (!isGetter && !isMethod || !descriptor) {
+    if ((!isGetter && !isMethod) || !descriptor) {
       throw new Error(`@Memoize can only be applied to getters or methods`)
     }
 
