@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-09-09 21:29:58</td>
+            <td class="headerValue">2025-09-16 12:12:59</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -67,7 +67,7 @@
 <span id="L5"><span class="lineNum">       5</span> <span class="tlaGNC">          37 :     const isGetter = descriptor?.get</span></span>
 <span id="L6"><span class="lineNum">       6</span> <span class="tlaGNC">          81 :     const isMethod = descriptor?.value &amp;&amp; typeof descriptor.value === 'function'</span></span>
 <span id="L7"><span class="lineNum">       7</span>              : </span>
-<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">          42 :     if (!isGetter &amp;&amp; !isMethod || !descriptor) {</span></span>
+<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">          42 :     if ((!isGetter &amp;&amp; !isMethod) || !descriptor) {</span></span>
 <span id="L9"><span class="lineNum">       9</span> <span class="tlaUNC tlaBgUNC">           0 :       throw new Error(`@Memoize can only be applied to getters or methods`)</span></span>
 <span id="L10"><span class="lineNum">      10</span> <span class="tlaGNC tlaBgGNC">           4 :     }</span></span>
 <span id="L11"><span class="lineNum">      11</span>              : </span>
