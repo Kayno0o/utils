@@ -229,7 +229,7 @@ TN:
 SF:src/builder/logger.ts
 FNF:2
 FNH:0
-DA:1,40
+DA:1,41
 DA:15,0
 DA:16,0
 DA:17,0
@@ -1507,10 +1507,10 @@ TN:
 SF:src/tools/Faker.ts
 FNF:18
 FNH:9
-DA:1,71
-DA:2,80
-DA:3,74
-DA:4,72
+DA:1,73
+DA:2,82
+DA:3,76
+DA:4,74
 DA:6,428
 DA:8,408
 DA:9,400
@@ -1741,7 +1741,7 @@ TN:
 SF:src/tools/colors.ts
 FNF:7
 FNH:1
-DA:2,47
+DA:2,48
 DA:14,14
 DA:15,14
 DA:16,21
