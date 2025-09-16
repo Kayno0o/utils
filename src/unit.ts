@@ -89,7 +89,8 @@ export function euclideanDistance(p1: [x: number, y: number], p2: [x: number, y:
 
 export function encodePath(path: [number, number][]): string {
   let encoded = ''
-  let prevLat = 0; let prevLng = 0
+  let prevLat = 0
+  let prevLng = 0
 
   for (const [lat, lng] of path) {
     encoded += encodeSignedNumber(lat - prevLat)
@@ -120,7 +121,9 @@ function encodeUnsignedNumber(num: number): string {
 
 export function decodePath(encoded: string): [number, number][] {
   const path: [number, number][] = []
-  let index = 0; let lat = 0; let lng = 0
+  let index = 0
+  let lat = 0
+  let lng = 0
 
   while (index < encoded.length) {
     const latResult = decodeSignedNumber(encoded, index)
@@ -145,7 +148,8 @@ function decodeSignedNumber(encoded: string, index: number): { value: number, ne
 }
 
 function decodeUnsignedNumber(encoded: string, index: number): { value: number, nextIndex: number } {
-  let result = 0; let shift = 0
+  let result = 0
+  let shift = 0
 
   while (true) {
     const b = encoded.charCodeAt(index++) - 63
