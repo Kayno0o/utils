@@ -1,5 +1,5 @@
 import type { FunctionKeys, NonFunctionKeys } from '~/types'
-import { Color } from '~/tools/ColorConverter'
+import { Color } from '../tools/ColorConverter'
 
 type ColorStyle = [start: number | string, end: number | string]
 type StyleMap = typeof styleMap

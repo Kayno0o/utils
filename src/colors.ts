@@ -1,6 +1,6 @@
-import type { RgbArrayType } from '~/tools/ColorConverter'
-import { numberFromString, randomInt } from '~/number'
-import { Color } from '~/tools/ColorConverter'
+import type { RgbArrayType } from './tools/ColorConverter'
+import { numberFromString, randomInt } from './number'
+import { Color } from './tools/ColorConverter'
 
 export function randomHex(isCrypto = false) {
   return `#${Math.floor(randomInt(0, 16777215, isCrypto)).toString(16).padStart(6, '0')}`.toUpperCase()

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { parseArgs } from '~/cli'
+import { parseArgs } from '~'
 
 describe('parseArgs function', () => {
   it('should parse boolean options correctly', () => {
