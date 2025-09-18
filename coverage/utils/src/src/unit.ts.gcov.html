@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">31.5&nbsp;%</td>
-            <td class="headerCovTableEntry">111</td>
-            <td class="headerCovTableEntry">35</td>
+            <td class="headerCovTableEntryLo">31.9&nbsp;%</td>
+            <td class="headerCovTableEntry">113</td>
+            <td class="headerCovTableEntry">36</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-09-18 11:43:13</td>
+            <td class="headerValue">2025-09-18 12:23:32</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -221,8 +221,12 @@
 <span id="L159"><span class="lineNum">     159</span> <span class="tlaUNC">           0 :     shift += 5</span></span>
 <span id="L160"><span class="lineNum">     160</span> <span class="tlaUNC">           0 :   }</span></span>
 <span id="L161"><span class="lineNum">     161</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L162"><span class="lineNum">     162</span>              :   return { value: result, nextIndex: index }</span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC tlaBgGNC">           1 :   return { value: result, nextIndex: index }</span></span>
 <span id="L163"><span class="lineNum">     163</span>              : }</span>
+<span id="L164"><span class="lineNum">     164</span>              : </span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaUNC tlaBgUNC">           0 : export function get2DPosFrom1D(pos: number, w: number): [x: number, y: number] {</span></span>
+<span id="L166"><span class="lineNum">     166</span>              :   return [pos % w, Math.floor(pos / w)]</span>
+<span id="L167"><span class="lineNum">     167</span>              : }</span>
         </pre>
               </td>
             </tr>
