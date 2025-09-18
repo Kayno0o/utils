@@ -161,3 +161,7 @@ function decodeUnsignedNumber(encoded: string, index: number): { value: number, 
 
   return { value: result, nextIndex: index }
 }
+
+export function get2DPosFrom1D(pos: number, w: number): [x: number, y: number] {
+  return [pos % w, Math.floor(pos / w)]
+}
