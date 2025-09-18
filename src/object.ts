@@ -108,3 +108,10 @@ export function toJSONWithGetters(obj: object) {
 
   return jsonObj
 }
+
+export function unfunction<T>(c: T | (() => T)): T {
+  if (typeof c === 'function')
+    return (c as () => T)()
+
+  return c
+}
