@@ -21,7 +21,7 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
         setupClearHandlers.call(this)
 
         if ((this as any)[cacheSetKey]) {
-          if (!options?.ttl || (now - (this as any)[timestampKey]) < options.ttl) {
+          if (options?.ttl === undefined || (now - (this as any)[timestampKey]) < options.ttl) {
             return (this as any)[cacheKey]
           }
           (this as any)[cacheSetKey] = false
