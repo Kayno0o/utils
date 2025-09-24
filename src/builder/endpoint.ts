@@ -1,5 +1,5 @@
 /* eslint-disable ts/no-empty-object-type */
-import type { ExtractParams, HasKeys, Key, PartialRecord } from '~/types'
+import type { ExtractParams, ExtractVariables, Key } from '~/types'
 
 type ResolveParams<
   T extends string,
@@ -12,62 +12,39 @@ type ResolveParams<
     }
   : {}
 
-export type EndpointArgs<
-  EndpointsConst extends Record<Key, string>,
-  T extends keyof EndpointsConst,
-  CustomTypes extends PartialRecord<keyof EndpointsConst, Record<string, any>> = {},
-> = HasKeys<ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>> extends true
-  ? [T, ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>]
-  : [T] | [T, undefined]
+type KeysWithoutVariablesType<Object extends Record<Key, any>, Keys extends Key = keyof Object> = {
+  [K in Keys]: ExtractVariables<Object[K]> extends never
+    ? K
+    : never
+}[Keys]
+
+type KeysWithVariablesType<Object extends Record<Key, any>, Keys extends Key = keyof Object> = {
+  [K in Keys]: ExtractVariables<Object[K]> extends never
+    ? never
+    : K
+}[Keys]
+
+type OnlyAllowedKeys<T, AllowedKeys extends Key> = {
+  [K in keyof T]: K extends AllowedKeys ? T[K] : never
+}
 
 export function declareGetEndpoint<
   EndpointsConst extends Record<Key, string>,
-  CustomTypes extends PartialRecord<keyof EndpointsConst, Record<string, any>> = {},
+  CustomTypes extends OnlyAllowedKeys<CustomTypes, KeysWithVariablesType<EndpointsConst>> = {},
 >(ENDPOINTS: EndpointsConst) {
-  function getEndpoint<T extends keyof EndpointsConst>(
-    args: EndpointArgs<EndpointsConst, T, CustomTypes>
-  ): string
-  function getEndpoint<T extends keyof EndpointsConst>(
-    endpoint: T,
-    ...params: HasKeys<ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>> extends true
-      ? [ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>]
-      : [] | [undefined]
-  ): string
-  function getEndpoint<T extends keyof EndpointsConst>(argsOrEndpoint: EndpointArgs<EndpointsConst, T, CustomTypes> | T, params?: ResolveParams<EndpointsConst[T], CustomTypes[T] extends Record<string, any> ? CustomTypes[T] : {}>): string {
-    const [name, resolvedParams] = Array.isArray(argsOrEndpoint)
-      ? argsOrEndpoint
-      : [argsOrEndpoint, params]
+  type KeysWithoutVariables = KeysWithoutVariablesType<EndpointsConst>
+  type KeysWithVariables = KeysWithVariablesType<EndpointsConst>
 
+  function getEndpoint<Name extends KeysWithoutVariables>(name: Name): string
+  function getEndpoint<Name extends KeysWithVariables>(name: Name, resolvedParams: ResolveParams<EndpointsConst[Name], CustomTypes[Name] extends Record<string, any> ? CustomTypes[Name] : {}>): string
+
+  function getEndpoint(name: string, resolvedParams?: any): string {
     const endpoint: string = ENDPOINTS[name]
-    if (!resolvedParams) {
+    if (!resolvedParams)
       return endpoint
-    }
+
     return Object.entries(resolvedParams).reduce((acc, [key, value]) => acc.replaceAll(`{${key}}`, String(value)), endpoint)
   }
 
   return getEndpoint
-}
-
-export function declareIsEndpoint<
-  EndpointsConst extends Record<Key, string>,
->(ENDPOINTS: EndpointsConst) {
-  return <T extends keyof EndpointsConst = keyof EndpointsConst>(
-    args: any,
-  ): args is EndpointArgs<EndpointsConst, T> => {
-    if (!Array.isArray(args))
-      return false
-    if (args.length < 1 || args.length > 2)
-      return false
-
-    const [name, values] = args
-    if (!ENDPOINTS[name])
-      return false
-
-    if (args.length === 1)
-      return true
-    if (args.length === 2 && (values === undefined || typeof values === 'object'))
-      return true
-
-    return false
-  }
 }
