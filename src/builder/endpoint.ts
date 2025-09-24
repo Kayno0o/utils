@@ -3,13 +3,13 @@ import type { ExtractParams, ExtractVariables, Key } from '~/types'
 
 type ResolveParams<
   T extends string,
-  CustomTypes extends Record<string, any>,
+  CustomTypes extends Record<Key, any>,
 > = ExtractParams<T, string | number> extends infer BaseParams
   ? {
-    [K in keyof BaseParams]: K extends keyof CustomTypes
-      ? CustomTypes[K]
-      : BaseParams[K]
-  }
+      [K in keyof BaseParams]: K extends keyof CustomTypes
+        ? CustomTypes[K]
+        : BaseParams[K]
+    }
   : {}
 
 type KeysWithoutVariablesType<Object extends Record<Key, any>, Keys extends Key = keyof Object> = {
@@ -36,7 +36,7 @@ export function declareGetEndpoint<
   type KeysWithVariables = KeysWithVariablesType<EndpointsConst>
 
   function getEndpoint<Name extends KeysWithoutVariables>(name: Name): string
-  function getEndpoint<Name extends KeysWithVariables>(name: Name, resolvedParams: ResolveParams<EndpointsConst[Name], CustomTypes[Name] extends Record<string, any> ? CustomTypes[Name] : {}>): string
+  function getEndpoint<Name extends KeysWithVariables>(name: Name, resolvedParams: ResolveParams<EndpointsConst[Name], CustomTypes[Name] extends Record<Key, any> ? CustomTypes[Name] : {}>): string
 
   function getEndpoint(name: string, resolvedParams?: any): string {
     const endpoint: string = ENDPOINTS[name]
