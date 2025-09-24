@@ -54,3 +54,11 @@ export type DotNotation<T, Prefix extends string = ''> = {
       ? DotNotation<T[K], `${Prefix}${K & string}.`>
       : never
 }[keyof T]
+
+/* eslint-disable ts/no-empty-object-type */
+export type ExtractParams<T extends string, Type = string> =
+  T extends `${string}{${infer Param}}${infer Rest}`
+    ? Record<Param, Type> & ExtractParams<Rest>
+    : {}
+
+export type HasKeys<T> = keyof T extends never ? false : true

@@ -1,23 +1,16 @@
 /* eslint-disable ts/no-empty-object-type */
-import type { Key, PartialRecord } from '~/types'
-
-type ExtractParams<T extends string> =
-  T extends `${string}{${infer Param}}${infer Rest}`
-    ? Record<Param, string> & ExtractParams<Rest>
-    : {}
+import type { ExtractParams, HasKeys, Key, PartialRecord } from '~/types'
 
 type ResolveParams<
   T extends string,
   CustomTypes extends Record<string, any>,
-> = ExtractParams<T> extends infer BaseParams
+> = ExtractParams<T, string | number> extends infer BaseParams
   ? {
       [K in keyof BaseParams]: K extends keyof CustomTypes
         ? CustomTypes[K]
         : BaseParams[K]
     }
   : {}
-
-type HasKeys<T> = keyof T extends never ? false : true
 
 export type EndpointArgs<
   EndpointsConst extends Record<Key, string>,
