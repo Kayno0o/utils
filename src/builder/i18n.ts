@@ -1,3 +1,5 @@
+import type { DotNotation, ExtractVariables } from '~/types'
+
 export interface TranslationObject {
   [key: string]: string | TranslationObject
 }
@@ -5,19 +7,6 @@ export interface TranslationObject {
 export type TranslationStructure<T> = {
   [K in keyof T]: T[K] extends string ? string : T[K] extends Record<string, any> ? TranslationStructure<T[K]> : never
 }
-
-// extract variables from string "{channel}" -> "channel"
-type ExtractVariables<T extends string> = T extends `${string}{${infer Variable}}${infer Rest}`
-  ? Variable | ExtractVariables<Rest>
-  : never
-
-type DotNotation<T, Prefix extends string = ''> = {
-  [K in keyof T]: T[K] extends string
-    ? `${Prefix}${K & string}`
-    : T[K] extends Record<string, any>
-      ? DotNotation<T[K], `${Prefix}${K & string}.`>
-      : never
-}[keyof T]
 
 // get value type from nested object using dot notation
 type GetNestedValue<T, K extends string> = K extends `${infer Key}.${infer Rest}`
@@ -36,7 +25,7 @@ type ExtractVariablesFromKey<T, K extends string> = GetNestedValue<T, K> extends
 export function declareI18n<
   LocaleType extends string,
   Translations extends Record<LocaleType, TranslationObject>,
-  PrimaryTranslation extends Translations[keyof Translations],
+  PrimaryTranslation extends Translations[LocaleType],
 >(translations: Translations & Record<LocaleType, TranslationStructure<PrimaryTranslation>>) {
   // generate all possible keys using dot notation
   type I18nKey = DotNotation<PrimaryTranslation>
