@@ -5,9 +5,8 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
     const isGetter = descriptor?.get
     const isMethod = descriptor?.value && typeof descriptor.value === 'function'
 
-    if ((!isGetter && !isMethod) || !descriptor) {
+    if ((!isGetter && !isMethod) || !descriptor)
       throw new Error(`@Memoize can only be applied to getters or methods`)
-    }
 
     if (isGetter) {
       const originalGetter = descriptor.get!
@@ -70,29 +69,26 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
 
         ;(this as any)._clearMemoizedCaches = (changedProp: string) => {
           for (const [getterName, deps] of (this as any)._memoizedGetters.entries()) {
-            if (deps.includes(changedProp)) {
+            if (deps.includes(changedProp))
               (this as any)[`_${getterName}_cached`] = false
-            }
           }
 
           for (const [methodName, deps] of (this as any)._memoizedMethods.entries()) {
             if (deps.includes(changedProp)) {
               const cacheMapKey = `_${methodName}_methodCache`
-              if ((this as any)[cacheMapKey]) {
+              if ((this as any)[cacheMapKey])
                 (this as any)[cacheMapKey].clear()
-              }
             }
           }
         }
       }
 
       if (options?.clearOn) {
-        if (isGetter) {
+        if (isGetter)
           (this as any)._memoizedGetters.set(propertyKey, options.clearOn)
-        }
-        else {
+
+        else
           (this as any)._memoizedMethods.set(propertyKey, options.clearOn)
-        }
 
         for (const prop of options.clearOn) {
           const setupKey = `_${prop}_memoize_setup`

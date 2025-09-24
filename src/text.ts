@@ -91,11 +91,11 @@ export function removeComments(content: string): string {
 export function escapeXml(unsafe: string): string {
   return unsafe.replace(/[<>&'"]/g, (char) => {
     switch (char) {
-      case '<': return '&lt;'
-      case '>': return '&gt;'
-      case '&': return '&amp;'
-      case '\'': return '&apos;'
-      case '"': default: return '&quot;'
+    case '<': return '&lt;'
+    case '>': return '&gt;'
+    case '&': return '&amp;'
+    case '\'': return '&apos;'
+    case '"': default: return '&quot;'
     }
   })
 }
@@ -105,9 +105,8 @@ export function escapeCSV(value: string | number): string {
 
   stringValue = stringValue.replace(/"/g, '""')
 
-  if ((/[",\n]/).test(stringValue)) {
+  if ((/[",\n]/).test(stringValue))
     stringValue = `"${stringValue}"`
-  }
 
   return stringValue
 }
@@ -117,9 +116,9 @@ export function matchLength(str1: string, str2: string): number {
   const minLength = Math.min(str1.length, str2.length)
 
   for (let i = 0; i < minLength; i++) {
-    if (str1[i] !== str2[i]) {
+    if (str1[i] !== str2[i])
       break
-    }
+
     length++
   }
 
@@ -139,18 +138,16 @@ export function getUuidFromIri(iri: string): string | null {
 }
 
 export function progressBar(value: number, min: number, max: number, { emptyChar = ' ', endChar = ']', fillChar = '=', startChar = '[', tipChar = '', totalChars = 40 } = {}) {
-  if (min === max) {
+  if (min === max)
     return value >= max ? startChar + fillChar.repeat(totalChars) + endChar : startChar + emptyChar.repeat(totalChars) + endChar
-  }
 
   const progress = Math.max(min, Math.min(max, value))
   const fillLength = Math.round((progress - min) / (max - min) * totalChars)
   const emptyLength = totalChars - fillLength
 
   let fillBar = fillChar.repeat(fillLength)
-  if (fillLength > 0 && fillLength < totalChars && tipChar) {
+  if (fillLength > 0 && fillLength < totalChars && tipChar)
     fillBar = fillBar.slice(0, -1) + tipChar
-  }
 
   return startChar + fillBar + emptyChar.repeat(emptyLength) + endChar
 }

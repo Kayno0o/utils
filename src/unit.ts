@@ -103,9 +103,9 @@ export function encodePath(path: [number, number][]): string {
 
 function encodeSignedNumber(num: number): string {
   let sgn_num = num << 1
-  if (num < 0) {
+  if (num < 0)
     sgn_num = ~sgn_num
-  }
+
   return encodeUnsignedNumber(sgn_num)
 }
 

@@ -140,12 +140,11 @@ export class Color {
     if (type === 'hsl') {
       let h, s, l, a
 
-      if (Array.isArray(value)) {
+      if (Array.isArray(value))
         [h, s, l, a] = value
-      }
-      else {
+
+      else
         ({ h, s, l, a } = value as HslObjectType)
-      }
 
       const [r, g, b] = hslToRgb(h, s, l)
 
@@ -165,20 +164,20 @@ export class Color {
   to(type: 'hexa'): string
   to(type: ColorType): RgbArrayType | RgbaArrayType | HslArrayType | HslaArrayType | string {
     switch (type) {
-      case 'rgb':
-        return [this.r, this.g, this.b]
-      case 'rgba':
-        return [this.r, this.g, this.b, this.a]
-      case 'hex':
-        return rgbToHex([this.r, this.g, this.b])
-      case 'hexa':
-        return rgbToHex([this.r, this.g, this.b, this.a])
-      case 'hsl':
-        return rgbToHsl([this.r, this.g, this.b])
-      case 'hsla':
-        return [...rgbToHsl([this.r, this.g, this.b]), this.a]
-      default:
-        return [this.r, this.g, this.b]
+    case 'rgb':
+      return [this.r, this.g, this.b]
+    case 'rgba':
+      return [this.r, this.g, this.b, this.a]
+    case 'hex':
+      return rgbToHex([this.r, this.g, this.b])
+    case 'hexa':
+      return rgbToHex([this.r, this.g, this.b, this.a])
+    case 'hsl':
+      return rgbToHsl([this.r, this.g, this.b])
+    case 'hsla':
+      return [...rgbToHsl([this.r, this.g, this.b]), this.a]
+    default:
+      return [this.r, this.g, this.b]
     }
   }
 

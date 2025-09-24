@@ -22,9 +22,8 @@ export function declareCustomLogger<
       ? (logType.level ?? 0)
       : Number(logLevel)
 
-    if ((logType.level ?? 0) <= envLogLevel) {
+    if ((logType.level ?? 0) <= envLogLevel)
       (logType.log ?? console.log)(logType.color ? logType.color(logType.char) : logType.char, ...messages)
-    }
 
     if (onLog)
       onLog(`[${new Date().toISOString()}] ${level.toUpperCase()} ${logType.char} ${messages.join(' ')}\n`)
