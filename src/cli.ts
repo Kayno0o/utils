@@ -211,9 +211,8 @@ function help(config: ArgsHelpConfig, options: (OptionDefinition & { name: strin
   const { name, shortDescription, usage, footerBlocks, keywords } = config
 
   let output = ''
-  if (name) {
+  if (name)
     output += block('name', [name, shortDescription && ` - ${shortDescription}`], keywords)
-  }
 
   if (usage || name)
     output += block('usage', usage || [`${colors.bold(name!)} [option ...] command`], keywords)

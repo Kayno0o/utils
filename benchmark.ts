@@ -10,9 +10,8 @@ interface BenchmarkOptions {
 
 function warmup(callback: () => void, duration = 1000) {
   const end = performance.now() + duration
-  while (performance.now() < end) {
+  while (performance.now() < end)
     callback()
-  }
 }
 
 function benchmark(name: string, callback: () => void, { iterations = 1_000, verbose = true, warmup: warmupMs = 1_000 }: BenchmarkOptions) {
@@ -23,16 +22,14 @@ function benchmark(name: string, callback: () => void, { iterations = 1_000, ver
 
   const startTime = performance.now()
 
-  for (let i = 0; i < iterations; i++) {
+  for (let i = 0; i < iterations; i++)
     callback()
-  }
 
   const endTime = performance.now()
   const timeTaken = endTime - startTime
 
-  if (verbose) {
+  if (verbose)
     console.log(colors.green('[Time]   '), `${timeTaken.toFixed(10)} ms`)
-  }
 
   return timeTaken
 }

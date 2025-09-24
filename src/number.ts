@@ -49,9 +49,8 @@ export function numberFromString(str: string, min: number, max: number, { intege
   const rand = sfc32(seed(), seed(), seed(), seed())
   const r = rand()
 
-  if (integer) {
+  if (integer)
     return Math.floor(r * (max - min + 1)) + min
-  }
 
   return min + r * (max - min)
 }

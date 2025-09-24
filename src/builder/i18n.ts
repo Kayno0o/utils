@@ -50,9 +50,9 @@ export function declareI18n<
   function getNestedValue<T, K extends string>(obj: T, key: K): GetNestedValue<T, K> {
     const keys = key.split('.')
     let current: any = obj
-    for (const k of keys) {
+    for (const k of keys)
       current = current?.[k]
-    }
+
     return current
   }
 
@@ -81,9 +81,8 @@ export function declareI18n<
 
     // replace variables in template
     if (variables) {
-      for (const [varName, value] of Object.entries(variables)) {
+      for (const [varName, value] of Object.entries(variables))
         template = template.replace(new RegExp(`\\{${varName}\\}`, 'g'), String(value))
-      }
     }
 
     return template

@@ -17,9 +17,8 @@ export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPay
     method: 'POST',
   })
 
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(`Webhook failed with status ${response.status}: ${response.statusText}`)
-  }
 
   return await response.json()
 }

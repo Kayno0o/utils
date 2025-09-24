@@ -58,9 +58,9 @@ class Calculator {
   @Memoize({ clearOn: ['multiplier'] })
   get expensiveCalculation(): number {
     let result = 0
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 1000; i++)
       result += i * this.multiplier
-    }
+
     return result
   }
 }
