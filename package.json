@@ -31,8 +31,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "lint:fix": "eslint . --fix",
-    "lint": "eslint .",
+    "lint:fix": "bunx --bun eslint --fix",
+    "lint": "bunx --bun eslint",
     "doc": "typedoc ./src/**/*.ts --plugin typedoc-github-theme",
     "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null",
     "benchmark": "bun benchmark.ts"
@@ -41,10 +41,10 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
-    "@kaynooo/eslint": "^1.1.13",
+    "@kaynooo/eslint": "^1.1.16",
     "@types/bun": "^1.2.22",
-    "eslint": "^9.35.0",
-    "lint-staged": "^16.1.6",
+    "eslint": "^9.36.0",
+    "lint-staged": "^16.2.0",
     "tsup": "^8.5.0",
     "typedoc": "^0.28.13",
     "typedoc-github-theme": "^0.3.1",
