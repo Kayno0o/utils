@@ -51,11 +51,17 @@ type ParsedValues<T extends Record<string, OptionDefinition>> = {
       : T[K]['type'] extends OptionType
         ? OptionValueType<T[K]['type']>
         : never
-    : T[K]['format'] extends (value: string) => infer R
-      ? R | undefined
-      : T[K]['type'] extends OptionType
-        ? OptionValueType<T[K]['type']> | undefined
-        : never
+    : T[K]['default'] extends NonNullable<unknown>
+      ? T[K]['format'] extends (value: string) => infer R
+        ? R
+        : T[K]['type'] extends OptionType
+          ? OptionValueType<T[K]['type']>
+          : never
+      : T[K]['format'] extends (value: string) => infer R
+        ? R | undefined
+        : T[K]['type'] extends OptionType
+          ? OptionValueType<T[K]['type']> | undefined
+          : never
 }
 
 interface ArgsHelpConfig {
@@ -296,7 +302,7 @@ export function parseArgs<
     if (result[option.name] !== undefined)
       continue
 
-    result[option.name] = parseOption(option, option.default)
+    result[option.name] = option.default
   }
 
   if (result.help && config.help)
