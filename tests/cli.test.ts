@@ -188,4 +188,120 @@ describe('parseArgs function', () => {
     })
     expect(result.config).toEqual({ key: 'value' })
   })
+
+  it('should handle boolean default values correctly', () => {
+    const result = parseArgs({
+      args: [],
+      options: {
+        enabled: { type: 'boolean', default: true },
+        disabled: { type: 'boolean', default: false },
+      },
+    })
+    expect(result.enabled).toBe(true)
+    expect(result.disabled).toBe(false)
+  })
+
+  it('should throw error for invalid boolean values', () => {
+    expect(() => parseArgs({
+      args: ['--flag=invalid'],
+      options: {
+        flag: { type: 'boolean' },
+      },
+    })).toThrow('Invalid value: invalid\nExpected value of type: boolean')
+  })
+
+  it('should throw error for invalid number values', () => {
+    expect(() => parseArgs({
+      args: ['--count=abc'],
+      options: {
+        count: { type: 'int' },
+      },
+    })).toThrow('Invalid value: abc\nExpected value of type: int')
+  })
+
+  it('should throw error for invalid float values', () => {
+    expect(() => parseArgs({
+      args: ['--weight=not-a-number'],
+      options: {
+        weight: { type: 'float' },
+      },
+    })).toThrow('Invalid value: not-a-number\nExpected value of type: float')
+  })
+
+  it('should handle date type options', () => {
+    const result = parseArgs({
+      args: ['--date=2023-12-25'],
+      options: {
+        date: { type: 'date' },
+      },
+    })
+    expect(result.date).toBeInstanceOf(Date)
+    expect(result.date).toEqual(new Date('2023-12-25'))
+  })
+
+  it('should throw error for invalid date values', () => {
+    expect(() => parseArgs({
+      args: ['--date=invalid-date'],
+      options: {
+        date: { type: 'date' },
+      },
+    })).toThrow('Invalid value: invalid-date\nExpected value of type: date')
+  })
+
+  it('should handle number type (generic number parsing)', () => {
+    const result = parseArgs({
+      args: ['--value=123.45'],
+      options: {
+        value: { type: 'number' },
+      },
+    })
+    expect(result.value).toBe(123.45)
+  })
+
+  it('should handle path type options for existing files', () => {
+    const result = parseArgs({
+      args: ['--file=package.json'],
+      options: {
+        file: { type: 'path' },
+      },
+    })
+    expect(result.file).toBe('package.json')
+  })
+
+  it('should throw error for non-existent path', () => {
+    expect(() => parseArgs({
+      args: ['--file=non-existent-file.txt'],
+      options: {
+        file: { type: 'path' },
+      },
+    })).toThrow('Invalid value: non-existent-file.txt\nExpected value of type: path')
+  })
+
+  it('should handle mixed default types correctly', () => {
+    const result = parseArgs({
+      args: [],
+      options: {
+        stringDefault: { type: 'string', default: 'hello' },
+        numberDefault: { type: 'int', default: 42 },
+        booleanDefault: { type: 'boolean', default: true },
+        formatDefault: {
+          format: (value: string) => value.split(','),
+          default: ['a', 'b'],
+        },
+      },
+    })
+    expect(result.stringDefault).toBe('hello')
+    expect(result.numberDefault).toBe(42)
+    expect(result.booleanDefault).toBe(true)
+    expect(result.formatDefault).toEqual(['a', 'b'])
+  })
+
+  it('should throw error for option without type or format', () => {
+    expect(() => parseArgs({
+      args: ['--invalid=value'],
+      options: {
+        invalid: {} as any,
+      },
+    })).toThrow('Option invalid must have either a \'type\' or \'format\' function')
+  })
 })

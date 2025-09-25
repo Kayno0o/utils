@@ -10,7 +10,8 @@ type AlphabetChar = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 
 type OptionValueType<T extends OptionType> =
 T extends 'boolean' ? boolean
   : T extends NumberOptionType ? number
-    : string
+    : T extends 'date' ? Date
+      : string
 
 interface TypedOptionDefinition<T extends OptionType, Type, FormatType = Type> {
   alias?: string | string[]
@@ -155,7 +156,7 @@ function parseDateOption(option: TypedOptionDefinition<StringOptionType, string>
 
   const date = new Date(value)
 
-  if (!(date instanceof Date) || Number.isNaN(date))
+  if (Number.isNaN(date.getTime()))
     throw new OptionFormatError(option, value)
 
   return date
