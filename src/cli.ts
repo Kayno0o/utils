@@ -85,14 +85,14 @@ class OptionFormatError extends Error {
   }
 }
 
-function parseBoolOption(option: TypedOptionDefinition<'boolean', boolean>, value: string | undefined): boolean {
-  if (value === 'true' || value === '1' || value === undefined)
+function parseBoolOption(option: TypedOptionDefinition<'boolean', boolean>, value: string | boolean | undefined): boolean {
+  if (value === true || value === 'true' || value === '1' || value === undefined)
     return true
 
-  if (value === 'false' || value === '0')
+  if (value === false || value === 'false' || value === '0')
     return false
 
-  throw new OptionFormatError(option, value)
+  throw new OptionFormatError(option, String(value))
 }
 
 function parseFloatOption(option: TypedOptionDefinition<NumberOptionType, number>, value: string | undefined): number | undefined {
