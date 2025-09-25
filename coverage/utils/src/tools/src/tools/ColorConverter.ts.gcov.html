@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryMed">84.3&nbsp;%</td>
-            <td class="headerCovTableEntry">127</td>
-            <td class="headerCovTableEntry">107</td>
+            <td class="headerCovTableEntryMed">84.0&nbsp;%</td>
+            <td class="headerCovTableEntry">125</td>
+            <td class="headerCovTableEntry">105</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-09-24 12:24:48</td>
+            <td class="headerValue">2025-09-25 13:00:04</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -202,84 +202,83 @@
 <span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">          53 :     if (type === 'hsl') {</span></span>
 <span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">          42 :       let h, s, l, a</span></span>
 <span id="L142"><span class="lineNum">     142</span>              : </span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">          69 :       if (Array.isArray(value)) {</span></span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">          54 :         [h, s, l, a] = value</span></span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">           2 :       }</span></span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">          15 :       else {</span></span>
-<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">          43 :         ({ h, s, l, a } = value as HslObjectType)</span></span>
-<span id="L148"><span class="lineNum">     148</span>              :       }</span>
-<span id="L149"><span class="lineNum">     149</span>              : </span>
-<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">          84 :       const [r, g, b] = hslToRgb(h, s, l)</span></span>
-<span id="L151"><span class="lineNum">     151</span>              : </span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">          61 :       return new Color(r, g, b, a)</span></span>
-<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">           5 :     }</span></span>
-<span id="L154"><span class="lineNum">     154</span>              : </span>
-<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">          39 :     throw new Error('Invalid input')</span></span>
-<span id="L156"><span class="lineNum">     156</span>              :   }</span>
-<span id="L157"><span class="lineNum">     157</span>              : </span>
-<span id="L158"><span class="lineNum">     158</span>              :   to(type: 'hsl'): HslArrayType</span>
-<span id="L159"><span class="lineNum">     159</span>              :   to(type: 'rgb'): RgbArrayType</span>
-<span id="L160"><span class="lineNum">     160</span>              :   to(type: 'hsla'): HslaArrayType</span>
-<span id="L161"><span class="lineNum">     161</span>              :   to(type: 'rgba'): RgbaArrayType</span>
-<span id="L162"><span class="lineNum">     162</span>              :   /** @return hex without # */</span>
-<span id="L163"><span class="lineNum">     163</span>              :   to(type: 'hex'): string</span>
-<span id="L164"><span class="lineNum">     164</span>              :   /** @return hex(a) without # */</span>
-<span id="L165"><span class="lineNum">     165</span>              :   to(type: 'hexa'): string</span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          26 :   to(type: ColorType): RgbArrayType | RgbaArrayType | HslArrayType | HslaArrayType | string {</span></span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">          51 :     switch (type) {</span></span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">          28 :       case 'rgb':</span></span>
-<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          74 :         return [this.r, this.g, this.b]</span></span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">          15 :       case 'rgba':</span></span>
-<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">          56 :         return [this.r, this.g, this.b, this.a]</span></span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">          28 :       case 'hex':</span></span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          94 :         return rgbToHex([this.r, this.g, this.b])</span></span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">          15 :       case 'hexa':</span></span>
-<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">          66 :         return rgbToHex([this.r, this.g, this.b, this.a])</span></span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">          28 :       case 'hsl':</span></span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">          94 :         return rgbToHsl([this.r, this.g, this.b])</span></span>
-<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          15 :       case 'hsla':</span></span>
-<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          77 :         return [...rgbToHsl([this.r, this.g, this.b]), this.a]</span></span>
-<span id="L180"><span class="lineNum">     180</span>              :       default:</span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">          43 :         return [this.r, this.g, this.b]</span></span>
-<span id="L182"><span class="lineNum">     182</span>              :     }</span>
-<span id="L183"><span class="lineNum">     183</span>              :   }</span>
-<span id="L184"><span class="lineNum">     184</span>              : </span>
-<span id="L185"><span class="lineNum">     185</span>              :   /**</span>
-<span id="L186"><span class="lineNum">     186</span>              :    * Compute relative luminance (0–1) per WCAG2:</span>
-<span id="L187"><span class="lineNum">     187</span>              :    * L = 0.2126 R + 0.7152 G + 0.0722 B</span>
-<span id="L188"><span class="lineNum">     188</span>              :    */</span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaUNC tlaBgUNC">           0 :   private getLuminance(): number {</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaUNC">           0 :     const R = linearize(this.r)</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaUNC">           0 :     const G = linearize(this.g)</span></span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaUNC">           0 :     const B = linearize(this.b)</span></span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC tlaBgGNC">          50 :     return 0.2126 * R + 0.7152 * G + 0.0722 * B</span></span>
-<span id="L194"><span class="lineNum">     194</span>              :   }</span>
-<span id="L195"><span class="lineNum">     195</span>              : </span>
-<span id="L196"><span class="lineNum">     196</span>              :   /**</span>
-<span id="L197"><span class="lineNum">     197</span>              :    * Contrast ratio between this color and another:</span>
-<span id="L198"><span class="lineNum">     198</span>              :    * (L1 + 0.05) / (L2 + 0.05), L1 ≥ L2</span>
-<span id="L199"><span class="lineNum">     199</span>              :    */</span>
-<span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC tlaBgUNC">           0 :   public contrastRatio(other: Color): number {</span></span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaUNC">           0 :     const L1 = this.getLuminance()</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaUNC">           0 :     const L2 = other.getLuminance()</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaUNC">           0 :     const [bright, dark] = L1 &gt;= L2 ? [L1, L2] : [L2, L1]</span></span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC tlaBgGNC">          45 :     return (bright + 0.05) / (dark + 0.05)</span></span>
-<span id="L205"><span class="lineNum">     205</span>              :   }</span>
-<span id="L206"><span class="lineNum">     206</span>              : </span>
-<span id="L207"><span class="lineNum">     207</span>              :   /**</span>
-<span id="L208"><span class="lineNum">     208</span>              :    * Pick black or white as the ideal foreground based on WCAG contrast ratio.</span>
-<span id="L209"><span class="lineNum">     209</span>              :    */</span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaUNC tlaBgUNC">           0 :   public bestContrastForeground(): Color {</span></span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaUNC">           0 :     const white = new Color(255, 255, 255, 1)</span></span>
-<span id="L212"><span class="lineNum">     212</span> <span class="tlaUNC">           0 :     const black = new Color(0, 0, 0, 1)</span></span>
-<span id="L213"><span class="lineNum">     213</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L214"><span class="lineNum">     214</span> <span class="tlaUNC">           0 :     // compare contrast against white vs. black</span></span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaUNC">           0 :     const contrastWithWhite = this.contrastRatio(white)</span></span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaUNC">           0 :     const contrastWithBlack = this.contrastRatio(black)</span></span>
-<span id="L217"><span class="lineNum">     217</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC tlaBgGNC">          67 :     return contrastWithWhite &gt;= contrastWithBlack ? white : black</span></span>
-<span id="L219"><span class="lineNum">     219</span>              :   }</span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">           1 : }</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">          65 :       if (Array.isArray(value))</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">          47 :         [h, s, l, a] = value</span></span>
+<span id="L145"><span class="lineNum">     145</span>              : </span>
+<span id="L146"><span class="lineNum">     146</span>              :       else</span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">          49 :         ({ h, s, l, a } = value as HslObjectType)</span></span>
+<span id="L148"><span class="lineNum">     148</span>              : </span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">          84 :       const [r, g, b] = hslToRgb(h, s, l)</span></span>
+<span id="L150"><span class="lineNum">     150</span>              : </span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">          61 :       return new Color(r, g, b, a)</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">           5 :     }</span></span>
+<span id="L153"><span class="lineNum">     153</span>              : </span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">          39 :     throw new Error('Invalid input')</span></span>
+<span id="L155"><span class="lineNum">     155</span>              :   }</span>
+<span id="L156"><span class="lineNum">     156</span>              : </span>
+<span id="L157"><span class="lineNum">     157</span>              :   to(type: 'hsl'): HslArrayType</span>
+<span id="L158"><span class="lineNum">     158</span>              :   to(type: 'rgb'): RgbArrayType</span>
+<span id="L159"><span class="lineNum">     159</span>              :   to(type: 'hsla'): HslaArrayType</span>
+<span id="L160"><span class="lineNum">     160</span>              :   to(type: 'rgba'): RgbaArrayType</span>
+<span id="L161"><span class="lineNum">     161</span>              :   /** @return hex without # */</span>
+<span id="L162"><span class="lineNum">     162</span>              :   to(type: 'hex'): string</span>
+<span id="L163"><span class="lineNum">     163</span>              :   /** @return hex(a) without # */</span>
+<span id="L164"><span class="lineNum">     164</span>              :   to(type: 'hexa'): string</span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">          26 :   to(type: ColorType): RgbArrayType | RgbaArrayType | HslArrayType | HslaArrayType | string {</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          51 :     switch (type) {</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">          28 :     case 'rgb':</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">          74 :       return [this.r, this.g, this.b]</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          15 :     case 'rgba':</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">          56 :       return [this.r, this.g, this.b, this.a]</span></span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">          28 :     case 'hex':</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">          94 :       return rgbToHex([this.r, this.g, this.b])</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          15 :     case 'hexa':</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">          66 :       return rgbToHex([this.r, this.g, this.b, this.a])</span></span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">          28 :     case 'hsl':</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">          94 :       return rgbToHsl([this.r, this.g, this.b])</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">          15 :     case 'hsla':</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          77 :       return [...rgbToHsl([this.r, this.g, this.b]), this.a]</span></span>
+<span id="L179"><span class="lineNum">     179</span>              :     default:</span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">          43 :       return [this.r, this.g, this.b]</span></span>
+<span id="L181"><span class="lineNum">     181</span>              :     }</span>
+<span id="L182"><span class="lineNum">     182</span>              :   }</span>
+<span id="L183"><span class="lineNum">     183</span>              : </span>
+<span id="L184"><span class="lineNum">     184</span>              :   /**</span>
+<span id="L185"><span class="lineNum">     185</span>              :    * Compute relative luminance (0–1) per WCAG2:</span>
+<span id="L186"><span class="lineNum">     186</span>              :    * L = 0.2126 R + 0.7152 G + 0.0722 B</span>
+<span id="L187"><span class="lineNum">     187</span>              :    */</span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaUNC tlaBgUNC">           0 :   private getLuminance(): number {</span></span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaUNC">           0 :     const R = linearize(this.r)</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaUNC">           0 :     const G = linearize(this.g)</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaUNC">           0 :     const B = linearize(this.b)</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC tlaBgGNC">          50 :     return 0.2126 * R + 0.7152 * G + 0.0722 * B</span></span>
+<span id="L193"><span class="lineNum">     193</span>              :   }</span>
+<span id="L194"><span class="lineNum">     194</span>              : </span>
+<span id="L195"><span class="lineNum">     195</span>              :   /**</span>
+<span id="L196"><span class="lineNum">     196</span>              :    * Contrast ratio between this color and another:</span>
+<span id="L197"><span class="lineNum">     197</span>              :    * (L1 + 0.05) / (L2 + 0.05), L1 ≥ L2</span>
+<span id="L198"><span class="lineNum">     198</span>              :    */</span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaUNC tlaBgUNC">           0 :   public contrastRatio(other: Color): number {</span></span>
+<span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC">           0 :     const L1 = this.getLuminance()</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaUNC">           0 :     const L2 = other.getLuminance()</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaUNC">           0 :     const [bright, dark] = L1 &gt;= L2 ? [L1, L2] : [L2, L1]</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC tlaBgGNC">          45 :     return (bright + 0.05) / (dark + 0.05)</span></span>
+<span id="L204"><span class="lineNum">     204</span>              :   }</span>
+<span id="L205"><span class="lineNum">     205</span>              : </span>
+<span id="L206"><span class="lineNum">     206</span>              :   /**</span>
+<span id="L207"><span class="lineNum">     207</span>              :    * Pick black or white as the ideal foreground based on WCAG contrast ratio.</span>
+<span id="L208"><span class="lineNum">     208</span>              :    */</span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaUNC tlaBgUNC">           0 :   public bestContrastForeground(): Color {</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaUNC">           0 :     const white = new Color(255, 255, 255, 1)</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaUNC">           0 :     const black = new Color(0, 0, 0, 1)</span></span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L213"><span class="lineNum">     213</span> <span class="tlaUNC">           0 :     // compare contrast against white vs. black</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaUNC">           0 :     const contrastWithWhite = this.contrastRatio(white)</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaUNC">           0 :     const contrastWithBlack = this.contrastRatio(black)</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC tlaBgGNC">          67 :     return contrastWithWhite &gt;= contrastWithBlack ? white : black</span></span>
+<span id="L218"><span class="lineNum">     218</span>              :   }</span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">           1 : }</span></span>
         </pre>
               </td>
             </tr>

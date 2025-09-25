@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-09-24 12:24:48</td>
+            <td class="headerValue">2025-09-25 13:00:04</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -65,10 +65,10 @@
 <span id="L3"><span class="lineNum">       3</span> <span class="tlaGNC">          16 : export function buildUrlQuery(query?: object | null) {</span></span>
 <span id="L4"><span class="lineNum">       4</span> <span class="tlaGNC">          22 :   const output = query</span></span>
 <span id="L5"><span class="lineNum">       5</span> <span class="tlaGNC">          48 :     ? Object.entries(query).reduce((acc, curr) =&gt; {</span></span>
-<span id="L6"><span class="lineNum">       6</span> <span class="tlaGNC">          29 :         if (notNullish(curr[1]))</span></span>
-<span id="L7"><span class="lineNum">       7</span> <span class="tlaGNC">          37 :           acc.push(`${curr[0]}=${curr[1]}`)</span></span>
-<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">          12 :         return acc</span></span>
-<span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC">          15 :       }, [] as string[]).join('&amp;')</span></span>
+<span id="L6"><span class="lineNum">       6</span> <span class="tlaGNC">          29 :       if (notNullish(curr[1]))</span></span>
+<span id="L7"><span class="lineNum">       7</span> <span class="tlaGNC">          37 :         acc.push(`${curr[0]}=${curr[1]}`)</span></span>
+<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">          12 :       return acc</span></span>
+<span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC">          15 :     }, [] as string[]).join('&amp;')</span></span>
 <span id="L10"><span class="lineNum">      10</span> <span class="tlaGNC">           4 :     : ''</span></span>
 <span id="L11"><span class="lineNum">      11</span> <span class="tlaGNC">          31 :   return output ? `?${output}` : ''</span></span>
 <span id="L12"><span class="lineNum">      12</span>              : }</span>
