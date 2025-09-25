@@ -6,10 +6,10 @@ type ResolveParams<
   CustomTypes extends Record<Key, any>,
 > = ExtractParams<T, string | number> extends infer BaseParams
   ? {
-      [K in keyof BaseParams]: K extends keyof CustomTypes
-        ? CustomTypes[K]
-        : BaseParams[K]
-    }
+    [K in keyof BaseParams]: K extends keyof CustomTypes
+      ? CustomTypes[K]
+      : BaseParams[K]
+  }
   : {}
 
 type KeysWithoutVariablesType<Object extends Record<Key, any>, Keys extends Key = keyof Object> = {
