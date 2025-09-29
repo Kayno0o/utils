@@ -293,10 +293,10 @@ export function parseArgs<
     if (!option)
       continue
 
-    // For boolean options without explicit value, treat presence as true
     if (option.type === 'boolean' && content === undefined) {
       result[option.name!] = true
-    } else {
+    }
+    else {
       result[option.name!] = parseOption(option, content ?? option.default)
     }
   }
