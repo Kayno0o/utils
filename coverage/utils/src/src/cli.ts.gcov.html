@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">70.1&nbsp;%</td>
-            <td class="headerCovTableEntry">167</td>
-            <td class="headerCovTableEntry">117</td>
+            <td class="headerCovTableEntryLo">70.6&nbsp;%</td>
+            <td class="headerCovTableEntry">170</td>
+            <td class="headerCovTableEntry">120</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-09-25 13:00:04</td>
+            <td class="headerValue">2025-09-29 09:03:13</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -355,28 +355,33 @@
 <span id="L293"><span class="lineNum">     293</span> <span class="tlaGNC">          17 :     if (!option)</span></span>
 <span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">          12 :       continue</span></span>
 <span id="L295"><span class="lineNum">     295</span>              : </span>
-<span id="L296"><span class="lineNum">     296</span> <span class="tlaGNC">          71 :     result[option.name!] = parseOption(option, content ?? option.default)</span></span>
-<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">           2 :   }</span></span>
-<span id="L298"><span class="lineNum">     298</span>              : </span>
-<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">          34 :   for (const option of options) {</span></span>
-<span id="L300"><span class="lineNum">     300</span> <span class="tlaGNC">          38 :     if (option.default === undefined)</span></span>
-<span id="L301"><span class="lineNum">     301</span> <span class="tlaGNC">          12 :       continue</span></span>
-<span id="L302"><span class="lineNum">     302</span>              : </span>
-<span id="L303"><span class="lineNum">     303</span> <span class="tlaGNC">          43 :     if (result[option.name] !== undefined)</span></span>
-<span id="L304"><span class="lineNum">     304</span> <span class="tlaGNC">          12 :       continue</span></span>
-<span id="L305"><span class="lineNum">     305</span>              : </span>
-<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">          39 :     result[option.name] = option.default</span></span>
-<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">           2 :   }</span></span>
-<span id="L308"><span class="lineNum">     308</span>              : </span>
-<span id="L309"><span class="lineNum">     309</span> <span class="tlaGNC">          34 :   if (result.help &amp;&amp; config.help)</span></span>
-<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">           2 :     help(config.help, options)</span></span>
-<span id="L311"><span class="lineNum">     311</span>              : </span>
-<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">          90 :   const missingRequired = options.filter(o =&gt; o.required &amp;&amp; result[o.name] === undefined)</span></span>
-<span id="L313"><span class="lineNum">     313</span> <span class="tlaGNC">          30 :   if (missingRequired.length)</span></span>
-<span id="L314"><span class="lineNum">     314</span> <span class="tlaGNC">         105 :     throw new Error(`Some required options were not found: ${missingRequired.map(o =&gt; o.name).join(', ')}`)</span></span>
-<span id="L315"><span class="lineNum">     315</span>              : </span>
-<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">          13 :   return result as ParsedValues&lt;T&gt;</span></span>
-<span id="L317"><span class="lineNum">     317</span>              : }</span>
+<span id="L296"><span class="lineNum">     296</span>              :     // For boolean options without explicit value, treat presence as true</span>
+<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">          62 :     if (option.type === 'boolean' &amp;&amp; content === undefined) {</span></span>
+<span id="L298"><span class="lineNum">     298</span> <span class="tlaGNC">          31 :       result[option.name!] = true</span></span>
+<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">          13 :     } else {</span></span>
+<span id="L300"><span class="lineNum">     300</span> <span class="tlaGNC">          75 :       result[option.name!] = parseOption(option, content ?? option.default)</span></span>
+<span id="L301"><span class="lineNum">     301</span>              :     }</span>
+<span id="L302"><span class="lineNum">     302</span> <span class="tlaGNC">           2 :   }</span></span>
+<span id="L303"><span class="lineNum">     303</span>              : </span>
+<span id="L304"><span class="lineNum">     304</span> <span class="tlaGNC">          34 :   for (const option of options) {</span></span>
+<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">          38 :     if (option.default === undefined)</span></span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">          12 :       continue</span></span>
+<span id="L307"><span class="lineNum">     307</span>              : </span>
+<span id="L308"><span class="lineNum">     308</span> <span class="tlaGNC">          43 :     if (result[option.name] !== undefined)</span></span>
+<span id="L309"><span class="lineNum">     309</span> <span class="tlaGNC">          12 :       continue</span></span>
+<span id="L310"><span class="lineNum">     310</span>              : </span>
+<span id="L311"><span class="lineNum">     311</span> <span class="tlaGNC">          39 :     result[option.name] = option.default</span></span>
+<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">           2 :   }</span></span>
+<span id="L313"><span class="lineNum">     313</span>              : </span>
+<span id="L314"><span class="lineNum">     314</span> <span class="tlaGNC">          34 :   if (result.help &amp;&amp; config.help)</span></span>
+<span id="L315"><span class="lineNum">     315</span> <span class="tlaGNC">           2 :     help(config.help, options)</span></span>
+<span id="L316"><span class="lineNum">     316</span>              : </span>
+<span id="L317"><span class="lineNum">     317</span> <span class="tlaGNC">          90 :   const missingRequired = options.filter(o =&gt; o.required &amp;&amp; result[o.name] === undefined)</span></span>
+<span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">          30 :   if (missingRequired.length)</span></span>
+<span id="L319"><span class="lineNum">     319</span> <span class="tlaGNC">         105 :     throw new Error(`Some required options were not found: ${missingRequired.map(o =&gt; o.name).join(', ')}`)</span></span>
+<span id="L320"><span class="lineNum">     320</span>              : </span>
+<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">          13 :   return result as ParsedValues&lt;T&gt;</span></span>
+<span id="L322"><span class="lineNum">     322</span>              : }</span>
         </pre>
               </td>
             </tr>
