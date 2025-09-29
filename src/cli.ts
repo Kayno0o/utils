@@ -293,7 +293,12 @@ export function parseArgs<
     if (!option)
       continue
 
-    result[option.name!] = parseOption(option, content ?? option.default)
+    // For boolean options without explicit value, treat presence as true
+    if (option.type === 'boolean' && content === undefined) {
+      result[option.name!] = true
+    } else {
+      result[option.name!] = parseOption(option, content ?? option.default)
+    }
   }
 
   for (const option of options) {
