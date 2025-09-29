@@ -201,6 +201,16 @@ describe('parseArgs function', () => {
     expect(result.disabled).toBe(false)
   })
 
+  it('should override boolean default values when flag is provided', () => {
+    const result = parseArgs({
+      args: ['--disabled'],
+      options: {
+        disabled: { type: 'boolean', default: false },
+      },
+    })
+    expect(result.disabled).toBe(true)
+  })
+
   it('should throw error for invalid boolean values', () => {
     expect(() => parseArgs({
       args: ['--flag=invalid'],
