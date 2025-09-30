@@ -8,6 +8,7 @@ export function randomInt(max: number, isCrypto?: boolean): number
 export function randomInt(minOrMax: number, max?: number | boolean, isCrypto?: boolean) {
   if (typeof max === 'boolean')
     isCrypto = max
+
   isCrypto ??= false
 
   const getRandomValue = isCrypto

@@ -9,6 +9,7 @@ export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPay
   for (let i = 0; i < files.length; ++i) {
     const file = files[i]
     const thumbnailBlob = new Blob([new Uint8Array(file.buffer)], { type: 'image/png' })
+
     formData.append(`files[${i}]`, thumbnailBlob, file.filename)
   }
 

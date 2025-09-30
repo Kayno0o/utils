@@ -2,6 +2,7 @@ import { randomInt } from './number'
 
 export function getRandomElement<T>(values: T[], isCrypto = false): T {
   const index = randomInt(0, values.length, isCrypto)
+
   return values[index]
 }
 
@@ -39,6 +40,7 @@ export function isEmpty(value: any): boolean {
 export function shuffleArray(array: any[]) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
+
     [array[i], array[j]] = [array[j], array[i]]
   }
 }
@@ -60,6 +62,7 @@ export function chunkArray<T>(array: T[], parts: number): T[][] {
   for (let i = 0; i < parts; i++) {
     const extra = i < remainder ? 1 : 0
     const end = start + minChunkSize + extra
+
     result.push(array.slice(start, end))
     start = end
   }

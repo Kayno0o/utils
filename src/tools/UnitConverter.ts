@@ -170,6 +170,7 @@ function baseUnitConverter(factor: number) {
 function createBaseUnitConverters<Unit extends keyof UnitType>(unit: Unit) {
   const unitFactor = getUnitFactors()[unit] as Record<UnitType[Unit], number>
   const converters: Record<UnitType[Unit], { from: (value: number) => number, to: (value: number) => number }> = {} as any
+
   for (const unit in unitFactor)
     converters[unit as UnitType[Unit]] = baseUnitConverter(unitFactor[unit as UnitType[Unit]])
 

@@ -5,6 +5,7 @@ describe('randomInt function', () => {
   it('within the specified range', () => {
     const max = 100
     const result = randomInt(0, max)
+
     expect(result).toBeGreaterThanOrEqual(0)
     expect(result).toBeLessThanOrEqual(max)
     expect(Number.isInteger(result)).toBe(true)
@@ -13,6 +14,7 @@ describe('randomInt function', () => {
   it('from 0 to the specified max', () => {
     const max = 100
     const result = randomInt(max)
+
     expect(result).toBeGreaterThanOrEqual(0)
     expect(result).toBeLessThanOrEqual(max)
     expect(Number.isInteger(result)).toBe(true)
@@ -22,6 +24,7 @@ describe('randomInt function', () => {
     const min = -100
     const max = 100
     const result = randomInt(min, max)
+
     expect(result).toBeGreaterThanOrEqual(min)
     expect(result).toBeLessThanOrEqual(max)
     expect(Number.isInteger(result)).toBe(true)
@@ -31,6 +34,7 @@ describe('randomInt function', () => {
     const min = 0
     const max = 0
     const result = randomInt(min, max)
+
     expect(result).toBe(0)
     expect(Number.isInteger(result)).toBe(true)
   })
@@ -39,6 +43,7 @@ describe('randomInt function', () => {
     const min = Number.MIN_SAFE_INTEGER
     const max = Number.MAX_SAFE_INTEGER
     const result = randomInt(min, max)
+
     expect(result).toBeGreaterThanOrEqual(min)
     expect(result).toBeLessThanOrEqual(max)
     expect(Number.isInteger(result)).toBe(true)

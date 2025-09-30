@@ -12,6 +12,7 @@ export function calculateEaster(year: number): Date {
   const L = I - J
   const month = 3 + f((L + 40) / 44)
   const day = L + 28 - 31 * f(month / 4)
+
   return new Date(year, month - 1, day)
 }
 
@@ -30,7 +31,9 @@ export function getFrenchHolidays(year: number): string[] {
   const easter = calculateEaster(year)
   const addDays = (date: Date, days: number): string => {
     const result = new Date(date)
+
     result.setDate(result.getDate() + days)
+
     return `${result.getFullYear()}-${String(result.getMonth() + 1).padStart(2, '0')}-${String(result.getDate()).padStart(2, '0')}`
   }
 
@@ -56,22 +59,30 @@ export function stringToMsDuration(duration: string | number): number {
     return duration
 
   const match = duration.match(/(\d+)([a-z])/i)
+
   if (!match)
     return 0
 
   const [, time, unit] = match
   let factor = 1
+
   if (unit === 'm')
     factor = 60
+
   if (unit === 'h')
     factor = 60 * 60
+
   if (unit === 'd')
     factor = 60 * 60 * 24
+
   if (unit === 'w')
     factor = 60 * 60 * 24 * 7
+
   if (unit === 'M')
     factor = 60 * 60 * 24 * 30
+
   if (unit === 'y')
     factor = 60 * 60 * 24 * 365
+
   return Number(time) * factor * 1000
 }

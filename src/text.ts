@@ -8,11 +8,14 @@ export function randomString(length: number, charset?: string, isCrypto = false)
   if (isCrypto) {
     let id = ''
     const vals = crypto.getRandomValues(new Uint8Array(length))
+
     for (let i = 0; i < length; i++) id += charset[vals[i] % charset.length]
+
     return id
   }
 
   let result = ''
+
   for (let i = 0; i < length; i++)
     result += charset[randomInt(0, charset.length)]
 
@@ -76,11 +79,13 @@ export function firstUpper(str: string): string {
 
 export function searchOne(query: string, ...values: string[]): boolean {
   query = normalizeAccents(query).toLowerCase()
+
   return values.some(value => normalizeAccents(value).toLowerCase().includes(query))
 }
 
 export function searchAll(query: string, ...values: string[]): boolean {
   query = normalizeAccents(query).toLowerCase()
+
   return values.every(value => normalizeAccents(value).toLowerCase().includes(query))
 }
 
@@ -92,9 +97,13 @@ export function escapeXml(unsafe: string): string {
   return unsafe.replace(/[<>&'"]/g, (char) => {
     switch (char) {
     case '<': return '&lt;'
+
     case '>': return '&gt;'
+
     case '&': return '&amp;'
+
     case '\'': return '&apos;'
+
     case '"': default: return '&quot;'
     }
   })
@@ -127,6 +136,7 @@ export function matchLength(str1: string, str2: string): number {
 
 export function matchingSubstring(str1: string, str2: string): string {
   const length = matchLength(str1, str2)
+
   return str1.substring(0, length)
 }
 
@@ -134,6 +144,7 @@ const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
 
 export function getUuidFromIri(iri: string): string | null {
   const match = UUID_REGEX.exec(iri)
+
   return match ? match[0] : null
 }
 
@@ -146,6 +157,7 @@ export function progressBar(value: number, min: number, max: number, { emptyChar
   const emptyLength = totalChars - fillLength
 
   let fillBar = fillChar.repeat(fillLength)
+
   if (fillLength > 0 && fillLength < totalChars && tipChar)
     fillBar = fillBar.slice(0, -1) + tipChar
 
@@ -178,6 +190,7 @@ export function minifyUUID(uuid: string): string {
 
   const hex = uuid.replace(/-/g, '')
   const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map(byte => Number.parseInt(byte, 16)))
+
   return btoa(String.fromCharCode(...bytes))
     .replace(/=/g, '')
     .replace(/\+/g, '-')
@@ -210,6 +223,7 @@ export function toCase(str: string | string[]): string[] {
     .trim()
 
   const words = normalized.match(/[a-z0-9]+/gi)
+
   return words ? words.map(w => w.toLowerCase()) : []
 }
 
@@ -242,7 +256,9 @@ export function toTitle(input: string | string[]) {
 export function frRankLabel(rank: string) {
   if (rank === '1')
     return 'er'
+
   if (rank === '2')
     return 'nd'
+
   return 'ème'
 }

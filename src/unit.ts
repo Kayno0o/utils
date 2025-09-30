@@ -16,6 +16,7 @@ export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2
   const theta = lon1 - lon2
   const radtheta = (Math.PI * theta) / 180
   let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta)
+
   if (dist > 1)
     dist = 1
 
@@ -23,6 +24,7 @@ export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2
   dist = (dist * 180) / Math.PI
   dist = dist * 60 * 1.1515
   dist *= 1.609344
+
   return Math.round(dist)
 }
 
@@ -49,11 +51,13 @@ export function encodePath(path: [number, number][]): string {
     prevLat = lat
     prevLng = lng
   }
+
   return encoded
 }
 
 function encodeSignedNumber(num: number): string {
   let sgn_num = num << 1
+
   if (num < 0)
     sgn_num = ~sgn_num
 
@@ -62,11 +66,14 @@ function encodeSignedNumber(num: number): string {
 
 function encodeUnsignedNumber(num: number): string {
   let encoded = ''
+
   while (num >= 0x20) {
     encoded += String.fromCharCode((0x20 | (num & 0x1F)) + 63)
     num >>= 5
   }
+
   encoded += String.fromCharCode(num + 63)
+
   return encoded
 }
 
@@ -78,15 +85,18 @@ export function decodePath(encoded: string): [number, number][] {
 
   while (index < encoded.length) {
     const latResult = decodeSignedNumber(encoded, index)
+
     lat += latResult.value
     index = latResult.nextIndex
 
     const lngResult = decodeSignedNumber(encoded, index)
+
     lng += lngResult.value
     index = lngResult.nextIndex
 
     path.push([lat, lng])
   }
+
   return path
 }
 
@@ -95,6 +105,7 @@ function decodeSignedNumber(encoded: string, index: number): { value: number, ne
   const delta = result.value
 
   const value = (delta & 1) ? ~(delta >> 1) : (delta >> 1)
+
   return { value, nextIndex: result.nextIndex }
 }
 
@@ -104,9 +115,12 @@ function decodeUnsignedNumber(encoded: string, index: number): { value: number, 
 
   while (true) {
     const b = encoded.charCodeAt(index++) - 63
+
     result |= (b & 0x1F) << shift
+
     if (b < 0x20)
       break
+
     shift += 5
   }
 

@@ -30,13 +30,16 @@ export function formatFileSize(bytes: number, si = false, dp = 1) {
 export function formatUnit(num: number): string {
   if (num < 1000)
     return num.toString()
+
   const units = ['k', 'M', 'B', 'T']
   let unitIndex = -1
   let scaledNum = num
+
   while (scaledNum >= 1000 && unitIndex < units.length - 1) {
     scaledNum /= 1000
     unitIndex++
   }
+
   return `${scaledNum.toFixed(1)}${units[unitIndex]}`
 }
 

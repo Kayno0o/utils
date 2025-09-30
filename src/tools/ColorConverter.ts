@@ -23,6 +23,7 @@ function hexToRgb(hex: string): [number, number, number] | [number, number, numb
     const g = parse(cleanHex[1] + cleanHex[1])
     const b = parse(cleanHex[2] + cleanHex[2])
     const a = len === 4 ? parse(cleanHex[3] + cleanHex[3]) : undefined
+
     return a !== undefined ? [r, g, b, a] : [r, g, b]
   }
 
@@ -57,6 +58,7 @@ function hslToRgb(h: number, s: number, l: number): RgbArrayType {
   const f = (n: number) => {
     const k = (n + h / 30) % 12
     const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+
     return Math.round(255 * color)
   }
 
@@ -64,6 +66,7 @@ function hslToRgb(h: number, s: number, l: number): RgbArrayType {
 }
 
 function rgbToHsl(rgb: RgbArrayType): HslArrayType
+
 function rgbToHsl(rgb: RgbArrayType): HslArrayType {
   let [r, g, b] = rgb
 
@@ -79,6 +82,7 @@ function rgbToHsl(rgb: RgbArrayType): HslArrayType {
 
   if (max !== min) {
     const d = max - min
+
     s = l > 0 && l < 1 ? d / (1 - Math.abs(2 * l - 1)) : 0
 
     if (max === r)
@@ -98,6 +102,7 @@ function rgbToHsl(rgb: RgbArrayType): HslArrayType {
  */
 function linearize(channel: number): number {
   const c = channel / 255
+
   return c <= 0.03928
     ? c / 12.92
     : ((c + 0.055) / 1.055) ** 2.4
@@ -124,16 +129,19 @@ export class Color {
   static from(type: ColorType, value: any): Color {
     if (type === 'hex') {
       const [r, g, b, a] = hexToRgb(value)
+
       return new Color(r, g, b, a)
     }
 
     if (type === 'rgb') {
       if (Array.isArray(value)) {
         const [r, g, b, a] = value as RgbArrayType | RgbaArrayType
+
         return new Color(r, g, b, a)
       }
 
       const { r, g, b, a } = value as RgbObjectType
+
       return new Color(r, g, b, a)
     }
 
@@ -166,14 +174,19 @@ export class Color {
     switch (type) {
     case 'rgb':
       return [this.r, this.g, this.b]
+
     case 'rgba':
       return [this.r, this.g, this.b, this.a]
+
     case 'hex':
       return rgbToHex([this.r, this.g, this.b])
+
     case 'hexa':
       return rgbToHex([this.r, this.g, this.b, this.a])
+
     case 'hsl':
       return rgbToHsl([this.r, this.g, this.b])
+
     case 'hsla':
       return [...rgbToHsl([this.r, this.g, this.b]), this.a]
     default:
@@ -189,6 +202,7 @@ export class Color {
     const R = linearize(this.r)
     const G = linearize(this.g)
     const B = linearize(this.b)
+
     return 0.2126 * R + 0.7152 * G + 0.0722 * B
   }
 
@@ -200,6 +214,7 @@ export class Color {
     const L1 = this.getLuminance()
     const L2 = other.getLuminance()
     const [bright, dark] = L1 >= L2 ? [L1, L2] : [L2, L1]
+
     return (bright + 0.05) / (dark + 0.05)
   }
 

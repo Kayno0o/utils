@@ -35,6 +35,7 @@ describe('declareIsGranted function', () => {
       ROLE_SUPERADMIN: ['ROLE_ADMIN'],
       ROLE_USER: [],
     })
+
     expect(isGrantedCustom('ROLE_SUPERADMIN', ['ROLE_USER'])).toBe(false)
   })
 

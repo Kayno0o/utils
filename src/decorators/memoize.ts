@@ -23,10 +23,12 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
           if (options?.ttl === undefined || (now - (this as any)[timestampKey]) < options.ttl) {
             return (this as any)[cacheKey]
           }
+
           (this as any)[cacheSetKey] = false
         }
 
         const result = originalGetter.call(this)
+
         ;(this as any)[cacheKey] = result
         ;(this as any)[cacheSetKey] = true
         ;(this as any)[timestampKey] = now
@@ -53,6 +55,7 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
           return cached.result
 
         const result = originalMethod.apply(this, args)
+
         cache.set(argKey, {
           result,
           timestamp: now,
@@ -76,6 +79,7 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
           for (const [methodName, deps] of (this as any)._memoizedMethods.entries()) {
             if (deps.includes(changedProp)) {
               const cacheMapKey = `_${methodName}_methodCache`
+
               if ((this as any)[cacheMapKey])
                 (this as any)[cacheMapKey].clear()
             }
