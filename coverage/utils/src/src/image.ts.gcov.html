@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">17.3&nbsp;%</td>
-            <td class="headerCovTableEntry">52</td>
+            <td class="headerCovTableEntryLo">16.4&nbsp;%</td>
+            <td class="headerCovTableEntry">55</td>
             <td class="headerCovTableEntry">9</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-09-29 09:03:13</td>
+            <td class="headerValue">2025-09-30 09:01:08</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -91,42 +91,45 @@
 <span id="L29"><span class="lineNum">      29</span> <span class="tlaUNC">           0 :   return new Promise((resolve, reject) =&gt; {</span></span>
 <span id="L30"><span class="lineNum">      30</span> <span class="tlaUNC">           0 :     const canvas = document.createElement('canvas')</span></span>
 <span id="L31"><span class="lineNum">      31</span> <span class="tlaUNC">           0 :     const ctx = canvas.getContext('2d')</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaUNC">           0 :     if (!ctx)</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaUNC">           0 :       return reject(new Error('Context not found'))</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaUNC">           0 :     const img = new Image()</span></span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaUNC">           0 :     img.crossOrigin = 'anonymous' // enable CORS if needed</span></span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaUNC">           0 :     img.src = imageUrl</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaUNC">           0 :     img.onload = () =&gt; {</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaUNC">           0 :       let width = img.width</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaUNC">           0 :       let height = img.height</span></span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaUNC">           0 :       if (options?.maxWidth &amp;&amp; width &gt; options.maxWidth) {</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaUNC">           0 :         height *= options.maxWidth / width</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaUNC">           0 :         width = options.maxWidth</span></span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaUNC">           0 :       }</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaUNC">           0 :       if (options?.maxHeight &amp;&amp; height &gt; options.maxHeight) {</span></span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaUNC">           0 :         width *= options.maxHeight / height</span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaUNC">           0 :         height = options.maxHeight</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaUNC">           0 :       }</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaUNC">           0 :       canvas.width = width</span></span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaUNC">           0 :       canvas.height = height</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaUNC">           0 :       ctx.drawImage(</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaUNC">           0 :         img,</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaUNC">           0 :         0,</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaUNC">           0 :         0,</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaUNC">           0 :         width,</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaUNC">           0 :         height,</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaUNC">           0 :       )</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaUNC">           0 :       resolve(canvas.toDataURL(options?.format ?? 'image/webp', options?.quality ?? 0.8))</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaUNC">           0 :     }</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaUNC">           0 :     if (!ctx)</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaUNC">           0 :       return reject(new Error('Context not found'))</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaUNC">           0 :     const img = new Image()</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaUNC">           0 :     img.crossOrigin = 'anonymous' // enable CORS if needed</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaUNC">           0 :     img.src = imageUrl</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaUNC">           0 :     img.onload = () =&gt; {</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaUNC">           0 :       let width = img.width</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaUNC">           0 :       let height = img.height</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaUNC">           0 :       if (options?.maxWidth &amp;&amp; width &gt; options.maxWidth) {</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaUNC">           0 :         height *= options.maxWidth / width</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaUNC">           0 :         width = options.maxWidth</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaUNC">           0 :       }</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaUNC">           0 :       if (options?.maxHeight &amp;&amp; height &gt; options.maxHeight) {</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaUNC">           0 :         width *= options.maxHeight / height</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaUNC">           0 :         height = options.maxHeight</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaUNC">           0 :       }</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaUNC">           0 :       canvas.width = width</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaUNC">           0 :       canvas.height = height</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaUNC">           0 :       ctx.drawImage(</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaUNC">           0 :         img,</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaUNC">           0 :         0,</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaUNC">           0 :         0,</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaUNC">           0 :         width,</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaUNC">           0 :         height,</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaUNC">           0 :       )</span></span>
 <span id="L64"><span class="lineNum">      64</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaUNC">           0 :     img.onerror = reject</span></span>
-<span id="L66"><span class="lineNum">      66</span>              :   })</span>
-<span id="L67"><span class="lineNum">      67</span>              : }</span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaUNC">           0 :       resolve(canvas.toDataURL(options?.format ?? 'image/webp', options?.quality ?? 0.8))</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaUNC">           0 :     }</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaUNC">           0 :     img.onerror = reject</span></span>
+<span id="L69"><span class="lineNum">      69</span>              :   })</span>
+<span id="L70"><span class="lineNum">      70</span>              : }</span>
         </pre>
               </td>
             </tr>

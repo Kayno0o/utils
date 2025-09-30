@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntryLo">7.7&nbsp;%</td>
-            <td class="headerCovTableEntry">156</td>
+            <td class="headerCovTableEntryLo">7.6&nbsp;%</td>
+            <td class="headerCovTableEntry">157</td>
             <td class="headerCovTableEntry">12</td>
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2025-09-29 09:03:13</td>
+            <td class="headerValue">2025-09-30 09:01:08</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -232,31 +232,32 @@
 <span id="L170"><span class="lineNum">     170</span> <span class="tlaUNC tlaBgUNC">           0 : function createBaseUnitConverters&lt;Unit extends keyof UnitType&gt;(unit: Unit) {</span></span>
 <span id="L171"><span class="lineNum">     171</span> <span class="tlaUNC">           0 :   const unitFactor = getUnitFactors()[unit] as Record&lt;UnitType[Unit], number&gt;</span></span>
 <span id="L172"><span class="lineNum">     172</span> <span class="tlaUNC">           0 :   const converters: Record&lt;UnitType[Unit], { from: (value: number) =&gt; number, to: (value: number) =&gt; number }&gt; = {} as any</span></span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaUNC">           0 :   for (const unit in unitFactor)</span></span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaUNC">           0 :     converters[unit as UnitType[Unit]] = baseUnitConverter(unitFactor[unit as UnitType[Unit]])</span></span>
-<span id="L175"><span class="lineNum">     175</span> <span class="tlaUNC">           0 : </span></span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC tlaBgGNC">          20 :   return converters</span></span>
-<span id="L177"><span class="lineNum">     177</span>              : }</span>
-<span id="L178"><span class="lineNum">     178</span>              : </span>
-<span id="L179"><span class="lineNum">     179</span>              : export class UnitConverter&lt;Unit extends keyof UnitType&gt; {</span>
-<span id="L180"><span class="lineNum">     180</span>              :   type: Unit</span>
-<span id="L181"><span class="lineNum">     181</span>              :   unit: UnitType[Unit]</span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           1 :   value: number</span></span>
-<span id="L183"><span class="lineNum">     183</span>              : </span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaUNC tlaBgUNC">           0 :   constructor(type: Unit, unit: UnitType[Unit], value: number) {</span></span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaUNC">           0 :     this.type = type</span></span>
-<span id="L186"><span class="lineNum">     186</span> <span class="tlaUNC">           0 :     this.unit = unit</span></span>
-<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC tlaBgGNC">          78 :     this.value = getUnitConverterFn()[type][unit].from(value)</span></span>
-<span id="L188"><span class="lineNum">     188</span>              :   }</span>
-<span id="L189"><span class="lineNum">     189</span>              : </span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaUNC tlaBgUNC">           0 :   static from&lt;Unit extends keyof UnitType&gt;(type: Unit, unit: UnitType[Unit], value: number): UnitConverter&lt;Unit&gt; {</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC tlaBgGNC">          50 :     return new UnitConverter&lt;Unit&gt;(type, unit, value)</span></span>
-<span id="L192"><span class="lineNum">     192</span>              :   }</span>
-<span id="L193"><span class="lineNum">     193</span>              : </span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaUNC tlaBgUNC">           0 :   to(unit: UnitType[Unit]): number {</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC tlaBgGNC">          65 :     return getUnitConverterFn()[this.type][unit].to(this.value)</span></span>
-<span id="L196"><span class="lineNum">     196</span>              :   }</span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">           2 : }</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaUNC">           0 :   for (const unit in unitFactor)</span></span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaUNC">           0 :     converters[unit as UnitType[Unit]] = baseUnitConverter(unitFactor[unit as UnitType[Unit]])</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaUNC">           0 : </span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC tlaBgGNC">          20 :   return converters</span></span>
+<span id="L178"><span class="lineNum">     178</span>              : }</span>
+<span id="L179"><span class="lineNum">     179</span>              : </span>
+<span id="L180"><span class="lineNum">     180</span>              : export class UnitConverter&lt;Unit extends keyof UnitType&gt; {</span>
+<span id="L181"><span class="lineNum">     181</span>              :   type: Unit</span>
+<span id="L182"><span class="lineNum">     182</span>              :   unit: UnitType[Unit]</span>
+<span id="L183"><span class="lineNum">     183</span> <span class="tlaGNC">           1 :   value: number</span></span>
+<span id="L184"><span class="lineNum">     184</span>              : </span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaUNC tlaBgUNC">           0 :   constructor(type: Unit, unit: UnitType[Unit], value: number) {</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaUNC">           0 :     this.type = type</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaUNC">           0 :     this.unit = unit</span></span>
+<span id="L188"><span class="lineNum">     188</span> <span class="tlaGNC tlaBgGNC">          78 :     this.value = getUnitConverterFn()[type][unit].from(value)</span></span>
+<span id="L189"><span class="lineNum">     189</span>              :   }</span>
+<span id="L190"><span class="lineNum">     190</span>              : </span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaUNC tlaBgUNC">           0 :   static from&lt;Unit extends keyof UnitType&gt;(type: Unit, unit: UnitType[Unit], value: number): UnitConverter&lt;Unit&gt; {</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC tlaBgGNC">          50 :     return new UnitConverter&lt;Unit&gt;(type, unit, value)</span></span>
+<span id="L193"><span class="lineNum">     193</span>              :   }</span>
+<span id="L194"><span class="lineNum">     194</span>              : </span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaUNC tlaBgUNC">           0 :   to(unit: UnitType[Unit]): number {</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC tlaBgGNC">          65 :     return getUnitConverterFn()[this.type][unit].to(this.value)</span></span>
+<span id="L197"><span class="lineNum">     197</span>              :   }</span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">           2 : }</span></span>
         </pre>
               </td>
             </tr>
