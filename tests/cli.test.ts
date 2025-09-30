@@ -88,7 +88,6 @@ describe('parseArgs function', () => {
       args: ['--items=a,b,c'],
       options: {
         items: {
-          type: 'string',
           format: (value: string) => value.split(','),
         },
       },

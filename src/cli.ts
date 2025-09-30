@@ -13,35 +13,32 @@ T extends 'boolean' ? boolean
     : T extends 'date' ? Date
       : string
 
-interface TypedOptionDefinition<T extends OptionType, Type, FormatType = Type> {
+interface BaseOptionDefinition<FormatType> {
   alias?: string | string[]
-  type: T
   short?: AlphabetChar
   required?: boolean
   description?: string
   default?: FormatType
+  rawDefault?: string
   example?: string | string[]
-  format?: (value: string) => FormatType
   validate?: (value: FormatType) => true | string
 }
 
-interface FormatOnlyOptionDefinition<FormatType> {
-  alias?: string | string[]
+interface TypedOptionDefinition<T extends OptionType, FormatType> extends BaseOptionDefinition<FormatType> {
+  type: T
+  format?: (value: string) => FormatType
+}
+
+interface FormatOnlyOptionDefinition<FormatType> extends BaseOptionDefinition<FormatType> {
   type?: never
-  short?: AlphabetChar
-  required?: boolean
-  description?: string
-  default?: FormatType
-  example?: string | string[]
   format: (value: string) => FormatType
-  validate?: (value: FormatType) => true | string
 }
 
 type OptionDefinition =
-  | TypedOptionDefinition<'boolean', boolean, any>
-  | TypedOptionDefinition<'string' | 'path' | 'date', string, any>
-  | TypedOptionDefinition<NumberOptionType, number, any>
-  | FormatOnlyOptionDefinition<any>
+  | TypedOptionDefinition<'boolean', boolean>
+  | TypedOptionDefinition<'string' | 'path' | 'date', string>
+  | TypedOptionDefinition<NumberOptionType, number>
+  | FormatOnlyOptionDefinition<unknown>
 
 type ParseArgsConfig<T extends Record<string, OptionDefinition>> = T
 
@@ -173,8 +170,12 @@ function parsePathOption(option: TypedOptionDefinition<StringOptionType, string>
 }
 
 function parseOption(option: OptionDefinition & { name: string }, value: string | undefined): any {
-  if (option.format && value !== undefined)
+  if (option.format) {
+    if (value === undefined)
+      return undefined
+
     return option.format(value)
+  }
 
   if (!option.type)
     throw new Error(`Option ${option.name} must have either a 'type' or 'format' function`)
@@ -290,25 +291,41 @@ export function parseArgs<
     }
 
     const option = options.find(o => o.name === name || toArray(o.alias ?? []).includes(name) || o.short === name)
+
     if (!option)
       continue
 
-    if (option.type === 'boolean' && content === undefined) {
+    if (content !== undefined) {
+      result[option.name!] = parseOption(option, content)
+      continue
+    }
+
+    if (option.type === 'boolean') {
       result[option.name!] = true
+      continue
     }
-    else {
-      result[option.name!] = parseOption(option, content ?? option.default)
+
+    if (option.rawDefault !== undefined) {
+      result[option.name!] = parseOption(option, option.rawDefault)
+      continue
     }
+
+    result[option.name!] = option.default
   }
 
   for (const option of options) {
-    if (option.default === undefined)
-      continue
-
     if (result[option.name] !== undefined)
       continue
 
-    result[option.name] = option.default
+    if (option.default !== undefined) {
+      result[option.name] = option.default
+      continue
+    }
+
+    if (option.rawDefault !== undefined) {
+      result[option.name] = parseOption(option, option.rawDefault)
+      continue
+    }
   }
 
   if (result.help && config.help)

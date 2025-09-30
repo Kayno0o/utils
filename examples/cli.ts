@@ -29,10 +29,10 @@ const result = parseArgs({
     nb: {
       format: (value: string) => String(Number(value) + 10),
       required: true,
-      default: 123,
+      rawDefault: '123',
       alias: 'number-dir',
     },
   },
 })
 
-console.log(result)
+console.log(result, result.nb)
