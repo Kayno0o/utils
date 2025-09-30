@@ -84,15 +84,15 @@ export function decodePath(encoded: string): [number, number][] {
   let lng = 0
 
   while (index < encoded.length) {
-    const latResult = decodeSignedNumber(encoded, index)
+    const [latValue, latIndex] = decodeSignedNumber(encoded, index)
 
-    lat += latResult.value
-    index = latResult.nextIndex
+    lat += latValue
+    index = latIndex
 
-    const lngResult = decodeSignedNumber(encoded, index)
+    const [lngValue, lngIndex] = decodeSignedNumber(encoded, index)
 
-    lng += lngResult.value
-    index = lngResult.nextIndex
+    lng += lngValue
+    index = lngIndex
 
     path.push([lat, lng])
   }
@@ -100,16 +100,14 @@ export function decodePath(encoded: string): [number, number][] {
   return path
 }
 
-function decodeSignedNumber(encoded: string, index: number): { value: number, nextIndex: number } {
-  const result = decodeUnsignedNumber(encoded, index)
-  const delta = result.value
-
+function decodeSignedNumber(encoded: string, index: number): [ value: number, nextIndex: number ] {
+  const [delta, nextIndex] = decodeUnsignedNumber(encoded, index)
   const value = (delta & 1) ? ~(delta >> 1) : (delta >> 1)
 
-  return { value, nextIndex: result.nextIndex }
+  return [value, nextIndex]
 }
 
-function decodeUnsignedNumber(encoded: string, index: number): { value: number, nextIndex: number } {
+function decodeUnsignedNumber(encoded: string, index: number): [ value: number, nextIndex: number ] {
   let result = 0
   let shift = 0
 
@@ -124,7 +122,7 @@ function decodeUnsignedNumber(encoded: string, index: number): { value: number, 
     shift += 5
   }
 
-  return { value: result, nextIndex: index }
+  return [result, index]
 }
 
 export function get2DPosFrom1D(pos: number, w: number): [x: number, y: number] {
