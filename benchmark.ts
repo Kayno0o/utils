@@ -10,6 +10,7 @@ interface BenchmarkOptions {
 
 function warmup(callback: () => void, duration = 1000) {
   const end = performance.now() + duration
+
   while (performance.now() < end)
     callback()
 }
@@ -36,7 +37,9 @@ function benchmark(name: string, callback: () => void, { iterations = 1_000, ver
 
 function suite(benchmarks: [string, () => void][], options: BenchmarkOptions = {}) {
   const search = process.argv.slice(2).join(' ')
+
   benchmarks = benchmarks.filter(([name]) => searchOne(search, name))
+
   if (!benchmarks.length)
     return
 
@@ -89,6 +92,7 @@ suite([
 ], { iterations: 1_000_000 })
 
 const s = randomString(10_000)
+
 suite([
   ['colors', () => colors.red([`red`, colors.bold(s)].join(' '))],
   ['colors', () => colors.red([`red`, colors.bold(s)].join(' '))],
@@ -97,11 +101,13 @@ suite([
 ], { iterations: 1_000 })
 
 const [r, g, b] = [124, 240, 0]
+
 suite([
   ['rgb converted 00001', () => `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0').toUpperCase()}`],
   ['rgb converted 2', () => `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`.toUpperCase()],
   ['rgb converted 3', () => {
     const hex = (r << 16 | g << 8 | b).toString(16)
+
     return `#${('000000'.slice(hex.length) + hex).toUpperCase()}`
   }],
 ], { iterations: 1_000_000 })

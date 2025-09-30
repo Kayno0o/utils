@@ -10,6 +10,7 @@ describe('parseArgs function', () => {
         debug: { type: 'boolean' },
       },
     })
+
     expect(result.verbose).toBe(true)
     expect(result.debug).toBe(false)
   })
@@ -22,6 +23,7 @@ describe('parseArgs function', () => {
         message: { type: 'string' },
       },
     })
+
     expect(result.name).toBe('test')
     expect(result.message).toBe('hello world')
   })
@@ -34,6 +36,7 @@ describe('parseArgs function', () => {
         weight: { type: 'float' },
       },
     })
+
     expect(result.count).toBe(42)
     expect(result.weight).toBe(3.14)
   })
@@ -46,6 +49,7 @@ describe('parseArgs function', () => {
         count: { type: 'int', short: 'c' },
       },
     })
+
     expect(result.verbose).toBe(true)
     expect(result.count).toBe(10)
   })
@@ -58,6 +62,7 @@ describe('parseArgs function', () => {
         outputDir: { type: 'string', alias: 'output-dir' },
       },
     })
+
     expect(result.ts).toBe(true)
     expect(result.outputDir).toBe('dist')
   })
@@ -70,6 +75,7 @@ describe('parseArgs function', () => {
         host: { type: 'string', default: 'localhost' },
       },
     })
+
     expect(result.port).toBe(3000)
     expect(result.host).toBe('localhost')
   })
@@ -92,6 +98,7 @@ describe('parseArgs function', () => {
         },
       },
     })
+
     expect(result.items).toEqual(['a', 'b', 'c'])
   })
 
@@ -105,6 +112,7 @@ describe('parseArgs function', () => {
         },
       },
     })
+
     expect(result.age).toBe(25)
   })
 
@@ -122,6 +130,7 @@ describe('parseArgs function', () => {
           flag: { type: 'boolean' },
         },
       })
+
       expect(result.flag).toBe(expected)
     }
   })
@@ -139,6 +148,7 @@ describe('parseArgs function', () => {
           flag: { type: 'boolean' },
         },
       })
+
       expect(result.flag).toBe(expected)
     }
   })
@@ -150,6 +160,7 @@ describe('parseArgs function', () => {
         known: { type: 'string' },
       },
     })
+
     expect(result.known).toBe('value')
     expect('unknown' in result).toBe(false)
   })
@@ -161,6 +172,7 @@ describe('parseArgs function', () => {
         ts: { type: 'boolean', alias: ['typescript', 'lang-ts'] },
       },
     })
+
     expect(result.ts).toBe(true)
   })
 
@@ -173,6 +185,7 @@ describe('parseArgs function', () => {
         },
       },
     })
+
     expect(result.items).toEqual(['a', 'b', 'c'])
   })
 
@@ -185,6 +198,7 @@ describe('parseArgs function', () => {
         },
       },
     })
+
     expect(result.config).toEqual({ key: 'value' })
   })
 
@@ -196,6 +210,7 @@ describe('parseArgs function', () => {
         disabled: { type: 'boolean', default: false },
       },
     })
+
     expect(result.enabled).toBe(true)
     expect(result.disabled).toBe(false)
   })
@@ -207,6 +222,7 @@ describe('parseArgs function', () => {
         disabled: { type: 'boolean', default: false },
       },
     })
+
     expect(result.disabled).toBe(true)
   })
 
@@ -244,6 +260,7 @@ describe('parseArgs function', () => {
         date: { type: 'date' },
       },
     })
+
     expect(result.date).toBeInstanceOf(Date)
     expect(result.date).toEqual(new Date('2023-12-25'))
   })
@@ -264,6 +281,7 @@ describe('parseArgs function', () => {
         value: { type: 'number' },
       },
     })
+
     expect(result.value).toBe(123.45)
   })
 
@@ -274,6 +292,7 @@ describe('parseArgs function', () => {
         file: { type: 'path' },
       },
     })
+
     expect(result.file).toBe('package.json')
   })
 
@@ -299,6 +318,7 @@ describe('parseArgs function', () => {
         },
       },
     })
+
     expect(result.stringDefault).toBe('hello')
     expect(result.numberDefault).toBe(42)
     expect(result.booleanDefault).toBe(true)

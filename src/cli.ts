@@ -209,6 +209,7 @@ function block(name: string, content: string | (string | undefined)[], keywords:
 
   if (keywords.length) {
     const regexp = new RegExp(`\\b${keywords.join('\\b|\\b')}\\b`, 'g')
+
     filteredContent = filteredContent.map(c => c.replace(regexp, colors.underline))
   }
 
@@ -219,6 +220,7 @@ function help(config: ArgsHelpConfig, options: (OptionDefinition & { name: strin
   const { name, shortDescription, usage, footerBlocks, keywords } = config
 
   let output = ''
+
   if (name)
     output += block('name', [name, shortDescription && ` - ${shortDescription}`], keywords)
 
@@ -226,6 +228,7 @@ function help(config: ArgsHelpConfig, options: (OptionDefinition & { name: strin
     output += block('usage', usage || [`${colors.bold(name!)} [option ...] command`], keywords)
 
   const optionsContent: string[] = []
+
   for (const option of options) {
     let command = colors.bold([
       option.short && `-${option.short}`,
@@ -286,6 +289,7 @@ export function parseArgs<
 
     if (content === undefined && i + 1 < config.args.length) {
       const nextArg = config.args[i + 1]
+
       if (!nextArg.match(argRegexp))
         content = nextArg
     }
@@ -297,16 +301,19 @@ export function parseArgs<
 
     if (content !== undefined) {
       result[option.name!] = parseOption(option, content)
+
       continue
     }
 
     if (option.type === 'boolean') {
       result[option.name!] = true
+
       continue
     }
 
     if (option.rawDefault !== undefined) {
       result[option.name!] = parseOption(option, option.rawDefault)
+
       continue
     }
 
@@ -319,11 +326,13 @@ export function parseArgs<
 
     if (option.default !== undefined) {
       result[option.name] = option.default
+
       continue
     }
 
     if (option.rawDefault !== undefined) {
       result[option.name] = parseOption(option, option.rawDefault)
+
       continue
     }
   }
@@ -332,6 +341,7 @@ export function parseArgs<
     help(config.help, options)
 
   const missingRequired = options.filter(o => o.required && result[o.name] === undefined)
+
   if (missingRequired.length)
     throw new Error(`Some required options were not found: ${missingRequired.map(o => o.name).join(', ')}`)
 

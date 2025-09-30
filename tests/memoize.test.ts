@@ -58,6 +58,7 @@ class Calculator {
   @Memoize({ clearOn: ['multiplier'] })
   get expensiveCalculation(): number {
     let result = 0
+
     for (let i = 0; i < 1000; i++)
       result += i * this.multiplier
 
@@ -76,11 +77,13 @@ describe('Memoize decorator', () => {
     it('should cache getter results', () => {
       const first = service.expensiveOperation
       const second = service.expensiveOperation
+
       expect(first).toBe(second)
     })
 
     it('should return same cached value multiple times', () => {
       const results = Array.from({ length: 5 }, () => service.expensiveOperation)
+
       expect(results.every(r => r === results[0])).toBe(true)
     })
   })
@@ -88,6 +91,7 @@ describe('Memoize decorator', () => {
   describe('cache invalidation with clearOn', () => {
     it('should clear cache when single dependency changes', () => {
       const first = service.dependentComputation
+
       service.value = 'changed'
       const second = service.dependentComputation
 
@@ -99,15 +103,18 @@ describe('Memoize decorator', () => {
 
       service.value = 'new-value'
       const second = service.multiDependentComputation
+
       expect(first).not.toBe(second)
 
       service.count = 42
       const third = service.multiDependentComputation
+
       expect(second).not.toBe(third)
     })
 
     it('should not clear cache when non-dependent property changes', () => {
       const first = service.dependentComputation
+
       service.count = 999
       const second = service.dependentComputation
 
@@ -119,10 +126,12 @@ describe('Memoize decorator', () => {
     it('should expire cache after TTL', async () => {
       const first = service.timedComputation
       const immediate = service.timedComputation
+
       expect(first).toBe(immediate)
 
       await new Promise(resolve => setTimeout(resolve, 120))
       const afterTTL = service.timedComputation
+
       expect(first).not.toBe(afterTTL)
     })
 
@@ -131,6 +140,7 @@ describe('Memoize decorator', () => {
 
       await new Promise(resolve => setTimeout(resolve, 50))
       const beforeTTL = service.timedComputation
+
       expect(first).toBe(beforeTTL)
     })
   })
@@ -138,6 +148,7 @@ describe('Memoize decorator', () => {
   describe('performance benefits', () => {
     it('should avoid expensive recalculations', () => {
       const calc = new Calculator()
+
       calc.multiplier = 10
 
       const start = performance.now()
@@ -146,6 +157,7 @@ describe('Memoize decorator', () => {
       const firstTime = performance.now() - start
 
       const start2 = performance.now()
+
       calc.expensiveCalculation
       const cachedTime = performance.now() - start2
 
@@ -182,6 +194,7 @@ describe('Memoize decorator', () => {
       }
 
       const service = new NullService()
+
       expect(service.nullValue).toBeNull()
       expect(service.nullValue).toBeNull()
       expect(service.undefinedValue).toBeUndefined()
@@ -199,6 +212,7 @@ describe('Memoize decorator', () => {
       const service = new ObjectService()
       const first = service.complexObject
       const second = service.complexObject
+
       expect(first).toBe(second)
     })
   })

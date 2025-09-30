@@ -66,6 +66,7 @@ const styleMap = {
   rgb: (r: number, g: number, b: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle,
   hex: (hex: string, type: Appearance = 'fg') => {
     const [r, g, b] = Color.from('hex', hex).to('rgb')
+
     return [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle
   },
 
@@ -78,6 +79,7 @@ function applyStyles(styles: ColorStyle[], value: string): string {
 
   for (let i = 0, len = styles.length; i < len; i++) {
     const [start, end] = styles[i]
+
     open += `${ANSI}${start}m`
     close = `${ANSI}${end}m${close}`
   }

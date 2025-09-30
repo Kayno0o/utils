@@ -1,6 +1,7 @@
 import { colors, declareCustomLogger, declareLogger } from '~'
 
 const baseLogger = declareLogger({ logLevel: 2 })
+
 baseLogger('success', 'messages')
 baseLogger('info', 'not logged')
 

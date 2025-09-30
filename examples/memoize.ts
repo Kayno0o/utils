@@ -12,6 +12,7 @@ class Calculator {
   get expensiveCalculation(): number {
     console.log('Computing expensive calculation...')
     let result = 0
+
     for (let i = 0; i < 1000; i++)
       result += i * this.multiplier
 
@@ -26,6 +27,7 @@ class Calculator {
 
     if (n <= 1)
       return n
+
     return this.fibonacci(n - 1) + this.fibonacci(n - 2)
   }
 
@@ -33,6 +35,7 @@ class Calculator {
   @Memoize({ ttl: 2000 })
   fetchData(id: string, options?: { cache?: boolean }): string {
     console.log(`Fetching data for ${id} with options:`, options)
+
     return `Data for ${id} - ${Date.now()}`
   }
 
@@ -40,6 +43,7 @@ class Calculator {
   @Memoize({ clearOn: ['multiplier'] })
   compute(base: number, power: number): number {
     console.log(`Computing ${base}^${power} * ${this.multiplier}`)
+
     return base ** power * this.multiplier
   }
 

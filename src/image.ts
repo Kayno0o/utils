@@ -29,10 +29,12 @@ export async function convertImage(imageUrl: string, options?: {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
+
     if (!ctx)
       return reject(new Error('Context not found'))
 
     const img = new Image()
+
     img.crossOrigin = 'anonymous' // enable CORS if needed
     img.src = imageUrl
 
@@ -44,6 +46,7 @@ export async function convertImage(imageUrl: string, options?: {
         height *= options.maxWidth / width
         width = options.maxWidth
       }
+
       if (options?.maxHeight && height > options.maxHeight) {
         width *= options.maxHeight / height
         height = options.maxHeight

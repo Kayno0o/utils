@@ -19,6 +19,7 @@ export class Faker {
     paragraph: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
       Array.from({ length: Math.max(1, length) }, () => {
         const count = randomInt(3, 7, isCrypto)
+
         return Faker.lorem.sentence(count, isCrypto, dictionary)
       }).join('\n'),
     sentence: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
@@ -42,14 +43,17 @@ export class Faker {
       const daysInMonth = getDaysInMonth(year, month)
 
       const day = Math.floor(Math.random() * daysInMonth) + 1
+
       return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
     },
     month: (): string => {
       const month = Math.floor(Math.random() * 12) + 1
+
       return month.toString().padStart(2, '0')
     },
     year: ({ endYear = new Date().getFullYear() + 4, startYear = new Date().getFullYear() - 4 }: { endYear?: number, startYear?: number } = {}): string => {
       const year = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear
+
       return year.toString()
     },
   }
@@ -72,6 +76,7 @@ export class Faker {
       return UUID_V4_TEMPLATE.replace(/[xy]/g, (c) => {
         const r = randomInt(0, 16, isCrypto)
         const v = c === 'x' ? r : (r & 0x3 | 0x8)
+
         return v.toString(16)
       })
     },

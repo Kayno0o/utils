@@ -40,6 +40,7 @@ export function declareGetEndpoint<
 
   function getEndpoint(name: string, resolvedParams?: any): string {
     const endpoint: string = ENDPOINTS[name]
+
     if (!resolvedParams)
       return endpoint
 

@@ -13,17 +13,23 @@ export type RuleType<T> = (RulesName<T> | RuleFunction<T>)[]
 function compareNumber(comparator: 'lt' | 'gt' | 'gte' | 'lte' | 'eq' | 'neq', nb: number): RuleFunction<number | undefined | null> {
   return (value: number | undefined | null) => {
     value ??= 0
+
     switch (comparator) {
     case 'eq':
       return value === nb || `Must equal ${nb}.`
+
     case 'neq':
       return value !== nb || `Must not be ${nb}.`
+
     case 'gt':
       return value > nb || `Greater than ${nb}.`
+
     case 'gte':
       return value >= nb || `At least ${nb}.`
+
     case 'lt':
       return value < nb || `Less than ${nb}.`
+
     case 'lte':
       return value <= nb || `At most ${nb}.`
     default:
@@ -55,6 +61,7 @@ export class Rules {
       return true
 
     const hour = date.getHours()
+
     return (include ? (hour >= minHour && hour <= maxHour) : (hour > minHour && hour < maxHour))
       || (include
         ? `Time must be between ${minHour}h and ${maxHour}h, inclusive`
@@ -120,6 +127,7 @@ export class Rules {
     (value?: string | any[] | null) => {
       if (!value)
         return true
+
       return ((value?.length || 0) <= length) || `Max length is ${length} characters`
     }
 
@@ -129,6 +137,7 @@ export class Rules {
     (value?: string | any[] | null) => {
       if (!value)
         return true
+
       return ((value?.length || 0) >= length) || `Min length is ${length} characters`
     }
 
@@ -149,6 +158,7 @@ export class Rules {
   static phone = (value?: string | number | null): boolean | string => {
     if (!value)
       return true
+
     return (/^(?:\+?33 ?|0)[1-9](?:[-. ]?\d{2}){4}$/).test(value.toString()) || 'Invalid phone number'
   }
 
@@ -176,6 +186,7 @@ export class Rules {
       return true
 
     const normalizedDate = new Date(date)
+
     normalizedDate.setHours(0, 0, 0, 0)
 
     const comparison = include
@@ -192,6 +203,7 @@ export class Rules {
       return true
 
     const today = new Date()
+
     today.setHours(0, 0, 0, 0)
 
     const comparison = include
@@ -208,9 +220,11 @@ export class Rules {
       return true
 
     const normalizedMinDate = new Date(minDate)
+
     normalizedMinDate.setHours(0, 0, 0, 0)
 
     const normalizedMaxDate = new Date(maxDate)
+
     normalizedMaxDate.setHours(0, 0, 0, 0)
 
     const comparison = include

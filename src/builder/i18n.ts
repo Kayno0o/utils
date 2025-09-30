@@ -50,6 +50,7 @@ export function declareI18n<
   function getNestedValue<T, K extends string>(obj: T, key: K): GetNestedValue<T, K> {
     const keys = key.split('.')
     let current: any = obj
+
     for (const k of keys)
       current = current?.[k]
 
@@ -76,6 +77,7 @@ export function declareI18n<
 
     if (!template) {
       console.warn(`Translation key "${key}" not found for locale "${locale}"`)
+
       return key
     }
 

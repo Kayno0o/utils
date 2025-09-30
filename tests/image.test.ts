@@ -4,11 +4,13 @@ import { getPlaceholderUrl } from '~'
 describe('getPlaceholderUrl function', () => {
   it('should return a default URL when no props are provided', () => {
     const result = getPlaceholderUrl({})
+
     expect(result).toEqual('https://placehold.co/100x100')
   })
 
   it('should include width and height in the URL', () => {
     const result = getPlaceholderUrl({ height: 300, width: 200 })
+
     expect(result).toEqual('https://placehold.co/200x300')
   })
 
@@ -19,6 +21,7 @@ describe('getPlaceholderUrl function', () => {
       height: 300,
       width: 200,
     })
+
     expect(result).toEqual('https://placehold.co/200x300/000000/FFFFFF')
   })
 
@@ -30,6 +33,7 @@ describe('getPlaceholderUrl function', () => {
       text: 'Hello World',
       width: 150,
     })
+
     expect(result).toEqual('https://placehold.co/150x150/png?font=roboto&text=Hello+World')
   })
 
@@ -39,11 +43,13 @@ describe('getPlaceholderUrl function', () => {
       text: 'Line1\nLine2',
       width: 100,
     })
+
     expect(result).toEqual('https://placehold.co/100x100?text=Line1%5CnLine2')
   })
 
   it('should include only the specified format when no colors are provided', () => {
     const result = getPlaceholderUrl({ format: 'jpg', height: 200, width: 200 })
+
     expect(result).toEqual('https://placehold.co/200x200/jpg')
   })
 })
