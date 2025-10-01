@@ -1,115 +1,99 @@
-import { performance } from 'node:perf_hooks'
-import { colors, Faker, progressBar, randomHex, randomInt, randomString, range, searchOne } from './index'
+import { bench, group, run } from 'mitata'
+import { Faker, firstUpper, parseArgs, randomHex, randomInt, randomString, range, searchOne } from './index'
 
-interface BenchmarkOptions {
-  iterations?: number
-  verbose?: boolean
-  /** in ms */
-  warmup?: number
+// console.clear()
+
+const { filter } = parseArgs({
+  args: process.argv.slice(2),
+  options: {
+    filter: { type: 'string', short: 'f' },
+  },
+})
+
+if (!filter || searchOne(filter, 'randomInt')) {
+  group('randomInt', () => {
+    bench('Math.random', () => randomInt(1, 100, false))
+    bench('crypto', () => randomInt(1, 100, true))
+  })
 }
 
-function warmup(callback: () => void, duration = 1000) {
-  const end = performance.now() + duration
-
-  while (performance.now() < end)
-    callback()
+if (!filter || searchOne(filter, 'faker.text:paragraph:50')) {
+  group('faker.text:paragraph:50', () => {
+    bench('Math.random', () => Faker.lorem.paragraph(50, false))
+    bench('crypto', () => Faker.lorem.paragraph(50, true))
+  })
 }
 
-function benchmark(name: string, callback: () => void, { iterations = 1_000, verbose = true, warmup: warmupMs = 1_000 }: BenchmarkOptions) {
-  if (verbose)
-    console.log(colors.cyan.bold('[Benchmark]'), name)
-
-  warmup(callback, warmupMs)
-
-  const startTime = performance.now()
-
-  for (let i = 0; i < iterations; i++)
-    callback()
-
-  const endTime = performance.now()
-  const timeTaken = endTime - startTime
-
-  if (verbose)
-    console.log(colors.green('[Time]   '), `${timeTaken.toFixed(10)} ms`)
-
-  return timeTaken
+if (!filter || searchOne(filter, 'faker.uuidV4')) {
+  group('faker.uuidV4', () => {
+    bench('Math.random', () => Faker.datatype.uuidV4())
+    bench('crypto', () => Faker.datatype.uuidV4(true))
+  })
 }
 
-function suite(benchmarks: [string, () => void][], options: BenchmarkOptions = {}) {
-  const search = process.argv.slice(2).join(' ')
+if (!filter || searchOne(filter, 'randomHex')) {
+  group('randomHex', () => {
+    bench('Math.random', () => randomHex())
+    bench('crypto', () => randomHex(true))
+  })
+}
 
-  benchmarks = benchmarks.filter(([name]) => searchOne(search, name))
+if (!filter || searchOne(filter, 'range')) {
+  group('range', () => {
+    bench('range(10)', () => range(10))
+    bench('range(90, 100)', () => range(90, 100))
+  })
+}
 
-  if (!benchmarks.length)
-    return
+if (!filter || searchOne(filter, 'RGB to Hex conversion')) {
+  const [r, g, b] = [124, 240, 0]
 
-  const results: {
-    name: string
-    timeTaken: number
-  }[] = []
+  group('RGB to Hex conversion', () => {
+    bench('padStart', () => `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0').toUpperCase()}`)
+    bench('bit shift + slice', () => `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`.toUpperCase())
+    bench('string slice concat', () => {
+      const hex = (r << 16 | g << 8 | b).toString(16)
 
-  for (const [name, callback] of benchmarks)
-    results.push({ name, timeTaken: benchmark(name, callback, options) })
+      return `#${('000000'.slice(hex.length) + hex).toUpperCase()}`
+    })
+  })
+}
 
-  const maxTime = Math.max(...results.map(result => result.timeTaken))
+if (!filter || searchOne(filter, 'firstUpper')) {
+  const { Bench } = await import('tinybench')
+  const s1000 = randomString(1000)
+  const firstUpper2 = (str: string) => str.substring(0, 1).toUpperCase() + str.substring(1)
+  const firstUpper3 = (str: string) => str.charAt(0).toUpperCase() + str.substring(1)
+  const firstUpper4 = (str: string) => str[0].toUpperCase() + str.substring(1)
+  const firstUpper5 = (str: string) => str[0].toUpperCase() + str.slice(1)
 
-  console.log(colors.magenta.bold('\n[Comparison]'))
+  const suite = new Bench({ name: 'firstUpper' })
 
-  const longestName = results.reduce((acc, curr) => curr.name.length > acc ? curr.name.length : acc, 0)
+  suite
+    .add('charAt + slice', () => firstUpper(s1000))
+    .add('substring x2', () => firstUpper2(s1000))
+    .add('charAt + substring', () => firstUpper3(s1000))
+    .add('[0] + substring', () => firstUpper4(s1000))
+    .add('[0] + slice', () => firstUpper5(s1000))
 
-  for (const result of results) {
-    const timeColor = [colors.green, colors.red][Number(result.timeTaken === maxTime)]
+  await suite.run()
 
-    console.log(' '.repeat(longestName - result.name.length) + colors.yellow.bold(result.name), progressBar(result.timeTaken, 0, maxTime), timeColor(`${(result.timeTaken / (options.iterations ?? 1_000)).toFixed(10)} ms`))
+  // Sort by performance (fastest first)
+  const sorted = suite.tasks.sort((a, b) => a.result!.latency.mean - b.result!.latency.mean)
+  const fastest = sorted[0].result!.latency.mean
+
+  console.log('\n• firstUpper (sorted by speed)\n')
+  let i = 0
+
+  for (const task of sorted) {
+    i++
+    const result = task.result!
+    const opsPerSec = (1_000_000_000 / result.latency.mean).toFixed(0)
+    const relative = (result.latency.mean / fastest).toFixed(2)
+    const marker = i === 0 ? '✓' : ' '
+
+    console.log(`${marker} ${task.name.padEnd(20)} ${result.latency.mean.toFixed(2).padStart(6)} ns/iter  ${opsPerSec.padStart(12)} ops/s  ${relative}x`)
   }
 }
 
-console.clear()
-
-suite([
-  ['randomInt', () => randomInt(1, 100, false)],
-  ['randomInt:crypto', () => randomInt(1, 100, true)],
-], { iterations: 1_000_000 })
-
-suite([
-  ['faker.text:paragraph:50', () => Faker.lorem({ isCrypto: false, length: 50, type: 'paragraph' })],
-  ['faker.text:paragraph:50:crypto', () => Faker.lorem({ isCrypto: true, length: 50, type: 'paragraph' })],
-], { iterations: 1_000 })
-
-suite([
-  ['faker.uuidV4', () => Faker.datatype.uuidV4()],
-  ['faker.uuidV4:crypto', () => Faker.datatype.uuidV4(true)],
-], { iterations: 10_000 })
-
-suite([
-  ['randomHex', () => randomHex()],
-  ['randomHex:crypto', () => randomHex(true)],
-], { iterations: 1_000_000 })
-
-suite([
-  ['range:10', () => range(10)],
-  ['range:90-100', () => range(90, 100)],
-], { iterations: 1_000_000 })
-
-const s = randomString(10_000)
-
-suite([
-  ['colors', () => colors.red([`red`, colors.bold(s)].join(' '))],
-  ['colors', () => colors.red([`red`, colors.bold(s)].join(' '))],
-  ['colors', () => colors.red(`red ${colors.bold(s)}`)],
-  ['colors', () => `${colors.red('red')} ${colors.red.bold(s)}`],
-], { iterations: 1_000 })
-
-const [r, g, b] = [124, 240, 0]
-
-suite([
-  ['rgb converted 00001', () => `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0').toUpperCase()}`],
-  ['rgb converted 2', () => `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`.toUpperCase()],
-  ['rgb converted 3', () => {
-    const hex = (r << 16 | g << 8 | b).toString(16)
-
-    return `#${('000000'.slice(hex.length) + hex).toUpperCase()}`
-  }],
-], { iterations: 1_000_000 })
-
-console.log()
+await run()

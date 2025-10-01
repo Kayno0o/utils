@@ -45,6 +45,8 @@
     "@types/bun": "^1.2.23",
     "eslint": "^9.36.0",
     "lint-staged": "^16.2.3",
+    "mitata": "^1.0.34",
+    "tinybench": "^5.0.1",
     "tsup": "^8.5.0",
     "typedoc": "^0.28.13",
     "typedoc-github-theme": "^0.3.1",
