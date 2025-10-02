@@ -1,4 +1,5 @@
 export * from './src/array'
+export * from './src/builder/date'
 export * from './src/builder/endpoint'
 export * from './src/builder/i18n'
 export * from './src/builder/isGranted'

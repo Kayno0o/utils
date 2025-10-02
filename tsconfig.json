@@ -9,6 +9,7 @@
     "paths": {
       "~/tools/*": ["./src/tools/*.ts"],
       "~/types": ["./types/index.ts"],
+      "~/i18n/*": ["./i18n/*.ts"],
       "~/*": ["./src/*.ts"],
       "~": ["./index.ts"]
     },

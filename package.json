@@ -23,6 +23,18 @@
     "esm"
   ],
   "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./i18n/date/*": {
+      "types": "./dist/i18n/date/*.d.ts",
+      "import": "./dist/i18n/date/*.js",
+      "require": "./dist/i18n/date/*.cjs"
+    }
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
