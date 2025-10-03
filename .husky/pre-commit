@@ -17,3 +17,5 @@ if [ -n "$STAGED_FILES" ]; then
     $BUN_PATH eslint --cache $STAGED_FILES
   fi
 fi
+
+$BUN_PATH x changelogithub --dry
