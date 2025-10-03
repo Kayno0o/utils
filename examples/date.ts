@@ -1,5 +1,5 @@
 import { buildDate, loadDateLocale } from '~'
-import fr from '~/i18n/date/fr'
+import fr from '../i18n/date/fr'
 
 console.log(buildDate())
 console.log(buildDate('2025-06-06'))
