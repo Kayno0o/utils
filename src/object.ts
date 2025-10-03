@@ -118,3 +118,15 @@ export function unfunction<T>(c: T | (() => T)): T {
 
   return c
 }
+
+export function ObjectEntries<Obj extends Record<Key, any>>(record: Obj): { [K in keyof Obj]: [K, Obj[K]] }[keyof Obj][] {
+  return Object.entries(record) as { [K in keyof Obj]: [K, Obj[K]] }[keyof Obj][]
+}
+
+export function ObjectKeys<Obj extends Record<Key, any>>(record: Obj): (keyof Obj)[] {
+  return Object.keys(record) as (keyof Obj)[]
+}
+
+export function ObjectValues<Obj extends Record<Key, any>>(record: Obj): Obj[keyof Obj][] {
+  return Object.values(record) as Obj[keyof Obj][]
+}
