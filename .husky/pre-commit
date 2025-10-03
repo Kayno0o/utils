@@ -12,7 +12,7 @@ STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(jso
 
 if [ -n "$STAGED_FILES" ]; then
   if command -v eslint_d &> /dev/null; then
-    $BUN_PATH eslint_d --cache $STAGED_FILES
+    eslint_d --cache $STAGED_FILES
   else
     $BUN_PATH eslint --cache $STAGED_FILES
   fi
