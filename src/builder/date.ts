@@ -1,5 +1,6 @@
 import type { DateTranslations } from '~/i18n/date/types'
 import en from '~/i18n/date/en'
+import { ObjectEntries, ObjectKeys } from '~/object'
 
 type FormatType
 = | `iso`
@@ -40,14 +41,33 @@ type FormatDateOption = {
   format?: FormatType
 }
 
+const formats: Record<keyof DateObject, string[]> = {
+  year: ['y', 'yy'],
+  year4: ['Y', 'yyyy'],
+  month: ['m'],
+  month2: ['mm', 'M'],
+  month3: ['mmm'],
+  month4: ['mmmm'],
+  day: ['d'],
+  day2: ['dd', 'D'],
+  weekDay: ['w'],
+  weekDay2: ['ww', 'W'],
+  weekDay3: ['www'],
+  weekDay4: ['wwww'],
+  hour: ['h'],
+  hour2: ['hh', 'H'],
+  minute: ['i'],
+  minute2: ['ii', 'I'],
+  second: ['s'],
+  second2: ['ss', 'S'],
+}
+
 export function loadDateLocale(translations: DateTranslations) {
   currentLocale = translations
 }
 
-export function formatDate(date: Date, builder: DateBuilderFunction): string
-export function formatDate(date: Date, format: FormatType): string
-export function formatDate(date: Date, builderOrFormat: DateBuilderFunction | FormatType): string {
-  const d: DateObject = {
+export function dateToObject(date: Date): DateObject {
+  return {
     year: String(date.getFullYear()).substring(2),
     year4: String(date.getFullYear()),
     month: String(date.getMonth() + 1),
@@ -67,6 +87,20 @@ export function formatDate(date: Date, builderOrFormat: DateBuilderFunction | Fo
     second: String(date.getSeconds()),
     second2: String(date.getSeconds()).padStart(2, '0'),
   }
+}
+
+export function formatDate(date: Date, builder: DateBuilderFunction): string
+export function formatDate(date: Date, format: FormatType): string
+export function formatDate(date: Date, builderOrFormat: DateBuilderFunction | FormatType): string {
+  const d: DateObject = dateToObject(date)
+
+  const reverseFormats: Record<string, keyof DateObject> = ObjectEntries(formats)
+    .reduce((acc, [key, values]) => {
+      for (const value of values)
+        acc[value] = (d as any)[key]
+
+      return acc
+    }, {} as Record<string, keyof DateObject>)
 
   if (typeof builderOrFormat === 'function')
     return builderOrFormat(d, date)
@@ -76,35 +110,6 @@ export function formatDate(date: Date, builderOrFormat: DateBuilderFunction | Fo
 
   if (builderOrFormat === 'iso-datetime' || builderOrFormat === 'iso8601-datetime')
     return `${d.year4}-${d.month2}-${d.day2}T${d.hour2}:${d.minute2}:${d.second2}`
-
-  const formats: Record<keyof typeof d, string[]> = {
-    year: ['y', 'yy'],
-    year4: ['Y', 'yyyy'],
-    month: ['m'],
-    month2: ['mm', 'M'],
-    month3: ['mmm'],
-    month4: ['mmmm'],
-    day: ['d'],
-    day2: ['dd', 'D'],
-    weekDay: ['w'],
-    weekDay2: ['ww', 'W'],
-    weekDay3: ['www'],
-    weekDay4: ['wwww'],
-    hour: ['h'],
-    hour2: ['hh', 'H'],
-    minute: ['i'],
-    minute2: ['ii', 'I'],
-    second: ['s'],
-    second2: ['ss', 'S'],
-  }
-
-  const reverseFormats: Record<string, keyof typeof d> = Object.entries(formats)
-    .reduce((acc, [key, values]) => {
-      for (const value of values)
-        acc[value] = (d as any)[key]
-
-      return acc
-    }, {} as Record<string, keyof typeof d>)
 
   return (builderOrFormat as string).replace(/y{1,4}|m{1,4}|d{1,3}|w{1,4}|h{1,2}|i{1,2}|s{1,2}/gi, format => reverseFormats[format] ?? format)
 }
