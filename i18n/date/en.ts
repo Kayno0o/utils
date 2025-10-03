@@ -1,6 +1,6 @@
 import type { DateTranslations } from './types'
 
-export default {
+export const en = {
   'm-1': 'January',
   'm-2': 'February',
   'm-3': 'March',
@@ -40,3 +40,5 @@ export default {
   'ws-6': 'Sat',
   'ws-7': 'Sun',
 } satisfies DateTranslations
+
+export default en
