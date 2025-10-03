@@ -1,6 +1,6 @@
 import type { DateTranslations } from '~/i18n/date/types'
 import en from '~/i18n/date/en'
-import { ObjectEntries, ObjectKeys } from '~/object'
+import { ObjectEntries } from '~/object'
 
 type FormatType
 = | `iso`
