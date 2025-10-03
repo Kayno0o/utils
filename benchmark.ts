@@ -17,14 +17,14 @@ if (!filter || searchOne(filter, 'randomInt')) {
   })
 }
 
-if (!filter || searchOne(filter, 'faker.text:paragraph:50')) {
+if (!filter || searchOne(filter, 'faker paragraph')) {
   group('faker.text:paragraph:50', () => {
     bench('Math.random', () => Faker.lorem.paragraph(50, false))
     bench('crypto', () => Faker.lorem.paragraph(50, true))
   })
 }
 
-if (!filter || searchOne(filter, 'faker.uuidV4')) {
+if (!filter || searchOne(filter, 'faker uuidV4')) {
   group('faker.uuidV4', () => {
     bench('Math.random', () => Faker.datatype.uuidV4())
     bench('crypto', () => Faker.datatype.uuidV4(true))
