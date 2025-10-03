@@ -18,4 +18,6 @@ if [ -n "$STAGED_FILES" ]; then
   fi
 fi
 
+$BUN_PATH run build
+$BUN_PATH x tsc --noEmit
 $BUN_PATH x changelogithub --dry

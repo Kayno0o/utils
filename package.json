@@ -49,6 +49,7 @@
     "./dist"
   ],
   "scripts": {
+    "check": "tsc --noEmit --strict",
     "build": "tsup",
     "lint:fix": "bunx --bun eslint --fix",
     "lint": "bunx --bun eslint",
