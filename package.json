@@ -29,6 +29,13 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./cli": {
+      "node": {
+        "types": "./dist/cli.d.ts",
+        "import": "./dist/cli.js",
+        "require": "./dist/cli.cjs"
+      }
+    },
     "./i18n/date/*": {
       "types": "./dist/i18n/date/*.d.ts",
       "import": "./dist/i18n/date/*.js",
