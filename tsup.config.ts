@@ -8,4 +8,5 @@ export default defineConfig({
   minify: true,
   sourcemap: false,
   splitting: false,
+  tsconfig: './tsconfig.json',
 })
