@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { Rules } from '~'
+import { Rules } from '../../src'
 
 describe('isInteger rule', () => {
   it('should return true for valid integer (strict mode)', () => {

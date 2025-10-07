@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { calculateEaster, getFrenchHolidays, isHoliday, stringToMsDuration } from '~'
+import { calculateEaster, getFrenchHolidays, isHoliday, stringToMsDuration } from '../src'
 
 describe('calculateEaster function', () => {
   it('should return the correct date for Easter in 2023', () => {

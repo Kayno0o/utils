@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { getRandomElement, notNullish, range, uniqueArray } from '~'
+import { getRandomElement, notNullish, range, uniqueArray } from '../src'
 
 describe('getRandomElement function', () => {
   it('should return an element from the array', () => {

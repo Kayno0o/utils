@@ -1,4 +1,4 @@
-import { Faker } from '~'
+import { Faker } from '../src/tools'
 
 console.log(Faker.name.username())
 console.log(Faker.lorem.sentence())

@@ -1,4 +1,5 @@
-import { colors, declareCustomLogger, declareLogger } from '~'
+import { declareCustomLogger, declareLogger } from '../src/builders'
+import { colors } from '../src/tools'
 
 const baseLogger = declareLogger({ logLevel: 2 })
 

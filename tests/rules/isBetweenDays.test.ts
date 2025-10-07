@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { Rules } from '~'
+import { Rules } from '../../src'
 
 describe('isBetweenDays rule', () => {
   const minDate = new Date('2023-07-28')

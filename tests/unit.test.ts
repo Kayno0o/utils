@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { formatEuro, formatFileSize, formatUnit } from '~'
+import { formatEuro, formatFileSize, formatUnit } from '../src/format/number'
 
 describe('formatFileSize function', () => {
   it('handle negative bytes', () => {

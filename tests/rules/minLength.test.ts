@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { Rules } from '~'
+import { Rules } from '../../src'
 
 describe('minLength rule', () => {
   it('should return true for string with length greater than or equal to minLength', () => {

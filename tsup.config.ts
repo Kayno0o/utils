@@ -3,10 +3,16 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   clean: true,
   dts: true,
-  entry: ['./index.ts', './cli.ts', './i18n/date/*.ts'],
-  format: ['cjs', 'esm'],
+  entry: [
+    './src/index.ts',
+    './src/cli.ts',
+    './src/*/index.ts',
+    './src/i18n/date/*.ts',
+  ],
+  format: ['esm'],
   minify: true,
   sourcemap: false,
   splitting: false,
+  treeshake: true,
   tsconfig: './tsconfig.json',
 })

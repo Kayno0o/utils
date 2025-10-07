@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { Faker } from '~'
+import { Faker } from '../src/tools'
 
 describe('faker.paragraph function', () => {
   const notEmpty = (value: any) => Boolean(value)

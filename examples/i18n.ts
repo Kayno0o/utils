@@ -1,5 +1,5 @@
-import type { TranslationObject, TranslationStructure } from '~'
-import { declareI18n } from '~'
+import type { TranslationObject, TranslationStructure } from '../src/builders'
+import { declareI18n } from '../src/builders'
 
 const fr = {
   commands: {
@@ -29,7 +29,7 @@ const fr = {
   missing_in_en: '',
 } as const satisfies TranslationObject
 
-/** error since "missing_in_en" key is not in `EN` translations */
+/** @ts-expect-error "missing_in_en" key is not in `EN` translations */
 const en: TranslationStructure<typeof fr> = {
   commands: {
     help: {
@@ -64,9 +64,14 @@ const { t } = declareI18n(translations)
 t('en', 'commands.help.description')
 t('en', 'commands.help.response', { command: 'wiwiwi' })
 
-// TypeScript will error on these:
-t('fr', 'commands.user.profile') // Error: Expected 3 arguments
-t('fr', 'commands.user.notFound', { foo: 'bar' }) // Error: Expected 2 arguments
-t('fr', 'commands.user.profile', { wrongVar: 'test' }) // Error: 'wrongVar' not in variables
-t('fr', 'invalid.key') // Error: invalid key
-t('es', 'invalid.key') // Error: invalid locale
+// ! TypeScript will error on these:
+/** @ts-expect-error Expected 3 arguments */
+t('fr', 'commands.user.profile')
+/** @ts-expect-error Expected 2 arguments */
+t('fr', 'commands.user.notFound', { foo: 'bar' })
+/** @ts-expect-error 'wrongVar' not in variables */
+t('fr', 'commands.user.profile', { wrongVar: 'test' })
+/** @ts-expect-error invalid key */
+t('fr', 'invalid.key')
+/** @ts-expect-error invalid locale */
+t('es', 'invalid.key')

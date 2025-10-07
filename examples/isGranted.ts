@@ -1,4 +1,4 @@
-import { declareIsGranted } from '~'
+import { declareIsGranted } from '../src/builders'
 
 type RoleType = 'ROLE_ADMIN' | 'ROLE_USER'
 

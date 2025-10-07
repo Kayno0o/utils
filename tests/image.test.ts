@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { getPlaceholderUrl } from '~'
+import { getPlaceholderUrl } from '../src'
 
 describe('getPlaceholderUrl function', () => {
   it('should return a default URL when no props are provided', () => {

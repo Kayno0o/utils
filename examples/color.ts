@@ -1,3 +1,3 @@
-import { ColorConverter } from '~'
+import { Color } from '../src/tools/ColorConverter'
 
-console.log(ColorConverter.from('hex', '#f0af02').to('hsl'))
+console.log(Color.from('hex', '#f0af02').to('hsl'))
