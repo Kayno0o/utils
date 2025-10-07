@@ -89,8 +89,55 @@ export function searchAll(query: string, ...values: string[]): boolean {
   return values.every(value => normalizeAccents(value).toLowerCase().includes(query))
 }
 
+/**
+ * remove JavaScript/TypeScript/JSONC comments from code
+ * handles single-line (//) and multi-line (/* *\/) comments while preserving string literals
+ */
 export function removeComments(content: string): string {
-  return content.replace(/\/\/.+|\/\*\*?[^*]*\*\//g, '')
+  let result = ''
+  let i = 0
+
+  while (i < content.length) {
+    // skip strings to avoid removing // or /* inside them
+    if (content[i] === '"' || content[i] === '\'' || content[i] === '`') {
+      const quote = content[i]
+      const start = i++
+
+      while (i < content.length && (content[i] !== quote || content[i - 1] === '\\')) {
+        i++
+      }
+
+      result += content.slice(start, ++i)
+
+      continue
+    }
+
+    // multi-line comment
+    if (content[i] === '/' && content[i + 1] === '*') {
+      i += 2
+
+      while (i < content.length && !(content[i] === '*' && content[i + 1] === '/')) {
+        i++
+      }
+
+      i += 2
+
+      continue
+    }
+
+    // single-line comment
+    if (content[i] === '/' && content[i + 1] === '/') {
+      while (i < content.length && content[i] !== '\n') {
+        i++
+      }
+
+      continue
+    }
+
+    result += content[i++]
+  }
+
+  return result
 }
 
 export function escapeXml(unsafe: string): string {
