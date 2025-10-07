@@ -1,4 +1,4 @@
-import { parseArgs } from '~/cli'
+import { parseArgs } from '../src/cli'
 
 const result = parseArgs({
   args: process.argv.splice(2),

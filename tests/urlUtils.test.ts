@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { buildUrlQuery } from '~'
+import { buildUrlQuery } from '../src'
 
 describe('buildUrlQuery function', () => {
   it('should return an empty string when query is undefined', () => {

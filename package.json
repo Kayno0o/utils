@@ -19,38 +19,44 @@
     "ts",
     "javascript",
     "js",
-    "cjs",
     "esm"
   ],
   "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.js"
     },
     "./cli": {
-      "node": {
-        "types": "./dist/cli.d.ts",
-        "import": "./dist/cli.js",
-        "require": "./dist/cli.cjs"
-      }
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    },
+    "./decorators": {
+      "types": "./dist/decorators/index.d.ts",
+      "import": "./dist/decorators/index.js"
+    },
+    "./format": {
+      "types": "./dist/format/index.d.ts",
+      "import": "./dist/format/index.js"
+    },
+    "./tools": {
+      "types": "./dist/tools/index.d.ts",
+      "import": "./dist/tools/index.js"
     },
     "./i18n/date/*": {
       "types": "./dist/i18n/date/*.d.ts",
-      "import": "./dist/i18n/date/*.js",
-      "require": "./dist/i18n/date/*.cjs"
+      "import": "./dist/i18n/date/*.js"
     }
   },
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "./dist"
+    "dist"
   ],
   "scripts": {
     "check": "tsc --noEmit --strict",
-    "build": "tsup",
+    "build": "rm -rf ./dist && tsup",
     "lint:fix": "bunx --bun eslint --fix",
     "lint": "bunx --bun eslint",
     "doc": "typedoc ./src/**/*.ts --plugin typedoc-github-theme",

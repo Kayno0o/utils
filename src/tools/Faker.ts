@@ -1,7 +1,4 @@
-import { getRandomElement } from '../array'
-import { getDaysInMonth } from '../date'
-import { randomInt } from '../number'
-import { firstUpper } from '../text'
+import { firstUpper, getDaysInMonth, getRandomElement, randomInt } from '../'
 
 const LOREM_WORDS = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'proin', 'ultricies', 'sed', 'dui', 'scelerisque', 'donec', 'pellentesque', 'diam', 'vel', 'ligula', 'efficitur']
 

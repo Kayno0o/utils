@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { map, randomInt, round } from '~'
+import { map, randomInt, round } from '../src'
 
 describe('randomInt function', () => {
   it('within the specified range', () => {

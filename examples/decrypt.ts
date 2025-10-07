@@ -1,4 +1,4 @@
-import { decryptMonoalphabet } from '~'
+import { decryptMonoalphabet } from '../src'
 
 const alphabet = {
   'U': 't',

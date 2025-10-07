@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, matchingSubstring, matchLength, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle } from '~'
+import { escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, matchingSubstring, matchLength, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {

@@ -7,10 +7,7 @@
     "module": "Preserve",
     "moduleResolution": "Bundler",
     "paths": {
-      "~/tools/*": ["./src/tools/*.ts"],
-      "~/types": ["./types/index.ts"],
-      "~/*": ["./src/*.ts"],
-      "~": ["./index.ts"]
+      "~/types": ["./types/index.ts"]
     },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
@@ -31,11 +28,11 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "files": ["./index.ts"],
   "include": [
-    "index.ts",
     "src",
-    "types/**/*.d.ts"
+    "types",
+    "examples",
+    "tests"
   ],
   "exclude": [
     "node_modules",

@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { Rules } from '~'
+import { Rules } from '../../src'
 
 describe('isUrl rule', () => {
   it('should return true for a valid HTTP URL', () => {

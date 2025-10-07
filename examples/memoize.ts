@@ -1,4 +1,4 @@
-import { Memoize } from '~/decorators/memoize'
+import { Memoize } from '../src/decorators/memoize'
 
 class Calculator {
   private _multiplier = 1

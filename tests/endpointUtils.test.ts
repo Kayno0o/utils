@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { declareGetEndpoint } from '~'
+import { declareGetEndpoint } from '../src/builders'
 
 describe('declareGetEndpoint function', () => {
   const endpoints = {
