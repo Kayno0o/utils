@@ -5,7 +5,7 @@
   "description": "A bunch of small utils functions that I use in my TS based projects",
   "author": "Kaynooo <https://github.com/Kayno0o>",
   "license": "MIT",
-  "homepage": "https://Kayno0o.github.io/utils/docs/",
+  "homepage": "https://pages.kaynooo.fr/kaynooo/utils/docs/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kayno0o/utils.git"
@@ -63,7 +63,7 @@
     "build": "rm -rf ./dist && tsdown",
     "lint:fix": "bunx --bun eslint --fix",
     "lint": "bunx --bun eslint",
-    "doc": "typedoc ./src/**/*.ts --plugin typedoc-github-theme",
+    "doc": "typedoc ./src/**/*.ts --plugin typedoc-github-theme --hostedBaseUrl https://pages.kaynooo.fr/kaynooo/utils/docs/ --useHostedBaseUrlForAbsoluteLinks",
     "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null",
     "benchmark": "bun benchmark.ts"
   },
