@@ -12,6 +12,11 @@ jobs:
   test:
     runs-on: debian
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Setup project
         uses: ./.gitea/actions/setup
 
