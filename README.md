@@ -1,4 +1,4 @@
-# @kaynooo/utils
+# [@kaynooo/utils](https://www.npmjs.com/package/@kaynooo/utils)
 
 A comprehensive TypeScript utility library with type-safe builders, decorators, and helper functions for modern web development.
 
@@ -31,7 +31,9 @@ npm install @kaynooo/utils
 ## Quick Start
 
 ```typescript
-import { ColorConverter, declareI18n, declareLogger, Memoize } from '@kaynooo/utils'
+import { declareI18n, declareLogger } from '@kaynooo/utils/builders'
+import { Memoize } from '@kaynooo/utils/decorators'
+import { ColorConverter } from '@kaynooo/utils/tools'
 
 // Type-safe logging
 const logger = declareLogger({ logLevel: 2 })
