@@ -1,0 +1,54 @@
+name: Deploy TypeDoc to Gitea Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.ts'
+      - '**/*.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pages:
+    runs-on: debian
+
+    steps:
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y git lcov
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build pages
+        run: |
+          bun run doc
+          bun run test
+
+      - name: Combine docs and coverage
+        run: |
+          mkdir -p combined/docs combined/coverage
+          cp -r docs/* combined/docs/
+          cp -r coverage/* combined/coverage/
+
+      - name: Deploy to gitea-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: combined
+          publish_branch: gitea-pages
+          force_orphan: true
