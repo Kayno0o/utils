@@ -20,4 +20,4 @@ fi
 
 $BUN_PATH run build
 $BUN_PATH run check
-$BUN_PATH x changelogithub --dry
+$BUN_PATH x changelogen@latest --dry-run

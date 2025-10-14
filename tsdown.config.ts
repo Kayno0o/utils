@@ -1,8 +1,6 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  clean: true,
-  dts: true,
   entry: [
     './src/index.ts',
     './src/cli.ts',
@@ -10,9 +8,8 @@ export default defineConfig({
     './src/i18n/date/*.ts',
   ],
   format: ['esm'],
+  dts: true,
+  clean: true,
   minify: true,
-  sourcemap: false,
-  splitting: false,
   treeshake: true,
-  tsconfig: './tsconfig.json',
 })
