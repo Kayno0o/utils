@@ -15,7 +15,7 @@ runs:
   using: composite
   steps:
     - name: Install system dependencies
-      run: apt-get update && apt-get install -y ${{ inputs.system-packages }}
+      run: apt-get update && apt-get install -y ${{ inputs.system-packages }} unzip
       shell: bash
 
     - name: Checkout code
