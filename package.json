@@ -59,7 +59,7 @@
     "dist"
   ],
   "scripts": {
-    "check": "tsc --noEmit --strict",
+    "check": "tsgo --noEmit --strict",
     "build": "rm -rf ./dist && tsdown",
     "lint:fix": "bunx --bun eslint --fix",
     "lint": "bunx --bun eslint",
@@ -73,6 +73,7 @@
   "devDependencies": {
     "@kaynooo/eslint": "^1.2.0",
     "@types/bun": "^1.2.23",
+    "@typescript/native-preview": "^7.0.0-dev.20251015.1",
     "eslint": "^9.36.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",

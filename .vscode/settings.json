@@ -1,6 +1,7 @@
 {
   // Enable the ESlint flat config support
   "eslint.useFlatConfig": true,
+  "typescript.experimental.useTsgo": true,
 
   // Disable the default formatter, use eslint instead
   "prettier.enable": false,
