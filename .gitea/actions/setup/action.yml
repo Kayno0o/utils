@@ -2,10 +2,6 @@ name: Setup Project
 description: 'Install system dependencies, checkout code, setup Bun, and install project dependencies'
 
 inputs:
-  system-packages:
-    description: Additional system packages to install (space-separated)
-    required: false
-    default: git
   frozen-lockfile:
     description: Use --frozen-lockfile for bun install
     required: false
@@ -14,10 +10,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install system dependencies
-      run: apt-get update && apt-get install -y ${{ inputs.system-packages }} unzip
-      shell: bash
-
     - name: Setup Bun
       uses: oven-sh/setup-bun@v1
       with:

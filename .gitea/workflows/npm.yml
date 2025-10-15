@@ -13,6 +13,9 @@ jobs:
   npm:
     runs-on: debian
     steps:
+      - name: Install git before checkout
+        run: apt-get update && apt-get install -y git unzip
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:

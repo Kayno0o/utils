@@ -17,6 +17,9 @@ jobs:
     runs-on: debian
 
     steps:
+      - name: Install git before checkout
+        run: apt-get update && apt-get install -y git unzip lcov
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -24,8 +27,6 @@ jobs:
 
       - name: Setup project
         uses: ./.gitea/actions/setup
-        with:
-          system-packages: git lcov
 
       - name: Build pages
         run: |
