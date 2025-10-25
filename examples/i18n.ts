@@ -59,7 +59,7 @@ const en: TranslationStructure<typeof fr> = {
 
 const translations = { fr, en } as const
 
-const { t } = declareI18n(translations)
+const { t, translate } = declareI18n(translations)
 
 t('en', 'commands.help.description')
 t('en', 'commands.help.response', { command: 'wiwiwi' })
@@ -75,3 +75,7 @@ t('fr', 'commands.user.profile', { wrongVar: 'test' })
 t('fr', 'invalid.key')
 /** @ts-expect-error invalid locale */
 t('es', 'invalid.key')
+
+const tr = translate('en')
+
+tr('commands.help.response', { command: 'wiwiwi' })

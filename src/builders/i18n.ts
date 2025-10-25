@@ -90,5 +90,22 @@ export function declareI18n<
     return template
   }
 
-  return { t }
+  function translate(locale: LocaleType) {
+    function scopedT<K extends KeysWithoutVariables>(
+      key: K
+    ): string
+
+    function scopedT<K extends KeysWithVariables>(
+      key: K,
+      variables: Record<ExtractVariablesFromKey<PrimaryTranslation, K>, string | number>
+    ): string
+
+    function scopedT<K extends I18nKey>(key: K, variables?: Record<string, string | number>): string {
+      return t(locale, key as any, variables as any)
+    }
+
+    return scopedT
+  }
+
+  return { t, translate }
 }
