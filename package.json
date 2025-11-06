@@ -55,9 +55,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "check": "tsgo --noEmit --strict",
     "build": "rm -rf ./dist && tsdown",
@@ -69,25 +67,15 @@
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
-  "dependencies": {
-    "tsdown": "^0.16.0"
-  },
   "devDependencies": {
     "@kaynooo/eslint": "^1.2.0",
     "@types/bun": "^1.2.23",
     "@typescript/native-preview": "^7.0.0-dev.20251015.1",
     "eslint": "^9.36.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.3",
+    "tsdown": "^0.16.0",
     "typedoc": "^0.28.13",
     "typedoc-github-theme": "^0.3.1",
     "typescript": "5.9.2"
-  },
-  "directories": {
-    "example": "./examples",
-    "test": "./tests"
-  },
-  "lint-staged": {
-    "*": "eslint --fix"
   }
 }
