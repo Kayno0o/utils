@@ -27,33 +27,12 @@ jobs:
         run: bun run build
 
       - name: Deploy to release branch
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          publish_branch: release
-          force_orphan: true
-          exclude_assets: |
-            .gitea
-            .github
-            .husky
-            .vscode
-            assets
-            examples
-            src
-            tests
-            types
-            .*
-            *.md
-            *.lock
-            *.toml
-            *.config.*
-            *.yml
-            *.yaml
-            eslint.config.js
-            makefile
-            tsconfig.json
-            tsdown.config.ts
-          user_name: 'forgejo-actions[bot]'
-          user_email: 'forgejo-actions[bot]@noreply.git.kaynooo.fr'
-          commit_message: 'Release build from ${{ github.sha }}'
+        run: |
+          git config user.name "forgejo-actions[bot]"
+          git config user.email "forgejo-actions[bot]@noreply.git.kaynooo.fr"
+
+          git checkout --orphan release
+          git rm -rf --cached .
+          git add -f package.json dist/
+          git commit -m "Release build from ${GITHUB_SHA::7}"
+          git push origin release --force
