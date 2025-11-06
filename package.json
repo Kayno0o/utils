@@ -65,7 +65,8 @@
     "lint": "bunx --bun eslint",
     "doc": "typedoc ./src/**/*.ts --plugin typedoc-github-theme --hostedBaseUrl https://pages.kaynooo.fr/kaynooo/utils/docs/ --useHostedBaseUrlForAbsoluteLinks",
     "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null",
-    "benchmark": "bun benchmark.ts"
+    "benchmark": "bun benchmark.ts",
+    "prepare": "bun run build"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
