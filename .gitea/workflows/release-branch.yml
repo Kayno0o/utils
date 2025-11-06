@@ -1,0 +1,47 @@
+name: Update Release Branch
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: debian
+    steps:
+      - name: Install git before checkout
+        run: apt-get update && apt-get install -y git unzip
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup project
+        uses: ./.gitea/actions/setup
+
+      - name: Build package files
+        run: bun run build
+
+      - name: Create release branch with dist and package.json
+        run: |
+          git config user.name "forgejo-actions[bot]"
+          git config user.email "forgejo-actions[bot]@noreply.git.kaynooo.fr"
+
+          # Create a new orphan branch (no history)
+          git checkout --orphan release
+
+          # Remove all files from staging
+          git rm -rf .
+
+          # Add only package.json and dist folder
+          git add -f package.json dist/
+
+          # Commit the files
+          git commit -m "Release build from ${GITHUB_SHA::7}"
+
+          # Force push to release branch
+          git push origin release --force
