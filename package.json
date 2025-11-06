@@ -64,10 +64,14 @@
     "lint:fix": "bunx --bun eslint --fix",
     "lint": "bunx --bun eslint",
     "doc": "typedoc ./src/**/*.ts --plugin typedoc-github-theme --hostedBaseUrl https://pages.kaynooo.fr/kaynooo/utils/docs/ --useHostedBaseUrlForAbsoluteLinks",
-    "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null"
+    "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null",
+    "prepare": "bun run build"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "tsdown": "^0.16.0"
   },
   "devDependencies": {
     "@kaynooo/eslint": "^1.2.0",
@@ -76,7 +80,6 @@
     "eslint": "^9.36.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
-    "tsdown": "^0.16.0",
     "typedoc": "^0.28.13",
     "typedoc-github-theme": "^0.3.1",
     "typescript": "5.9.2"
