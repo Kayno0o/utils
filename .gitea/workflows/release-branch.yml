@@ -31,17 +31,28 @@ jobs:
           git config user.name "forgejo-actions[bot]"
           git config user.email "forgejo-actions[bot]@noreply.git.kaynooo.fr"
 
+          # Copy files to a temporary directory
+          mkdir -p /tmp/release-build
+          cp -r package.json dist /tmp/release-build/
+
           # Create a new orphan branch (no history)
           git checkout --orphan release
 
-          # Remove all files from staging
+          # Remove all files from staging and working directory
           git rm -rf .
+          rm -rf .* 2>/dev/null || true
 
-          # Add only package.json and dist folder
-          git add -f package.json dist/
+          # Copy back only the files we want
+          cp -r /tmp/release-build/* .
+
+          # Add files to git
+          git add package.json dist/
 
           # Commit the files
           git commit -m "Release build from ${GITHUB_SHA::7}"
 
           # Force push to release branch
           git push origin release --force
+
+          # Clean up
+          rm -rf /tmp/release-build
