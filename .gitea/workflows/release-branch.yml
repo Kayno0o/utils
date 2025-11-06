@@ -26,33 +26,34 @@ jobs:
       - name: Build package files
         run: bun run build
 
-      - name: Create release branch with dist and package.json
-        run: |
-          git config user.name "forgejo-actions[bot]"
-          git config user.email "forgejo-actions[bot]@noreply.git.kaynooo.fr"
-
-          # Copy files to a temporary directory
-          mkdir -p /tmp/release-build
-          cp -r package.json dist /tmp/release-build/
-
-          # Create a new orphan branch (no history)
-          git checkout --orphan release
-
-          # Remove all files from staging and working directory
-          git rm -rf .
-          rm -rf .* 2>/dev/null || true
-
-          # Copy back only the files we want
-          cp -r /tmp/release-build/* .
-
-          # Add files to git
-          git add package.json dist/
-
-          # Commit the files
-          git commit -m "Release build from ${GITHUB_SHA::7}"
-
-          # Force push to release branch
-          git push origin release --force
-
-          # Clean up
-          rm -rf /tmp/release-build
+      - name: Deploy to release branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: release
+          force_orphan: true
+          exclude_assets: |
+            .gitea
+            .github
+            .husky
+            .vscode
+            assets
+            examples
+            src
+            tests
+            types
+            .*
+            *.md
+            *.lock
+            *.toml
+            *.config.*
+            *.yml
+            *.yaml
+            eslint.config.js
+            makefile
+            tsconfig.json
+            tsdown.config.ts
+          user_name: 'forgejo-actions[bot]'
+          user_email: 'forgejo-actions[bot]@noreply.git.kaynooo.fr'
+          commit_message: 'Release build from ${{ github.sha }}'
