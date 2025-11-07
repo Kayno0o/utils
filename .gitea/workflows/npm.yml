@@ -1,15 +1,17 @@
-name: Release
+name: Publish to Forgejo Package Registry
 
 permissions:
-  contents: write
+  contents: read
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
 jobs:
-  npm:
+  publish:
     runs-on: debian
     steps:
       - name: Install git before checkout
@@ -17,8 +19,6 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup project
         uses: ./.gitea/actions/setup
@@ -26,13 +26,13 @@ jobs:
       - name: Build package files
         run: bun run build
 
-      - name: Generate changelog
-        run: bun x @kaynooo/changelogitea@latest
+      - name: Configure npm authentication
+        run: |
+          echo "//git.kaynooo.fr/api/packages/kaynooo/npm/:_authToken=${PACKAGE_TOKEN}" > ~/.npmrc
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
 
-      - name: Configure npm for publishing
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-
-      - name: Publish to npm
-        run: npm publish --access public
+      - name: Publish to Forgejo npm registry
+        run: npm publish
+        env:
+          PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
