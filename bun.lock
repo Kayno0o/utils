@@ -100,7 +100,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@kaynooo/eslint": ["@kaynooo/eslint@1.5.2", "https://git.kaynooo.fr/api/packages/kaynooo/npm/%40kaynooo%2Feslint/-/1.5.2/eslint-1.5.2.tgz", { "dependencies": { "lodash": "^4.17.21" }, "peerDependencies": { "@antfu/eslint-config": "^6.2.0", "eslint": "^9.39.1", "eslint-plugin-better-tailwindcss": "^3.7.10", "eslint-plugin-format": "^1.0.2", "eslint-plugin-github": "^6.0.0" } }, "sha512-7nMZe1IF8Jp6cmj9QNn1yKTkLB5CFhJn889Qwz5j+q8j0nJxbtregQ97Wbsl+aMbaVLMcRNsfUoydtQQkvbMgg=="],
+    "@kaynooo/eslint": ["@kaynooo/eslint@1.5.3", "https://git.kaynooo.fr/api/packages/kaynooo/npm/%40kaynooo%2Feslint/-/1.5.3/eslint-1.5.3.tgz", { "dependencies": { "lodash": "^4.17.21" }, "peerDependencies": { "@antfu/eslint-config": "^6.2.0", "eslint": "^9.39.1", "eslint-plugin-better-tailwindcss": "^3.7.10", "eslint-plugin-format": "^1.0.2", "eslint-plugin-github": "^6.0.0" } }, "sha512-BrLYr5+o11Ke6oxxhDBjvK8A3jIczcW6kLie5YO3y8FCFcSf0mdXMVuGovqx64msFfRycSRxOXMgRlhF/0mlWw=="],
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.0.7", "", { "dependencies": { "@emnapi/core": "^1.5.0", "@emnapi/runtime": "^1.5.0", "@tybys/wasm-util": "^0.10.1" } }, "sha512-SeDnOO0Tk7Okiq6DbXmmBODgOAb9dp9gjlphokTUxmt8U3liIP1ZsozBahH69j/RJv+Rfs6IwUKHTgQYJ/HBAw=="],
 
