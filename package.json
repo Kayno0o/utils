@@ -1,7 +1,7 @@
 {
   "name": "@kaynooo/utils",
   "type": "module",
-  "version": "1.6.7",
+  "version": "1.6.8",
   "description": "A bunch of small utils functions that I use in my TS based projects",
   "author": "Kaynooo <https://git.kaynooo.fr/kaynooo>",
   "license": "MIT",
@@ -58,7 +58,9 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "check": "tsgo --noEmit --strict",
     "build": "rm -rf ./dist && tsdown",
