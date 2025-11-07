@@ -34,3 +34,8 @@ jobs:
         run: npm publish
         env:
           PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+
+      - name: Generate changelog
+        run: bun x @kaynooo/changelogitea@latest
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
