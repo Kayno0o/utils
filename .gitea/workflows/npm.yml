@@ -20,15 +20,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup project
-        uses: ./.gitea/actions/setup
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install project deps
+        run: bun install --frozen-lockfile
 
       - name: Build package files
         run: bun run build
 
       - name: Configure npm authentication
         run: |
-          echo "//git.kaynooo.fr/api/packages/kaynooo/npm/:_authToken=${PACKAGE_TOKEN}" > ~/.npmrc
+          echo "@kaynooo:registry=https://git.kaynooo.fr/api/packages/kaynooo/npm/" > ~/.npmrc
+          echo "//git.kaynooo.fr/api/packages/kaynooo/npm/:_authToken=${PACKAGE_TOKEN}" >> ~/.npmrc
         env:
           PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
 
