@@ -3,15 +3,13 @@
   "workspaces": {
     "": {
       "name": "utils",
-      "dependencies": {
-        "tsdown": "^0.16.0",
-      },
       "devDependencies": {
-        "@kaynooo/eslint": "^1.2.0",
+        "@kaynooo/eslint": "^1.4.3",
         "@types/bun": "^1.2.23",
         "@typescript/native-preview": "^7.0.0-dev.20251015.1",
         "eslint": "^9.36.0",
         "husky": "^9.1.7",
+        "tsdown": "^0.16.0",
         "typedoc": "^0.28.13",
         "typedoc-github-theme": "^0.3.1",
         "typescript": "5.9.2",
@@ -102,7 +100,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@kaynooo/eslint": ["@kaynooo/eslint@1.2.0", "", { "dependencies": { "lodash": "^4.17.21" }, "peerDependencies": { "@antfu/eslint-config": "^5.4.1", "eslint": "^9.36.0", "eslint-plugin-better-tailwindcss": "^3.7.9", "eslint-plugin-format": "^1.0.2", "eslint-plugin-github": "^6.0.0" }, "bin": { "eslint": "bin/index.js" } }, "sha512-LdQZsBs2dCnNSn9AcBwgDaq9+cg38IEgCy0x2vEovVjnsmdOBIDA1bLwr7h879ce08SZB80tmtANK1pO51maNA=="],
+    "@kaynooo/eslint": ["@kaynooo/eslint@1.4.3", "https://git.kaynooo.fr/api/packages/kaynooo/npm/%40kaynooo%2Feslint/-/1.4.3/eslint-1.4.3.tgz", { "dependencies": { "lodash": "^4.17.21" }, "peerDependencies": { "@antfu/eslint-config": "^6.0.0", "eslint": "^9.37.0", "eslint-plugin-better-tailwindcss": "^3.7.10", "eslint-plugin-format": "^1.0.2", "eslint-plugin-github": "^6.0.0" }, "bin": { "eslint": "bin/index.js" } }, "sha512-Up0K/2rQF3bX9qsIoEYDGUljToBOuUz+6z3G3BkHCPYxgvxbu0bmcHI3JjtDtv35xhfV43YLUG3uwag82a6I5A=="],
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.0.7", "", { "dependencies": { "@emnapi/core": "^1.5.0", "@emnapi/runtime": "^1.5.0", "@tybys/wasm-util": "^0.10.1" } }, "sha512-SeDnOO0Tk7Okiq6DbXmmBODgOAb9dp9gjlphokTUxmt8U3liIP1ZsozBahH69j/RJv+Rfs6IwUKHTgQYJ/HBAw=="],
 

@@ -175,8 +175,6 @@ dist
 # Finder (MacOS) folder config
 .DS_Store
 
-.npmrc
-
 latest.log
 bun.xml
 

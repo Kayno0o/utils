@@ -73,7 +73,7 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
-    "@kaynooo/eslint": "^1.2.0",
+    "@kaynooo/eslint": "^1.4.3",
     "@types/bun": "^1.2.23",
     "@typescript/native-preview": "^7.0.0-dev.20251015.1",
     "eslint": "^9.36.0",
