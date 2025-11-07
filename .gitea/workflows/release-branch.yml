@@ -28,9 +28,11 @@ jobs:
 
       - name: Configure npm authentication
         run: |
-          echo "//git.kaynooo.fr/api/packages/kaynooo/npm/:_authToken=${FORGEJO_TOKEN}" > .npmrc
+          echo "//git.kaynooo.fr/api/packages/kaynooo/npm/:_authToken=${FORGEJO_TOKEN}" > ~/.npmrc
         env:
           FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
       - name: Publish to Forgejo npm registry
         run: npm publish
+        env:
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
