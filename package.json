@@ -2,6 +2,7 @@
   "name": "@kaynooo/utils",
   "type": "module",
   "version": "1.6.11",
+  "private": true,
   "description": "A bunch of small utils functions that I use in my TS based projects",
   "author": "Kaynooo <https://git.kaynooo.fr/kaynooo>",
   "license": "MIT",
