@@ -27,37 +27,37 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     },
     "./cli": {
-      "types": "./dist/cli.d.ts",
-      "import": "./dist/cli.js"
+      "types": "./dist/cli.d.mts",
+      "import": "./dist/cli.mjs"
     },
     "./builders": {
-      "types": "./dist/builders/index.d.ts",
-      "import": "./dist/builders/index.js"
+      "types": "./dist/builders/index.d.mts",
+      "import": "./dist/builders/index.mjs"
     },
     "./decorators": {
-      "types": "./dist/decorators/index.d.ts",
-      "import": "./dist/decorators/index.js"
+      "types": "./dist/decorators/index.d.mts",
+      "import": "./dist/decorators/index.mjs"
     },
     "./format": {
-      "types": "./dist/format/index.d.ts",
-      "import": "./dist/format/index.js"
+      "types": "./dist/format/index.d.mts",
+      "import": "./dist/format/index.mjs"
     },
     "./tools": {
-      "types": "./dist/tools/index.d.ts",
-      "import": "./dist/tools/index.js"
+      "types": "./dist/tools/index.d.mts",
+      "import": "./dist/tools/index.mjs"
     },
     "./i18n/date/*": {
-      "types": "./dist/i18n/date/*.d.ts",
-      "import": "./dist/i18n/date/*.js"
+      "types": "./dist/i18n/date/*.d.mts",
+      "import": "./dist/i18n/date/*.mjs"
     }
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "files": [
     "dist"
   ],
