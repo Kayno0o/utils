@@ -1,15 +1,17 @@
-name: Update Release Branch
+name: Publish to Forgejo Package Registry
 
 permissions:
-  contents: write
+  contents: read
 
 on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
 
 jobs:
-  build-and-release:
+  publish:
     runs-on: debian
     steps:
       - name: Install git before checkout
@@ -17,8 +19,6 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup project
         uses: ./.gitea/actions/setup
@@ -26,13 +26,11 @@ jobs:
       - name: Build package files
         run: bun run build
 
-      - name: Deploy to release branch
+      - name: Configure npm authentication
         run: |
-          git config user.name "forgejo-actions[bot]"
-          git config user.email "forgejo-actions[bot]@noreply.git.kaynooo.fr"
+          echo "//git.kaynooo.fr/api/packages/kaynooo/npm/:_authToken=${FORGEJO_TOKEN}" > .npmrc
+        env:
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
-          git checkout --orphan release
-          git rm -rf --cached .
-          git add -f package.json dist/
-          git commit -m "Release build from ${GITHUB_SHA::7}"
-          git push origin release --force
+      - name: Publish to Forgejo npm registry
+        run: npm publish
