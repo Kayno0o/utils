@@ -18,6 +18,8 @@ if [ -n "$STAGED_FILES" ]; then
   fi
 fi
 
+$BUN_PATH run duplicates
 $BUN_PATH run build
 $BUN_PATH run check
+$BUN_PATH run test
 $BUN_PATH x changelogen@latest --dry-run
