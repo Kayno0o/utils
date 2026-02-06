@@ -14,12 +14,12 @@ export function buildUrlQuery(query?: object | null) {
   return output ? `?${output}` : ''
 }
 
-export function queryToObject(query: Record<string, string>): Record<string, any> {
+export function queryToNestedObject(query: Record<string, string>): Record<string, any> {
   const queryObj: Record<string, any> = {}
 
   for (let [key, value] of ObjectEntries(query)) {
     if (!key.includes('[') || !key.includes(']')) {
-      queryObj[key] = value
+      queryObj[key] ??= value
 
       continue
     }
@@ -28,20 +28,30 @@ export function queryToObject(query: Record<string, string>): Record<string, any
 
     key = key.split('[')[0]
 
-    queryObj[key] = {}
+    queryObj[key] ??= {}
     let currentObj = queryObj[key]
+
+    if (typeof queryObj[key] !== 'object')
+      continue
 
     for (let i = 0; i < matches.length; i++) {
       const match = matches[i]
       const [,newKey] = match
 
       if (i === matches.length - 1) {
-        currentObj[newKey] = value
+        if (typeof currentObj[newKey] === 'object')
+          break
+
+        currentObj[newKey] ??= value
 
         continue
       }
 
-      currentObj[newKey] = {}
+      currentObj[newKey] ??= {}
+
+      if (typeof currentObj[newKey] !== 'object')
+        break
+
       currentObj = currentObj[newKey]
     }
   }
