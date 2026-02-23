@@ -49,10 +49,26 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
-export function stringToNumber(str: string, min: number, max: number, { integer = true }: { integer?: boolean } = {}): number {
-  const seed = xmur3(str)
-  const rand = sfc32(seed(), seed(), seed(), seed())
-  const r = rand()
+export function strToNb(str: string, min: number, max: number, { integer = true, precise = false }: { integer?: boolean, precise?: boolean } = {}): number {
+  let r: number
+
+  if (precise) {
+    const seed = xmur3(str)
+    const rand = sfc32(seed(), seed(), seed(), seed())
+
+    r = rand()
+  }
+  else {
+    let hash = 2166136261
+
+    for (let i = 0; i < str.length; i++) {
+      hash ^= str.charCodeAt(i)
+      hash = Math.imul(hash, 16777619)
+      hash >>>= 0
+    }
+
+    r = hash / 0xFFFFFFFF
+  }
 
   if (integer)
     return Math.floor(r * (max - min + 1)) + min
@@ -60,5 +76,5 @@ export function stringToNumber(str: string, min: number, max: number, { integer 
   return min + r * (max - min)
 }
 
-/** @deprecated use `stringToNumber` instead */
-export const numberFromString = stringToNumber
+/** @deprecated use `strToNb` instead */
+export const numberFromString = strToNb
