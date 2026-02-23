@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { opacityColor, randomHex, stringToHex } from '../src'
+import { opacityColor, randomHex, stringToHexColor } from '../src'
 import { Color } from '../src/tools'
 
 describe('hexToRgb function', () => {
@@ -121,25 +121,25 @@ describe('opacityColor function', () => {
 
 describe('stringToHex function', () => {
   it('always returns a 6-digit uppercase hex code', () => {
-    const hex = stringToHex('foo')
+    const hex = stringToHexColor('foo')
 
     expect(hex).toMatch(/^#[0-9A-F]{6}$/)
   })
 
   it('is deterministic: same input → same output', () => {
-    const a = stringToHex('repeat-me')
-    const b = stringToHex('repeat-me')
+    const a = stringToHexColor('repeat-me')
+    const b = stringToHexColor('repeat-me')
 
     expect(a).toBe(b)
   })
 
   it('produces different colors for different strings', () => {
-    expect(stringToHex('apple')).not.toBe(stringToHex('banana'))
+    expect(stringToHexColor('apple')).not.toBe(stringToHexColor('banana'))
   })
 
   it('respects hueOffset', () => {
-    const hex0 = stringToHex('hueTest', { hueOffset: 0 })
-    const hex180 = stringToHex('hueTest', { hueOffset: 180 })
+    const hex0 = stringToHexColor('hueTest', { hueOffset: 0 })
+    const hex180 = stringToHexColor('hueTest', { hueOffset: 180 })
     const [h0] = Color.from('hex', hex0).to('hsl')
     const [h180] = Color.from('hex', hex180).to('hsl')
 
@@ -149,7 +149,7 @@ describe('stringToHex function', () => {
 
   it('limits saturation to sRange', () => {
     for (let i = 0; i < 10; i++) {
-      const hex = stringToHex(`sat${i}`, { sRange: [10, 20] })
+      const hex = stringToHexColor(`sat${i}`, { sRange: [10, 20] })
       const [, s] = Color.from('hex', hex).to('hsl')
 
       expect(s).toBeGreaterThanOrEqual(10)
@@ -161,7 +161,7 @@ describe('stringToHex function', () => {
     const fixed = 42
 
     for (let i = 0; i < 5; i++) {
-      const hex = stringToHex(`lum${i}`, { l: fixed })
+      const hex = stringToHexColor(`lum${i}`, { l: fixed })
       const [, , l] = Color.from('hex', hex).to('hsl')
 
       expect(Math.round(l)).toBe(fixed)

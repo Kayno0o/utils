@@ -1,5 +1,5 @@
 import type { RgbArrayType } from './tools/ColorConverter'
-import { numberFromString, randomInt } from './number'
+import { randomInt, stringToNumber } from './number'
 import { Color } from './tools/ColorConverter'
 
 export function randomHex(isCrypto = false) {
@@ -17,15 +17,18 @@ export function opacityColor(rgb1: RgbArrayType, rgb2: RgbArrayType, a1: number)
   return [r3, g3, b3]
 }
 
-export function stringToHex(str: string, {
+export function stringToHexColor(str: string, {
   // hueOffset lets you rotate the whole palette,
   // lRange lets you randomize lightness if you want
   hueOffset = 0,
   l = 65,
   sRange = [40, 60] as [number, number],
 } = {}): string {
-  const h = (numberFromString(`${str}|hue`, 0, 360) + hueOffset) % 360
-  const s = numberFromString(`${str}|sat`, sRange[0], sRange[1])
+  const h = (stringToNumber(`${str}|hue`, 0, 360) + hueOffset) % 360
+  const s = stringToNumber(`${str}|sat`, sRange[0], sRange[1])
 
   return Color.from('hsl', [h, s, l]).to('hex')
 }
+
+/** @deprecated use `stringToHexColor` instead */
+export const stringToHex = stringToHexColor

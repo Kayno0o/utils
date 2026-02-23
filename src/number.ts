@@ -45,7 +45,11 @@ export function range(minOrMax: number, max?: number): number[] {
   return Array.from({ length: max - minOrMax }, (_, i) => i + minOrMax)
 }
 
-export function numberFromString(str: string, min: number, max: number, { integer = true }: { integer?: boolean } = {}): number {
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
+
+export function stringToNumber(str: string, min: number, max: number, { integer = true }: { integer?: boolean } = {}): number {
   const seed = xmur3(str)
   const rand = sfc32(seed(), seed(), seed(), seed())
   const r = rand()
@@ -55,3 +59,6 @@ export function numberFromString(str: string, min: number, max: number, { intege
 
   return min + r * (max - min)
 }
+
+/** @deprecated use `stringToNumber` instead */
+export const numberFromString = stringToNumber
