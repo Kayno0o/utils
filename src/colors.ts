@@ -1,5 +1,6 @@
 import type { RgbArrayType } from './tools/ColorConverter'
-import { randomInt, strToNb } from './number'
+import { hashStr } from './crypto'
+import { map, randomInt } from './number'
 import { Color } from './tools/ColorConverter'
 
 export function randomHex(isCrypto = false) {
@@ -24,8 +25,8 @@ export function stringToHexColor(str: string, {
   l = 65,
   sRange = [40, 60] as [number, number],
 } = {}): string {
-  const h = (strToNb(`${str}|hue`, 0, 360) + hueOffset) % 360
-  const s = strToNb(`${str}|sat`, sRange[0], sRange[1])
+  const h = (Math.round(map(hashStr(`${str}|hue`), 0, 1, 0, 360)) + hueOffset) % 360
+  const s = Math.round(map(hashStr(`${str}|sat`), 0, 1, sRange[0], sRange[1]))
 
   return Color.from('hsl', [h, s, l]).to('hex')
 }

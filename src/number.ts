@@ -1,5 +1,3 @@
-import { sfc32, xmur3 } from './crypto'
-
 const arr32 = new Uint32Array(1)
 
 export function randomInt(min: number, max: number, isCrypto?: boolean): number
@@ -45,36 +43,15 @@ export function range(minOrMax: number, max?: number): number[] {
   return Array.from({ length: max - minOrMax }, (_, i) => i + minOrMax)
 }
 
-export function clamp(value: number, min: number, max: number): number {
+export function clamp(value: number, min: number, max: number, modulo = false): number {
+  if (modulo) {
+    const range = max - min
+
+    return ((value - min) % range + range) % range + min
+  }
+
   return Math.min(Math.max(value, min), max)
 }
 
-export function strToNb(str: string, min: number, max: number, { integer = true, precise = false }: { integer?: boolean, precise?: boolean } = {}): number {
-  let r: number
-
-  if (precise) {
-    const seed = xmur3(str)
-    const rand = sfc32(seed(), seed(), seed(), seed())
-
-    r = rand()
-  }
-  else {
-    let hash = 2166136261
-
-    for (let i = 0; i < str.length; i++) {
-      hash ^= str.charCodeAt(i)
-      hash = Math.imul(hash, 16777619)
-      hash >>>= 0
-    }
-
-    r = hash / 0xFFFFFFFF
-  }
-
-  if (integer)
-    return Math.floor(r * (max - min + 1)) + min
-
-  return min + r * (max - min)
-}
-
-/** @deprecated use `strToNb` instead */
-export const numberFromString = strToNb
+/** @deprecated use `map(hashStr(str), 0, 1, min, max)` instead */
+export const numberFromString = (nb: number, min: number, max: number) => map(nb, 0, 1, min, max)

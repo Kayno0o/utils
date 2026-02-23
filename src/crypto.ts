@@ -63,3 +63,46 @@ export function sfc32(a: number, b: number, c: number, d: number): () => number 
     return (result >>> 0) / 4294967296
   }
 }
+
+/**
+ * Hashes a string to a normalized float in the range [0, 1].
+ *
+ * @param str - The string to hash
+ * @param options - Hashing options
+ * @param options.algorithm - The hashing algorithm to use
+ * - `FNV-1a` *(default)* — fast, good distribution, suitable for most use cases
+ * - `sfc32` — higher quality output via PRNG seeded with xmur3, slightly slower
+ * - `djb2` — extremely simple and fast, decent distribution
+ * @returns A deterministic float in [0, 1]
+ *
+ * @example
+ * hashStr('my-service') // 0.6234...
+ * hashStr('my-service', { algorithm: 'sfc32' }) // 0.2841...
+ */
+export function hashStr(str: string, { algorithm = 'FNV-1a' }: { algorithm?: 'FNV-1a' | 'sfc32' | 'djb2' } = {}): number {
+  if (algorithm === 'sfc32') {
+    const seed = xmur3(str)
+    const rand = sfc32(seed(), seed(), seed(), seed())
+
+    return rand()
+  }
+
+  if (algorithm === 'djb2') {
+    let hash = 5381
+
+    for (let i = 0; i < str.length; i++)
+      hash = Math.imul(hash, 33) ^ str.charCodeAt(i)
+
+    return hash
+  }
+
+  let hash = 2166136261
+
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+    hash >>>= 0
+  }
+
+  return hash / 0xFFFFFFFF
+}
