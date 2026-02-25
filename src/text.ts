@@ -1,4 +1,6 @@
+import type { ExtractParams } from '~/types'
 import { randomInt } from './number'
+import { ObjectEntries } from './object'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
@@ -308,4 +310,23 @@ export function frRankLabel(rank: string) {
     return 'nd'
 
   return 'ème'
+}
+
+export function truncate(str: string, len: number, suffix = '...'): string {
+  if (str.length > len)
+    return str.substring(0, len) + suffix
+
+  return str
+}
+
+export function stripHtml(str: string): string {
+  return str.replace(/<[^>]+>/g, '')
+}
+
+export function strTemplate<T extends string>(str: T, variables: ExtractParams<T>): string {
+  for (const [key, value] of ObjectEntries(variables)) {
+    str = str.replaceAll(`{${key}}`, value) as T
+  }
+
+  return str
 }
