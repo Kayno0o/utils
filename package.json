@@ -30,29 +30,9 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
-    "./cli": {
-      "types": "./dist/cli.d.mts",
-      "import": "./dist/cli.mjs"
-    },
-    "./builders": {
-      "types": "./dist/builders/index.d.mts",
-      "import": "./dist/builders/index.mjs"
-    },
-    "./decorators": {
-      "types": "./dist/decorators/index.d.mts",
-      "import": "./dist/decorators/index.mjs"
-    },
-    "./format": {
-      "types": "./dist/format/index.d.mts",
-      "import": "./dist/format/index.mjs"
-    },
-    "./tools": {
-      "types": "./dist/tools/index.d.mts",
-      "import": "./dist/tools/index.mjs"
-    },
-    "./i18n/date/*": {
-      "types": "./dist/i18n/date/*.d.mts",
-      "import": "./dist/i18n/date/*.mjs"
+    "./*": {
+      "types": "./dist/*.d.mts",
+      "import": "./dist/*.mjs"
     }
   },
   "main": "./dist/index.mjs",
