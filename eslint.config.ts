@@ -2,6 +2,6 @@ import typescript from '@kaynooo/eslint/typescript'
 
 export default typescript({
   mergeOptions: {
-    ignores: ['./README.md'],
+    ignores: ['./README.md', './TODO.md'],
   },
 })
