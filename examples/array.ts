@@ -1,4 +1,4 @@
-import { groupBy, partition } from '../src'
+import { groupBy, partition, sortBy } from '../src'
 
 console.log(groupBy([
   { age: 12, name: 'A' },
@@ -13,3 +13,6 @@ console.log(groupBy([
 ], x => x.age))
 
 console.log(partition([1, 2, 3, 4, 5], n => n % 2 === 0))
+
+console.log(sortBy([{ name: 'Charlie' }, { name: 'Alice' }], x => x.name))
+console.log(sortBy([3, 1, 2], x => x, 'desc'))

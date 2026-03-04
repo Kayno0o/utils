@@ -90,3 +90,18 @@ export function partition<T>(items: T[], getGroup: (item: T) => boolean): [T[], 
 
   return result
 }
+
+export function sortBy<T>(items: T[], getKey: (item: T) => string | number, order: 'asc' | 'desc' = 'asc'): T[] {
+  return items.sort((a, b) => {
+    const aKey = getKey(a)
+    const bKey = getKey(b)
+
+    if (typeof aKey === 'string' && typeof bKey === 'string')
+      return order === 'asc' ? aKey.localeCompare(bKey) : bKey.localeCompare(aKey)
+
+    if (typeof aKey === 'number' && typeof bKey === 'number')
+      return order === 'asc' ? aKey - bKey : bKey - aKey
+
+    return 0
+  })
+}
