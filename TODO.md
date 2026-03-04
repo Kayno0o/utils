@@ -145,7 +145,7 @@ Async / Promise
 
 Type guards
 
-- [ ] isString, isNumber, isObject, isArray, isDate, isFunction, isPromise — type-narrowing predicates, composable with your array .filter()
+- [x] isString, isNumber, isObject, isArray, isDate, isFunction, isPromise — type-narrowing predicates, composable with your array .filter()
   ```ts
   const values: (string | number)[] = ['a', 1, 'b', 2]
 
