@@ -11,7 +11,11 @@ fn()
 await sleep(50)
 fn()
 
-const fnOnce = once((nb: number) => console.log('called once:', nb))
+const fnOnce = once((nb: number) => {
+  console.log('called once:', nb)
 
-fnOnce(12)
-fnOnce(24)
+  return nb
+})
+
+console.log(fnOnce(12))
+console.log(fnOnce(24))
