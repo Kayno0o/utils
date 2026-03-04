@@ -1,3 +1,5 @@
+import { STRICT_UUID_REGEX } from './regex'
+
 export function isString(val: any): val is string {
   return val !== null && typeof val === 'string'
 }
@@ -26,4 +28,8 @@ export function isDate(val: any): val is Date {
 export function isPromise(val: any): val is Promise<any> {
   // eslint-disable-next-line github/no-then
   return val !== null && typeof val === 'object' && typeof val.then === 'function'
+}
+
+export function isUUID(val: string): boolean {
+  return STRICT_UUID_REGEX.test(val)
 }

@@ -156,7 +156,7 @@ Type guards
 
 Validation (standalone, not Rules-class)
 
-- [ ] isUUID(str) — validate UUID format
+- [x] isUUID(str) — validate UUID format
   ```ts
   isUUID('550e8400-e29b-41d4-a716-446655440000') // → true
   isUUID('not-a-uuid') // → false

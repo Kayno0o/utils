@@ -1,6 +1,7 @@
 import type { ExtractParams } from '~/types'
 import { randomInt } from './number'
 import { ObjectEntries } from './object'
+import { STRICT_UUID_REGEX, UUID_REGEX } from './regex'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
@@ -189,8 +190,6 @@ export function matchingSubstring(str1: string, str2: string): string {
   return str1.substring(0, length)
 }
 
-const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
-
 export function getUuidFromIri(iri: string): string | null {
   const match = UUID_REGEX.exec(iri)
 
@@ -233,7 +232,6 @@ export function plural(singular: string, count?: number): string {
   return `${singular}s`
 }
 
-const STRICT_UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MINIFIED_REGEX = /^[\w-]+$/
 
 export function minifyUUID(uuid: string): string {
