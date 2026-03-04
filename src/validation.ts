@@ -1,4 +1,4 @@
-import { STRICT_UUID_REGEX } from './regex'
+import { STRICT_IPV4_REGEX, STRICT_IPV6_REGEX, STRICT_UUID_REGEX } from './regex'
 
 export function isString(val: any): val is string {
   return val !== null && typeof val === 'string'
@@ -32,4 +32,11 @@ export function isPromise(val: any): val is Promise<any> {
 
 export function isUUID(val: string): boolean {
   return STRICT_UUID_REGEX.test(val)
+}
+
+export function isIP(val: string, v: 4 | 6 = 4): boolean {
+  if (v === 4)
+    return STRICT_IPV4_REGEX.test(val)
+
+  return STRICT_IPV6_REGEX.test(val)
 }

@@ -161,7 +161,7 @@ Validation (standalone, not Rules-class)
   isUUID('550e8400-e29b-41d4-a716-446655440000') // → true
   isUUID('not-a-uuid') // → false
   ```
-- [ ] isIP(str, version?) — validate IPv4/IPv6
+- [x] isIP(str, version?) — validate IPv4/IPv6
   ```ts
   isIP('192.168.1.1') // → true
   isIP('::1', 6) // → true
