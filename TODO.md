@@ -46,7 +46,7 @@ Object
 
 Array
 
-- [ ] groupBy(arr, keyFn) — group items into a Record (native Object.groupBy exists but has poor TS inference and no browser support)
+- [x] groupBy(arr, keyFn) — group items into a Record (native Object.groupBy exists but has poor TS inference and no browser support)
   ```ts
   groupBy([{ age: 20, name: 'A' }, { age: 30, name: 'B' }, { age: 20, name: 'C' }], x => x.age)
   // → { 20: [{ age: 20, name: 'A' }, { age: 20, name: 'C' }], 30: [{ age: 30, name: 'B' }] }
