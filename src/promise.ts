@@ -16,3 +16,19 @@ export async function retry<T>(
 
   throw new Error(`Failed after ${attempts} ${plural('retry', attempts)}`)
 }
+
+export class TimeoutError extends Error {}
+
+export async function timeout<T>(fn: () => Promise<T>, maxTime = 5000): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const pid = setTimeout(() => {
+      reject(new TimeoutError('Method took too long to process'))
+    }, maxTime)
+
+    // eslint-disable-next-line github/no-then
+    fn().then((val: T) => {
+      clearTimeout(pid)
+      resolve(val)
+    })
+  })
+}

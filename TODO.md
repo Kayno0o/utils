@@ -119,7 +119,7 @@ Async / Promise
   const data = await retry(() => fetch('/api/data'), { attempts: 3, delay: 1000, backoff: 2 })
   // retries up to 3 times: 1s, 2s, 4s delays
   ```
-- [ ] timeout(promise, ms) — reject if a promise doesn't resolve in time
+- [x] timeout(promise, ms) — reject if a promise doesn't resolve in time
   ```ts
   await timeout(fetch('/api/slow'), 5000) // → throws TimeoutError if >5s
   ```

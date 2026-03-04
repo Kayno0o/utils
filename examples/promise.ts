@@ -1,4 +1,4 @@
-import { retry } from '../src'
+import { retry, sleep, timeout } from '../src'
 
 const startTime = performance.now()
 
@@ -10,5 +10,14 @@ retry(async (retryCount) => {
 }, {
   attempts: 4,
   backoff: 2,
-  delay: 100,
+  delay: 50,
 })
+
+try {
+  timeout(async () => {
+    await sleep(1000)
+  }, 900)
+}
+catch (e) {
+  console.error(e)
+}
