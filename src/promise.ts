@@ -1,5 +1,5 @@
 import { plural } from './text'
-import { sleep } from './timing'
+import { sleep } from './function'
 
 export async function retry<T>(
   fn: (retryCount: number) => Promise<T>,
