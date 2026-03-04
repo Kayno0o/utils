@@ -25,3 +25,20 @@ export function debounce<T extends (...args: any[]) => any>(func: T, delay: numb
     timeoutId = setTimeout(() => func(...args), delay)
   }
 }
+
+export function throttle<T extends (...args: any[]) => any>(func: T, delay: number): ((...args: Parameters<T>) => void) {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  let canRun = true
+
+  return (...args: Parameters<T>) => {
+    if (canRun)
+      func(...args)
+
+    canRun = false
+
+    timeoutId ||= setTimeout(() => {
+      canRun = true
+      timeoutId = undefined
+    }, delay)
+  }
+}

@@ -77,7 +77,7 @@ Array
 
 Function utilities
 
-- [ ] throttle(fn, ms) — you have debounce but not throttle
+- [x] throttle(fn, ms) — you have debounce but not throttle
   ```ts
   const throttled = throttle(() => console.log('scroll'), 200)
 
