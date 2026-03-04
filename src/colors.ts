@@ -30,6 +30,3 @@ export function stringToHexColor(str: string, {
 
   return Color.from('hsl', [h, s, l]).to('hex')
 }
-
-/** @deprecated use `stringToHexColor` instead */
-export const stringToHex = stringToHexColor

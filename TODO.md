@@ -114,7 +114,7 @@ Function utilities
 
 Async / Promise
 
-- [ ] retry(fn, { attempts, delay, backoff? }) — retry with exponential backoff
+- [x] retry(fn, { attempts, delay, backoff? }) — retry with exponential backoff
   ```ts
   const data = await retry(() => fetch('/api/data'), { attempts: 3, delay: 1000, backoff: 2 })
   // retries up to 3 times: 1s, 2s, 4s delays

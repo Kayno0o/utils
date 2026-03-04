@@ -214,7 +214,10 @@ export function progressBar(value: number, min: number, max: number, { emptyChar
 }
 
 /** handle common pluralization rules */
-export function plural(singular: string): string {
+export function plural(singular: string, count?: number): string {
+  if (count === 1 || count === 0)
+    return singular
+
   if (singular.endsWith('y') && !(/[aeiou]y$/).test(singular))
     return `${singular.slice(0, -1)}ies`
 
