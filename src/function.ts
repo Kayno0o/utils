@@ -42,3 +42,18 @@ export function throttle<T extends (...args: any[]) => any>(func: T, delay: numb
     }, delay)
   }
 }
+
+export function once<T extends (...args: any[]) => any>(func: T): ((...args: Parameters<T>) => ReturnType<T>) {
+  let response: ReturnType<T> | undefined
+  let hasRun = false
+
+  return (...args: Parameters<T>) => {
+    if (hasRun)
+      return response as ReturnType<T>
+
+    response = func(...args)
+    hasRun = true
+
+    return response as ReturnType<T>
+  }
+}

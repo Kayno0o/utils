@@ -83,7 +83,7 @@ Function utilities
 
   window.addEventListener('scroll', throttled) // fires at most once per 200ms
   ```
-- [ ] once(fn) — execute only once, return cached result after
+- [x] once(fn) — execute only once, return cached result after
   ```ts
   const init = once(() => {
     console.log('called')
