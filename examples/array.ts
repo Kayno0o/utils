@@ -1,4 +1,4 @@
-import { groupBy } from '../src'
+import { groupBy, partition } from '../src'
 
 console.log(groupBy([
   { age: 12, name: 'A' },
@@ -11,3 +11,5 @@ console.log(groupBy([
   { age: 30, name: 'B' },
   { age: 20, name: 'C' },
 ], x => x.age))
+
+console.log(partition([1, 2, 3, 4, 5], n => n % 2 === 0))

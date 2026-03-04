@@ -78,3 +78,15 @@ export function groupBy<T>(items: T[], getKey: (item: T) => string | number): Re
     return acc
   }, {} as Record<string | number, T[]>)
 }
+
+export function partition<T>(items: T[], getGroup: (item: T) => boolean): [T[], T[]] {
+  const result: [T[], T[]] = [[], []]
+
+  for (const item of items) {
+    if (getGroup(item))
+      result[0].push(item)
+    else result[1].push(item)
+  }
+
+  return result
+}

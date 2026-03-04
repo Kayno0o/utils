@@ -51,7 +51,7 @@ Array
   groupBy([{ age: 20, name: 'A' }, { age: 30, name: 'B' }, { age: 20, name: 'C' }], x => x.age)
   // → { 20: [{ age: 20, name: 'A' }, { age: 20, name: 'C' }], 30: [{ age: 30, name: 'B' }] }
   ```
-- [ ] partition(arr, predicate) — split into [matches, rest]
+- [x] partition(arr, predicate) — split into [matches, rest]
   ```ts
   partition([1, 2, 3, 4, 5], n => n % 2 === 0) // → [[2, 4], [1, 3, 5]]
   ```
