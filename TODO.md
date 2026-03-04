@@ -65,7 +65,7 @@ Array
   ```ts
   zip([1, 2, 3], ['a', 'b', 'c']) // → [[1, 'a'], [2, 'b'], [3, 'c']]
   ```
-- [ ] sortBy(arr, keyFn, direction?) — sort by a derived key, stable
+- [x] sortBy(arr, keyFn, direction?) — sort by a derived key, stable
   ```ts
   sortBy([{ name: 'Charlie' }, { name: 'Alice' }], x => x.name) // → [{ name: 'Alice' }, { name: 'Charlie' }]
   sortBy([3, 1, 2], x => x, 'desc') // → [3, 2, 1]
