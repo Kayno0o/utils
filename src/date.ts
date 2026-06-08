@@ -49,7 +49,7 @@ export function isHoliday(date: Date | string): boolean {
   const year = dateObj.getFullYear()
   const holidays = getFrenchHolidays(year)
 
-  const formattedDate = dateObj.toISOString().split('T')[0]
+  const formattedDate = dateObj.toISOString().split('T')[0]!
 
   return holidays.includes(formattedDate)
 }
@@ -83,7 +83,7 @@ export function stringToMsDuration(duration: string | number): number {
   let total = 0
 
   for (const [, time, unit] of duration.matchAll(/(\d+)\s*([a-z])/gi)) {
-    const factor = DURATION_UNIT_MS[unit]
+    const factor = DURATION_UNIT_MS[unit!]
 
     if (factor !== undefined)
       total += Number(time) * factor

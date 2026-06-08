@@ -26,7 +26,7 @@ export function queryToNestedObject(query: Record<string, string>): Record<strin
 
     const matches = key.matchAll(/\[([^\]]+)\]/g).toArray()
 
-    key = key.split('[')[0]
+    key = key.split('[')[0]!
 
     queryObj[key] ??= {}
     let currentObj = queryObj[key]
@@ -35,8 +35,8 @@ export function queryToNestedObject(query: Record<string, string>): Record<strin
       continue
 
     for (let i = 0; i < matches.length; i++) {
-      const match = matches[i]
-      const [,newKey] = match
+      const match = matches[i]!
+      const newKey = match[1]!
 
       if (i === matches.length - 1) {
         if (typeof currentObj[newKey] === 'object')

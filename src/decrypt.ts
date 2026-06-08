@@ -19,7 +19,7 @@ export function decryptVigenere(input: string, key: string, shift = 0) {
     const x = c.charCodeAt(0)
 
     if (x >= A_CODE && x < A_CODE + ALPHABET_LENGTH) {
-      const keyChar = key[keyIndex % key.length]
+      const keyChar = key[keyIndex % key.length]!
       const keyShift = keyChar.charCodeAt(0) - A_CODE
       const shifted = (x - A_CODE + keyShift + shift) % ALPHABET_LENGTH
 

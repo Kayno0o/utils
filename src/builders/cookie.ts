@@ -89,7 +89,7 @@ export class CookieManager {
     for (const cookie of cookies) {
       const [cookieName, cookieValue] = cookie.trim().split('=')
 
-      if (decodeURIComponent(cookieName) === name) {
+      if (decodeURIComponent(cookieName!) === name) {
         return decodeURIComponent(cookieValue || '')
       }
     }

@@ -7,11 +7,11 @@ type StringOptionType = 'string' | 'date' | 'path'
 type OptionType = 'boolean' | StringOptionType | NumberOptionType
 type AlphabetChar = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
 
-type OptionValueType<T extends OptionType> =
-T extends 'boolean' ? boolean
-  : T extends NumberOptionType ? number
-    : T extends 'date' ? Date
-      : string
+type OptionValueType<T extends OptionType>
+  = T extends 'boolean' ? boolean
+    : T extends NumberOptionType ? number
+      : T extends 'date' ? Date
+        : string
 
 interface BaseOptionDefinition<FormatType> {
   alias?: string | string[]
@@ -34,11 +34,11 @@ interface FormatOnlyOptionDefinition<FormatType> extends BaseOptionDefinition<Fo
   format: (value: string) => FormatType
 }
 
-type OptionDefinition =
-  | TypedOptionDefinition<'boolean', boolean>
-  | TypedOptionDefinition<'string' | 'path' | 'date', string>
-  | TypedOptionDefinition<NumberOptionType, number>
-  | FormatOnlyOptionDefinition<unknown>
+type OptionDefinition
+  = | TypedOptionDefinition<'boolean', boolean>
+    | TypedOptionDefinition<'string' | 'path' | 'date', string>
+    | TypedOptionDefinition<NumberOptionType, number>
+    | FormatOnlyOptionDefinition<unknown>
 
 type ParseArgsConfig<T extends Record<string, OptionDefinition>> = T
 
@@ -100,7 +100,7 @@ function parseFloatOption(option: TypedOptionDefinition<NumberOptionType, number
   if (typeof value === 'number')
     return value
 
-  if (typeof value === 'string' && !value.match(/^\d+(?:\.\d+)?$/))
+  if (typeof value === 'string' && !(/^\d+(?:\.\d+)?$/).test(value))
     throw new OptionFormatError(option, value)
 
   const nb = Number.parseFloat(value)
@@ -118,7 +118,7 @@ function parseIntOption(option: TypedOptionDefinition<NumberOptionType, number>,
   if (typeof value === 'number')
     return value
 
-  if (typeof value === 'string' && !value.match(/^\d+$/))
+  if (typeof value === 'string' && !(/^\d+$/).test(value))
     throw new OptionFormatError(option, value)
 
   const nb = Number.parseInt(value)
@@ -136,7 +136,7 @@ function parseNumberOption(option: TypedOptionDefinition<NumberOptionType, numbe
   if (typeof value === 'number')
     return value
 
-  if (typeof value === 'string' && !value.match(/^\d+(?:\.\d+)?$/))
+  if (typeof value === 'string' && !(/^\d+(?:\.\d+)?$/).test(value))
     throw new OptionFormatError(option, value)
 
   const nb = Number(value)
@@ -278,7 +278,7 @@ export function parseArgs<
   const result: any = {}
 
   for (let i = 0; i < config.args.length; i++) {
-    const arg = config.args[i]
+    const arg = config.args[i]!
 
     const match = arg.match(argRegexp)
 
@@ -288,9 +288,9 @@ export function parseArgs<
     let [, name, content] = match as [string, string, string?]
 
     if (content === undefined && i + 1 < config.args.length) {
-      const nextArg = config.args[i + 1]
+      const nextArg = config.args[i + 1]!
 
-      if (!nextArg.match(argRegexp))
+      if (!argRegexp.test(nextArg))
         content = nextArg
     }
 

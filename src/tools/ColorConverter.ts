@@ -19,10 +19,10 @@ function hexToRgb(hex: string): [number, number, number] | [number, number, numb
   const parse = (s: string) => Number.parseInt(s, 16)
 
   if (len === 3 || len === 4) {
-    const r = parse(cleanHex[0] + cleanHex[0])
-    const g = parse(cleanHex[1] + cleanHex[1])
-    const b = parse(cleanHex[2] + cleanHex[2])
-    const a = len === 4 ? parse(cleanHex[3] + cleanHex[3]) : undefined
+    const r = parse(cleanHex[0]! + cleanHex[0]!)
+    const g = parse(cleanHex[1]! + cleanHex[1]!)
+    const b = parse(cleanHex[2]! + cleanHex[2]!)
+    const a = len === 4 ? parse(cleanHex[3]! + cleanHex[3]!) : undefined
 
     return a !== undefined ? [r, g, b, a] : [r, g, b]
   }
@@ -172,25 +172,25 @@ export class Color {
   to(type: 'hexa'): string
   to(type: ColorType): RgbArrayType | RgbaArrayType | HslArrayType | HslaArrayType | string {
     switch (type) {
-    case 'rgb':
-      return [this.r, this.g, this.b]
+      case 'rgb':
+        return [this.r, this.g, this.b]
 
-    case 'rgba':
-      return [this.r, this.g, this.b, this.a]
+      case 'rgba':
+        return [this.r, this.g, this.b, this.a]
 
-    case 'hex':
-      return rgbToHex([this.r, this.g, this.b])
+      case 'hex':
+        return rgbToHex([this.r, this.g, this.b])
 
-    case 'hexa':
-      return rgbToHex([this.r, this.g, this.b, this.a])
+      case 'hexa':
+        return rgbToHex([this.r, this.g, this.b, this.a])
 
-    case 'hsl':
-      return rgbToHsl([this.r, this.g, this.b])
+      case 'hsl':
+        return rgbToHsl([this.r, this.g, this.b])
 
-    case 'hsla':
-      return [...rgbToHsl([this.r, this.g, this.b]), this.a]
-    default:
-      return [this.r, this.g, this.b]
+      case 'hsla':
+        return [...rgbToHsl([this.r, this.g, this.b]), this.a]
+      default:
+        return [this.r, this.g, this.b]
     }
   }
 

@@ -39,7 +39,7 @@ export function declareGetEndpoint<
   function getEndpoint<Name extends KeysWithVariables>(name: Name, resolvedParams: ResolveParams<EndpointsConst[Name], CustomTypes[Name] extends Record<Key, any> ? CustomTypes[Name] : {}>): string
 
   function getEndpoint(name: string, resolvedParams?: any): string {
-    const endpoint: string = ENDPOINTS[name]
+    const endpoint: string = ENDPOINTS[name]!
 
     if (!resolvedParams)
       return endpoint

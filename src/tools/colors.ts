@@ -4,10 +4,10 @@ import { Color } from './ColorConverter'
 type ColorStyle = [start: number | string, end: number | string]
 type StyleMap = typeof styleMap
 
-type ColorsType =
-  ((value: string) => string) &
-  { [K in NonFunctionKeys<StyleMap>]: ColorsType } &
-  { [K in FunctionKeys<StyleMap>]: StyleMap[K] extends (...args: infer A) => ColorStyle ? (...args: A) => ColorsType : never }
+type ColorsType
+  = ((value: string) => string)
+    & { [K in NonFunctionKeys<StyleMap>]: ColorsType }
+    & { [K in FunctionKeys<StyleMap>]: StyleMap[K] extends (...args: infer A) => ColorStyle ? (...args: A) => ColorsType : never }
 
 type Appearance = 'fg' | 'bg'
 
@@ -78,7 +78,7 @@ function applyStyles(styles: ColorStyle[], value: string): string {
   let close = ''
 
   for (let i = 0, len = styles.length; i < len; i++) {
-    const [start, end] = styles[i]
+    const [start, end] = styles[i]!
 
     open += `${ANSI}${start}m`
     close = `${ANSI}${end}m${close}`

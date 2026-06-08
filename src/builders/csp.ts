@@ -1,9 +1,9 @@
-export type CspName =
-  | 'default-src' | 'script-src' | 'worker-src' | 'style-src'
-  | 'img-src' | 'connect-src' | 'font-src' | 'object-src'
-  | 'frame-ancestors' | 'base-uri' | 'form-action'
-  | 'upgrade-insecure-requests' | 'media-src' | 'frame-src'
-  | 'script-src-elem' | 'style-src-elem' | 'manifest-src'
+export type CspName
+  = | 'default-src' | 'script-src' | 'worker-src' | 'style-src'
+    | 'img-src' | 'connect-src' | 'font-src' | 'object-src'
+    | 'frame-ancestors' | 'base-uri' | 'form-action'
+    | 'upgrade-insecure-requests' | 'media-src' | 'frame-src'
+    | 'script-src-elem' | 'style-src-elem' | 'manifest-src'
 
 export type CspType = Partial<Record<CspName, string[]>>
 

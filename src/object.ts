@@ -15,9 +15,9 @@ export function mergeObjects<T extends object>(obj1: T | RecursivePartial<T>, ob
   const merged: T = JSON.parse(JSON.stringify(obj1)) as T
 
   for (const key in obj2) {
-    if (Object.prototype.hasOwnProperty.call(obj2, key)) {
+    if (Object.hasOwn(obj2, key)) {
       // add from obj2 if undefined in merged object
-      if (!Object.prototype.hasOwnProperty.call(merged, key))
+      if (!Object.hasOwn(merged, key))
         merged[key] = obj2[key] as any
       else if (typeof merged[key] === 'object' && typeof obj2[key] === 'object')
         merged[key] = mergeObjects(merged[key] as any, obj2[key])
@@ -54,7 +54,7 @@ export function interpolate<T extends object | number>(start: RecursivePartial<T
       const interpolatedFrame: T = {} as T
 
       for (const key in end) {
-        if (Object.prototype.hasOwnProperty.call(end, key)) {
+        if (Object.hasOwn(end, key)) {
           if (typeof end[key] === 'number' && typeof start[key] === 'number') {
             interpolatedFrame[key] = map(
               i,

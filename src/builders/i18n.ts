@@ -60,14 +60,14 @@ export function declareI18n<
   // keys that have NO variables - third parameter forbidden
   function t<K extends KeysWithoutVariables>(
     locale: LocaleType,
-    key: K
+    key: K,
   ): string
 
   // keys that HAVE variables - third parameter required
   function t<K extends KeysWithVariables>(
     locale: LocaleType,
     key: K,
-    variables: Record<ExtractVariablesFromKey<PrimaryTranslation, K>, string | number>
+    variables: Record<ExtractVariablesFromKey<PrimaryTranslation, K>, string | number>,
   ): string
 
   function t<K extends I18nKey>(locale: LocaleType, key: K, variables?: Record<string, string | number>): string {
@@ -92,12 +92,12 @@ export function declareI18n<
 
   function translate(locale: LocaleType) {
     function scopedT<K extends KeysWithoutVariables>(
-      key: K
+      key: K,
     ): string
 
     function scopedT<K extends KeysWithVariables>(
       key: K,
-      variables: Record<ExtractVariablesFromKey<PrimaryTranslation, K>, string | number>
+      variables: Record<ExtractVariablesFromKey<PrimaryTranslation, K>, string | number>,
     ): string
 
     function scopedT<K extends I18nKey>(key: K, variables?: Record<string, string | number>): string {

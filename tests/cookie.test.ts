@@ -13,7 +13,7 @@ Object.defineProperty(globalThis, 'document', {
     },
     set cookie(str: string) {
       const [pair] = str.split(';')
-      const [key, value] = pair.split('=')
+      const [key, value] = pair!.split('=')
 
       if (!key)
         return

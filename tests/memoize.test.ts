@@ -82,7 +82,7 @@ describe('Memoize decorator', () => {
     })
 
     it('should return same cached value multiple times', () => {
-      const results = Array.from({ length: 5 }, () => service.expensiveOperation)
+      const results = Array.from({ length: 5 }).fill(service.expensiveOperation)
 
       expect(results.every(r => r === results[0])).toBe(true)
     })

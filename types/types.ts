@@ -20,9 +20,9 @@ type RecursiveKeyOfInner<TObj extends object> = {
   RecursiveKeyOfHandleValue<TObj[TKey], `.${TKey}`>;
 }[keyof TObj & (string | number)]
 
-type RecursiveKeyOfHandleValue<TValue, Text extends string> =
-  TValue extends any[] ? Text :
-    TValue extends object
+type RecursiveKeyOfHandleValue<TValue, Text extends string>
+  = TValue extends any[] ? Text
+    : TValue extends object
       ? Text | `${Text}${RecursiveKeyOfInner<TValue>}`
       : Text
 
@@ -37,9 +37,9 @@ export type MaybeArray<T> = T | T[]
 
 export type RecursivePartial<T> = {
   [P in keyof T]?:
-  T[P] extends (infer U)[] ? RecursivePartial<U>[] :
-    T[P] extends object | undefined ? RecursivePartial<T[P]> :
-      T[P];
+  T[P] extends (infer U)[] ? RecursivePartial<U>[]
+    : T[P] extends object | undefined ? RecursivePartial<T[P]>
+      : T[P];
 }
 
 // eslint-disable-next-line ts/no-unsafe-function-type

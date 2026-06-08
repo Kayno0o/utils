@@ -18,11 +18,11 @@ export function delay<T extends (...args: any[]) => any>(ms: number, callback?: 
 }
 
 export function debounce<T extends (...args: any[]) => any>(func: T, delay: number): ((...args: Parameters<T>) => void) {
-  let timeoutId: ReturnType<typeof setTimeout>
+  let timeoutId: ReturnType<typeof setTimeout> | number
 
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => func(...args), delay)
+    timeoutId = setTimeout(func, delay, ...args)
   }
 }
 

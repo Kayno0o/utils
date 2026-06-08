@@ -25,7 +25,7 @@ export async function timeout<T>(fn: () => Promise<T>, maxTime = 5000): Promise<
       reject(new TimeoutError('Method took too long to process'))
     }, maxTime)
 
-    // eslint-disable-next-line github/no-then
+    // eslint-disable-next-line kaynooo/no-then
     fn().then((val: T) => {
       clearTimeout(pid)
       resolve(val)

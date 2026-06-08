@@ -3,10 +3,10 @@ import en from '../i18n/date/en'
 import { ObjectEntries } from '../object'
 
 type FormatType
-= | `iso`
-  | 'iso8601'
-  | 'iso-datetime'
-  | 'iso8601-datetime'
+  = | `iso`
+    | 'iso8601'
+    | 'iso-datetime'
+    | 'iso8601-datetime'
 
 interface DateObject {
   year: string
@@ -127,7 +127,7 @@ export function buildDate(dateOrOptions?: string | Date | FormatDateOption | For
     const iso = dateOrOptions.match(/^(\d{2}|\d{4})-?(\d{2})-?(\d{2})$/)
 
     if (iso) {
-      if (iso[1].length === 2)
+      if (iso[1]!.length === 2)
         iso[1] = `20${iso[1]}`
 
       date = new Date(iso.slice(1, 4).join('-'))
@@ -136,7 +136,7 @@ export function buildDate(dateOrOptions?: string | Date | FormatDateOption | For
       const generic = dateOrOptions.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4})$/)
 
       if (generic) {
-        if (generic[3].length === 2)
+        if (generic[3]!.length === 2)
           generic[3] = `20${generic[3]}`
 
         date = new Date(generic.slice(1, 3).reverse().join('-'))

@@ -26,7 +26,7 @@ export function isDate(val: any): val is Date {
 }
 
 export function isPromise(val: any): val is Promise<any> {
-  // eslint-disable-next-line github/no-then
+  // eslint-disable-next-line kaynooo/no-then
   return val !== null && typeof val === 'object' && typeof val.then === 'function'
 }
 

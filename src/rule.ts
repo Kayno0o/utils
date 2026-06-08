@@ -15,25 +15,25 @@ function compareNumber(comparator: 'lt' | 'gt' | 'gte' | 'lte' | 'eq' | 'neq', n
     value ??= 0
 
     switch (comparator) {
-    case 'eq':
-      return value === nb || `Must equal ${nb}.`
+      case 'eq':
+        return value === nb || `Must equal ${nb}.`
 
-    case 'neq':
-      return value !== nb || `Must not be ${nb}.`
+      case 'neq':
+        return value !== nb || `Must not be ${nb}.`
 
-    case 'gt':
-      return value > nb || `Greater than ${nb}.`
+      case 'gt':
+        return value > nb || `Greater than ${nb}.`
 
-    case 'gte':
-      return value >= nb || `At least ${nb}.`
+      case 'gte':
+        return value >= nb || `At least ${nb}.`
 
-    case 'lt':
-      return value < nb || `Less than ${nb}.`
+      case 'lt':
+        return value < nb || `Less than ${nb}.`
 
-    case 'lte':
-      return value <= nb || `At most ${nb}.`
-    default:
-      return `Invalid comparator`
+      case 'lte':
+        return value <= nb || `At most ${nb}.`
+      default:
+        return `Invalid comparator`
     }
   }
 }

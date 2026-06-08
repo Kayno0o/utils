@@ -12,7 +12,7 @@ export function randomString(length: number, charset?: string, isCrypto = false)
     let id = ''
     const vals = crypto.getRandomValues(new Uint8Array(length))
 
-    for (let i = 0; i < length; i++) id += charset[vals[i] % charset.length]
+    for (let i = 0; i < length; i++) id += charset[vals[i]! % charset.length]
 
     return id
   }
@@ -146,15 +146,15 @@ export function removeComments(content: string): string {
 export function escapeXml(unsafe: string): string {
   return unsafe.replace(/[<>&'"]/g, (char) => {
     switch (char) {
-    case '<': return '&lt;'
+      case '<': return '&lt;'
 
-    case '>': return '&gt;'
+      case '>': return '&gt;'
 
-    case '&': return '&amp;'
+      case '&': return '&amp;'
 
-    case '\'': return '&apos;'
+      case '\'': return '&apos;'
 
-    case '"': default: return '&quot;'
+      case '"': default: return '&quot;'
     }
   })
 }

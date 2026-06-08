@@ -533,7 +533,7 @@ describe('Case conversion functions', () => {
 
   it.each(cases)('toCamelCase - "%s"', (input, expected) => {
     const parts = expected.split('-')
-    const expectedCamel = parts[0] + parts.slice(1).map(w => w[0].toUpperCase() + w.slice(1)).join('')
+    const expectedCamel = parts[0] + parts.slice(1).map(w => w[0]!.toUpperCase() + w.slice(1)).join('')
 
     expect(toCamel(input)).toBe(expectedCamel)
   })
@@ -541,7 +541,7 @@ describe('Case conversion functions', () => {
   it.each(cases)('toPascalCase - "%s"', (input, expected) => {
     const expectedPascal = expected
       .split('-')
-      .map(w => w[0].toUpperCase() + w.slice(1))
+      .map(w => w[0]!.toUpperCase() + w.slice(1))
       .join('')
 
     expect(toPascal(input)).toBe(expectedPascal)
@@ -554,7 +554,7 @@ describe('Case conversion functions', () => {
   it.each(cases)('toTitleCase - "%s"', (input, expected) => {
     const expectedTitle = expected
       .split('-')
-      .map(w => w[0].toUpperCase() + w.slice(1))
+      .map(w => w[0]!.toUpperCase() + w.slice(1))
       .join(' ')
 
     expect(toTitle(input)).toBe(expectedTitle)
