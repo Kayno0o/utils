@@ -139,14 +139,19 @@ export function unfunction<T>(c: T | (() => T)): T {
   return c
 }
 
-export function ObjectEntries<Obj extends Record<Key, any>>(record: Obj): { [K in keyof Obj]: [K, Obj[K]] }[keyof Obj][] {
-  return Object.entries(record) as { [K in keyof Obj]: [K, Obj[K]] }[keyof Obj][]
+// `Object.keys/values/entries` only enumerate own string-keyed properties:
+// symbol keys are skipped and numeric keys are coerced to strings. These types
+// mirror that runtime behaviour rather than blindly reusing `keyof Obj`.
+type EnumerableKey<Obj> = Extract<keyof Obj, string | number>
+
+export function ObjectEntries<Obj extends object>(record: Obj): { [K in EnumerableKey<Obj>]: [`${K}`, Obj[K]] }[EnumerableKey<Obj>][] {
+  return Object.entries(record) as { [K in EnumerableKey<Obj>]: [`${K}`, Obj[K]] }[EnumerableKey<Obj>][]
 }
 
-export function ObjectKeys<Obj extends Record<Key, any>>(record: Obj): (keyof Obj)[] {
-  return Object.keys(record) as (keyof Obj)[]
+export function ObjectKeys<Obj extends object>(record: Obj): `${EnumerableKey<Obj>}`[] {
+  return Object.keys(record) as `${EnumerableKey<Obj>}`[]
 }
 
-export function ObjectValues<Obj extends Record<Key, any>>(record: Obj): Obj[keyof Obj][] {
-  return Object.values(record) as Obj[keyof Obj][]
+export function ObjectValues<Obj extends object>(record: Obj): Obj[EnumerableKey<Obj>][] {
+  return Object.values(record) as Obj[EnumerableKey<Obj>][]
 }
