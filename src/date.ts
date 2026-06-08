@@ -104,3 +104,83 @@ export function stringToMsDuration(duration: string | number): number {
 
   return total
 }
+
+/**
+ * Convert a duration in milliseconds into a human-readable string.
+ *
+ * The inverse of {@link stringToMsDuration}: the output round-trips back to the
+ * same number of milliseconds when the same `units` are used. The duration is
+ * decomposed greedily from the largest unit to the smallest, skipping zeroes.
+ *
+ * Units are case-sensitive: `m` is minutes while `M` is months.
+ * Supported units: `s`, `m`, `h`, `d`, `w`, `M`, `y`.
+ *
+ * @param ms - The duration in milliseconds.
+ * @param units - Which units to use, defaulting to `['d', 'h', 'm', 's']`.
+ * @returns A duration string such as `'1d 7h 30m'`, or `'0s'` for an empty duration.
+ */
+export function msDurationToString(ms: number, units: string[] = ['d', 'h', 'm', 's']): string {
+  const ordered = units
+    .filter(unit => DURATION_UNIT_MS[unit] !== undefined)
+    .sort((a, b) => DURATION_UNIT_MS[b]! - DURATION_UNIT_MS[a]!)
+
+  const smallest = ordered.at(-1) ?? 's'
+
+  let remaining = Math.floor(Math.abs(ms))
+  const sign = ms < 0 ? '-' : ''
+  const parts: string[] = []
+
+  for (const unit of ordered) {
+    const factor = DURATION_UNIT_MS[unit]!
+    const value = Math.floor(remaining / factor)
+
+    if (value > 0) {
+      parts.push(`${value}${unit}`)
+      remaining -= value * factor
+    }
+  }
+
+  return parts.length === 0 ? `0${smallest}` : sign + parts.join(' ')
+}
+
+const RELATIVE_TIME_DIVISIONS: [number, Intl.RelativeTimeFormatUnit][] = [
+  [DURATION_UNIT_MS.y!, 'year'],
+  [DURATION_UNIT_MS.M!, 'month'],
+  [DURATION_UNIT_MS.w!, 'week'],
+  [DURATION_UNIT_MS.d!, 'day'],
+  [DURATION_UNIT_MS.h!, 'hour'],
+  [DURATION_UNIT_MS.m!, 'minute'],
+  [DURATION_UNIT_MS.s!, 'second'],
+]
+
+export interface FormatRelativeTimeOptions {
+  /** The date to measure against. Defaults to `new Date()`. */
+  from?: Date | string | number
+  /** A BCP 47 locale (or locales) for the output. Defaults to the runtime locale. */
+  locale?: string | string[]
+  /** Whether to use phrases like `'yesterday'` (`'auto'`) or always numeric. Defaults to `'auto'`. */
+  numeric?: 'auto' | 'always'
+}
+
+/**
+ * Format the distance between two dates as a human-readable phrase.
+ *
+ * Picks the largest sensible unit (e.g. `'3 hours ago'`, `'in 2 days'`) using
+ * the platform's {@link Intl.RelativeTimeFormat}, so output is localized.
+ *
+ * @param date - The target date (past or future).
+ * @param options - Reference date, locale and numeric style.
+ * @returns A localized relative-time string.
+ */
+export function formatRelativeTime(date: Date | string | number, options: FormatRelativeTimeOptions = {}): string {
+  const { from = new Date(), locale, numeric = 'auto' } = options
+  const diff = new Date(date).getTime() - new Date(from).getTime()
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric })
+
+  for (const [factor, unit] of RELATIVE_TIME_DIVISIONS) {
+    if (Math.abs(diff) >= factor || unit === 'second')
+      return formatter.format(Math.round(diff / factor), unit)
+  }
+
+  return formatter.format(0, 'second')
+}

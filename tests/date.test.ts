@@ -1,5 +1,52 @@
 import { describe, expect, test as it } from 'bun:test'
-import { calculateEaster, getFrenchHolidays, isHoliday, isLeapYear, stringToMsDuration } from '../src'
+import { calculateEaster, formatRelativeTime, getFrenchHolidays, isHoliday, isLeapYear, msDurationToString, stringToMsDuration } from '../src'
+
+describe('msDurationToString function', () => {
+  it('decomposes a duration into the largest units first', () => {
+    expect(msDurationToString(stringToMsDuration('1d 7h 30m'))).toBe('1d 7h 30m')
+    expect(msDurationToString(90061000)).toBe('1d 1h 1m 1s')
+  })
+
+  it('skips zero units', () => {
+    expect(msDurationToString(stringToMsDuration('2h'))).toBe('2h')
+  })
+
+  it('returns 0 of the smallest unit for empty durations', () => {
+    expect(msDurationToString(0)).toBe('0s')
+    expect(msDurationToString(500)).toBe('0s') // sub-second rounds down
+  })
+
+  it('round-trips with custom units', () => {
+    const units = ['y', 'w', 'd', 'h', 'm', 's']
+    const ms = stringToMsDuration('1y 2w 3d')
+
+    expect(stringToMsDuration(msDurationToString(ms, units))).toBe(ms)
+  })
+
+  it('keeps the sign for negative durations', () => {
+    expect(msDurationToString(-stringToMsDuration('1h 30m'))).toBe('-1h 30m')
+  })
+})
+
+describe('formatRelativeTime function', () => {
+  const from = new Date(2026, 5, 8, 12, 0, 0)
+
+  it('formats past dates', () => {
+    expect(formatRelativeTime(new Date(2026, 5, 8, 9, 0, 0), { from, locale: 'en' })).toBe('3 hours ago')
+  })
+
+  it('formats future dates', () => {
+    expect(formatRelativeTime(new Date(2026, 5, 10, 12, 0, 0), { from, locale: 'en' })).toBe('in 2 days')
+  })
+
+  it('uses natural phrasing with numeric auto', () => {
+    expect(formatRelativeTime(new Date(2026, 5, 7, 12, 0, 0), { from, locale: 'en' })).toBe('yesterday')
+  })
+
+  it('can force numeric output', () => {
+    expect(formatRelativeTime(new Date(2026, 5, 7, 12, 0, 0), { from, locale: 'en', numeric: 'always' })).toBe('1 day ago')
+  })
+})
 
 describe('isLeapYear function', () => {
   it('returns true for years divisible by 4 but not 100', () => {
