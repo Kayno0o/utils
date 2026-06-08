@@ -54,35 +54,40 @@ export function isHoliday(date: Date | string): boolean {
   return holidays.includes(formattedDate)
 }
 
+const DURATION_UNIT_MS: Record<string, number> = {
+  s: 1000,
+  m: 1000 * 60,
+  h: 1000 * 60 * 60,
+  d: 1000 * 60 * 60 * 24,
+  w: 1000 * 60 * 60 * 24 * 7,
+  M: 1000 * 60 * 60 * 24 * 30,
+  y: 1000 * 60 * 60 * 24 * 365,
+}
+
+/**
+ * Convert a human-readable duration into milliseconds.
+ *
+ * Supports single units (`'5m'`) as well as compound durations made of
+ * several space-separated (or concatenated) parts, e.g. `'1d 7h'` or `'1d7h30m'`.
+ *
+ * Units are case-sensitive: `m` is minutes while `M` is months.
+ * Supported units: `s`, `m`, `h`, `d`, `w`, `M`, `y`.
+ *
+ * @param duration - A duration string, or a number that is returned unchanged (already ms).
+ * @returns The duration in milliseconds, or `0` when no valid part is found.
+ */
 export function stringToMsDuration(duration: string | number): number {
   if (typeof duration === 'number')
     return duration
 
-  const match = duration.match(/(\d+)([a-z])/i)
+  let total = 0
 
-  if (!match)
-    return 0
+  for (const [, time, unit] of duration.matchAll(/(\d+)\s*([a-z])/gi)) {
+    const factor = DURATION_UNIT_MS[unit]
 
-  const [, time, unit] = match
-  let factor = 1
+    if (factor !== undefined)
+      total += Number(time) * factor
+  }
 
-  if (unit === 'm')
-    factor = 60
-
-  if (unit === 'h')
-    factor = 60 * 60
-
-  if (unit === 'd')
-    factor = 60 * 60 * 24
-
-  if (unit === 'w')
-    factor = 60 * 60 * 24 * 7
-
-  if (unit === 'M')
-    factor = 60 * 60 * 24 * 30
-
-  if (unit === 'y')
-    factor = 60 * 60 * 24 * 365
-
-  return Number(time) * factor * 1000
+  return total
 }

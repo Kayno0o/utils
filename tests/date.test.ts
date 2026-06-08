@@ -90,6 +90,19 @@ describe('stringToMsDuration function', () => {
     expect(result).toBe(31536000000) // 1 year in milliseconds
   })
 
+  it('should handle compound durations', () => {
+    expect(stringToMsDuration('1d 7h')).toBe(86400000 + 7 * 3600000)
+    expect(stringToMsDuration('1d7h30m')).toBe(86400000 + 7 * 3600000 + 30 * 60000)
+    expect(stringToMsDuration('2w 3d 4h 5m 6s')).toBe(
+      2 * 604800000 + 3 * 86400000 + 4 * 3600000 + 5 * 60000 + 6 * 1000,
+    )
+  })
+
+  it('should distinguish minutes from months by case', () => {
+    expect(stringToMsDuration('1m')).toBe(60000) // minute
+    expect(stringToMsDuration('1M')).toBe(2592000000) // month
+  })
+
   it('should return 0 for invalid duration formats', () => {
     expect(stringToMsDuration('invalid')).toBe(0)
     expect(stringToMsDuration('10')).toBe(0) // missing unit
