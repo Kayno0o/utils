@@ -79,6 +79,42 @@ export function groupBy<T>(items: T[], getKey: (item: T) => string | number): Re
   }, {} as Record<string | number, T[]>)
 }
 
+export function keyBy<T>(items: T[], getKey: (item: T) => string | number): Record<string | number, T> {
+  return items.reduce((acc, item) => {
+    acc[getKey(item)] = item
+
+    return acc
+  }, {} as Record<string | number, T>)
+}
+
+export function countBy<T>(items: T[], getKey: (item: T) => string | number): Record<string | number, number> {
+  return items.reduce((acc, item) => {
+    const key = getKey(item)
+
+    acc[key] = (acc[key] ?? 0) + 1
+
+    return acc
+  }, {} as Record<string | number, number>)
+}
+
+export function sum(values: number[]): number {
+  return values.reduce((total, value) => total + value, 0)
+}
+
+export function mean(values: number[]): number {
+  return values.length === 0 ? 0 : sum(values) / values.length
+}
+
+export function median(values: number[]): number {
+  if (values.length === 0)
+    return 0
+
+  const sorted = [...values].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+
+  return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!
+}
+
 export function partition<T>(items: T[], getGroup: (item: T) => boolean): [T[], T[]] {
   const result: [T[], T[]] = [[], []]
 

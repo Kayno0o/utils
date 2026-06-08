@@ -1,5 +1,43 @@
 import { describe, expect, it } from 'bun:test'
-import { getRandomElement, notNullish, range, uniqueArray } from '../src'
+import { countBy, getRandomElement, keyBy, mean, median, notNullish, range, sum, uniqueArray } from '../src'
+
+describe('keyBy function', () => {
+  it('indexes items by a key', () => {
+    const users = [{ id: 'a', n: 1 }, { id: 'b', n: 2 }]
+
+    expect(keyBy(users, u => u.id)).toEqual({ a: { id: 'a', n: 1 }, b: { id: 'b', n: 2 } })
+  })
+
+  it('keeps the last item on key collision', () => {
+    const items = [{ k: 1, v: 'first' }, { k: 1, v: 'last' }]
+
+    expect(keyBy(items, i => i.k)).toEqual({ 1: { k: 1, v: 'last' } })
+  })
+})
+
+describe('countBy function', () => {
+  it('counts occurrences per key', () => {
+    expect(countBy(['a', 'b', 'a', 'c', 'a'], x => x)).toEqual({ a: 3, b: 1, c: 1 })
+  })
+})
+
+describe('sum / mean / median functions', () => {
+  it('sums values', () => {
+    expect(sum([1, 2, 3, 4])).toBe(10)
+    expect(sum([])).toBe(0)
+  })
+
+  it('computes the mean', () => {
+    expect(mean([2, 4, 6])).toBe(4)
+    expect(mean([])).toBe(0)
+  })
+
+  it('computes the median for odd and even counts', () => {
+    expect(median([5, 1, 3])).toBe(3)
+    expect(median([1, 2, 3, 4])).toBe(2.5)
+    expect(median([])).toBe(0)
+  })
+})
 
 describe('getRandomElement function', () => {
   it('should return an element from the array', () => {
