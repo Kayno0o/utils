@@ -1,5 +1,22 @@
 import { describe, expect, test as it } from 'bun:test'
-import { calculateEaster, getFrenchHolidays, isHoliday, stringToMsDuration } from '../src'
+import { calculateEaster, getFrenchHolidays, isHoliday, isLeapYear, stringToMsDuration } from '../src'
+
+describe('isLeapYear function', () => {
+  it('returns true for years divisible by 4 but not 100', () => {
+    expect(isLeapYear(2024)).toBe(true)
+    expect(isLeapYear(2028)).toBe(true)
+  })
+
+  it('returns false for common years', () => {
+    expect(isLeapYear(2025)).toBe(false)
+    expect(isLeapYear(2100)).toBe(false)
+  })
+
+  it('handles century rule (divisible by 400)', () => {
+    expect(isLeapYear(2000)).toBe(true)
+    expect(isLeapYear(1900)).toBe(false)
+  })
+})
 
 describe('calculateEaster function', () => {
   it('should return the correct date for Easter in 2023', () => {

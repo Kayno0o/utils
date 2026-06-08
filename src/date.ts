@@ -2,6 +2,19 @@ export function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month, 0).getDate()
 }
 
+/**
+ * Determine whether a year is a leap year (366 days).
+ *
+ * Follows the Gregorian rule: divisible by 4, except centuries which must
+ * also be divisible by 400 (so 2000 is a leap year, 1900 is not).
+ *
+ * @param year - The full year, e.g. `2024`.
+ * @returns `true` when the year has a 29th of February.
+ */
+export function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+}
+
 export function calculateEaster(year: number): Date {
   const f = Math.floor
   const G = year % 19
