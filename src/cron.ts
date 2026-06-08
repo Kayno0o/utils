@@ -141,57 +141,77 @@ function dayMatches(date: Date, dayOfMonth: CronField, dayOfWeek: CronField): bo
   return true
 }
 
-function computeNextRuns(fields: ReturnType<typeof parseExpression>, from: Date, count: number): Date[] {
+function matchesFields(fields: ReturnType<typeof parseExpression>, date: Date): boolean {
+  const { minute, hour, dayOfMonth, month, dayOfWeek } = fields
+
+  return month.values.has(date.getMonth() + 1)
+    && dayMatches(date, dayOfMonth, dayOfWeek)
+    && hour.values.has(date.getHours())
+    && minute.values.has(date.getMinutes())
+}
+
+function computeRuns(fields: ReturnType<typeof parseExpression>, from: Date, count: number, forward: boolean): Date[] {
   const { minute, hour, dayOfMonth, month, dayOfWeek } = fields
   const runs: Date[] = []
+  const step = forward ? 1 : -1
 
-  // Start at the next whole minute after `from`.
+  // Start at the whole minute strictly after (or before) `from`.
   const date = new Date(from)
 
   date.setSeconds(0, 0)
-  date.setMinutes(date.getMinutes() + 1)
+  date.setMinutes(date.getMinutes() + step)
 
   // Safety bound: stop searching beyond ~8 years to avoid infinite loops on
   // impossible expressions (e.g. Feb 30th).
   const limit = new Date(date)
 
-  limit.setFullYear(limit.getFullYear() + 8)
+  limit.setFullYear(limit.getFullYear() + step * 8)
 
   while (runs.length < count) {
-    if (date > limit)
+    if (forward ? date > limit : date < limit)
       break
 
     if (!month.values.has(date.getMonth() + 1)) {
-      date.setMonth(date.getMonth() + 1, 1)
-      date.setHours(0, 0, 0, 0)
+      // Jump to the first/last day of the previous/next month.
+      date.setMonth(date.getMonth() + (forward ? 1 : 0), forward ? 1 : 0)
+      date.setHours(forward ? 0 : 23, forward ? 0 : 59, 0, 0)
 
       continue
     }
 
     if (!dayMatches(date, dayOfMonth, dayOfWeek)) {
-      date.setDate(date.getDate() + 1)
-      date.setHours(0, 0, 0, 0)
+      date.setDate(date.getDate() + step)
+      date.setHours(forward ? 0 : 23, forward ? 0 : 59, 0, 0)
 
       continue
     }
 
     if (!hour.values.has(date.getHours())) {
-      date.setHours(date.getHours() + 1, 0, 0, 0)
+      date.setHours(date.getHours() + step, forward ? 0 : 59, 0, 0)
 
       continue
     }
 
     if (!minute.values.has(date.getMinutes())) {
-      date.setMinutes(date.getMinutes() + 1, 0, 0)
+      date.setMinutes(date.getMinutes() + step, 0, 0)
 
       continue
     }
 
     runs.push(new Date(date))
-    date.setMinutes(date.getMinutes() + 1)
+    date.setMinutes(date.getMinutes() + step)
   }
 
   return runs
+}
+
+function toExpression(input: string): string {
+  const tokens = input.trim().split(/\s+/)
+
+  if (tokens.length < 5)
+    throw new Error(`Invalid cron expression: expected at least 5 fields, got ${tokens.length}`)
+
+  return tokens.slice(0, 5).join(' ')
 }
 
 function humanizeList(field: CronField, name?: (value: number) => string, aliases?: Record<string, number>): string {
@@ -292,7 +312,46 @@ export function cronExpressionExplainer(input: string, options: CronExpressionEx
 
   const fields = parseExpression(expression)
   const description = command ? `${describe(fields)}, running \`${command}\`` : describe(fields)
-  const nextRuns = computeNextRuns(fields, from, count)
+  const nextRuns = computeRuns(fields, from, count, true)
 
   return { expression, command, description, nextRuns }
+}
+
+/**
+ * Compute the upcoming execution dates of a cron expression.
+ *
+ * @param expression - A cron expression (a trailing command is ignored).
+ * @param options - Controls how many runs to compute and the reference date.
+ * @returns The next execution dates, in chronological order, after `from`.
+ */
+export function cronNextRuns(expression: string, options: CronExpressionExplainerOptions = {}): Date[] {
+  const { count = 5, from = new Date() } = options
+
+  return computeRuns(parseExpression(toExpression(expression)), from, count, true)
+}
+
+/**
+ * Compute the most recent past execution dates of a cron expression.
+ *
+ * @param expression - A cron expression (a trailing command is ignored).
+ * @param options - Controls how many runs to compute and the reference date.
+ * @returns The previous execution dates, most recent first, before `from`.
+ */
+export function cronPreviousRuns(expression: string, options: CronExpressionExplainerOptions = {}): Date[] {
+  const { count = 5, from = new Date() } = options
+
+  return computeRuns(parseExpression(toExpression(expression)), from, count, false)
+}
+
+/**
+ * Check whether a date satisfies a cron expression.
+ *
+ * Matching is done at minute granularity (seconds and milliseconds are ignored).
+ *
+ * @param date - The date to test.
+ * @param expression - A cron expression (a trailing command is ignored).
+ * @returns `true` when the cron would fire during the date's minute.
+ */
+export function cronMatches(date: Date, expression: string): boolean {
+  return matchesFields(parseExpression(toExpression(expression)), date)
 }
