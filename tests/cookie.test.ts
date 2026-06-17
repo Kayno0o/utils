@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test as it } from 'bun:test'
-import { CookieBuilder, CookieManager } from '../src/builders/cookie'
+import { CookieBuilder, CookieManager } from '../src/browser/cookie'
 
 // Mock document.cookie
 const mockCookieJar = new Map<string, string>()
