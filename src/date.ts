@@ -184,3 +184,47 @@ export function formatRelativeTime(date: Date | string | number, options: Format
 
   return formatter.format(0, 'second')
 }
+
+const DAY_MS = 86_400_000
+
+/** Local-date ISO string `YYYY-MM-DD` without UTC shift (unlike `toISOString`). */
+export function toISODate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** Parse a `YYYY-MM-DD` string into a local-midnight Date. */
+export function fromISODate(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+
+  return new Date(y!, (m ?? 1) - 1, d ?? 1)
+}
+
+/** ISO week start (Monday) of the given date, as `YYYY-MM-DD`. DST-proof via local arithmetic. */
+export function weekStartISO(d: Date): string {
+  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+
+  // getDay(): 0=Sun..6=Sat → days since Monday
+  date.setDate(date.getDate() - (date.getDay() + 6) % 7)
+
+  return toISODate(date)
+}
+
+/**
+ * Returns an ascending list of `YYYY-MM-DD` keys for a contribution grid:
+ * a `weeks`-week window ending on `today`, padded back to the preceding Monday
+ * so the result is always a clean 7×N block.
+ */
+export function gridDays(weeks: number, today: Date = new Date()): string[] {
+  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const startOffset = (end.getDay() + 6) % 7 + (weeks - 1) * 7
+  const start = new Date(end)
+
+  start.setDate(start.getDate() - startOffset)
+
+  const days: string[] = []
+
+  for (let t = start.getTime(); t <= end.getTime(); t += DAY_MS)
+    days.push(toISODate(new Date(t)))
+
+  return days
+}
