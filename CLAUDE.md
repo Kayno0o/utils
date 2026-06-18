@@ -2,14 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+- **Keep chat replies concise.** Answer directly, lead with the result, skip preamble and restated context. Use short prose or tight lists; expand only when the user asks or the task genuinely requires it.
+- **Keep comments concise** — default to no comment. When necessary, use at most one tight line per function; never multi-line blocks or per-line narration. Good names and readable code document intent.
+
 ## Commands
 
 - **Build**: `bun run build` - Builds the library using tsup to generate CJS and ESM outputs
-- **Lint**: `bun run lint` - Runs ESLint with @kaynooo/eslint config
 - **Lint Fix**: `bun run lint:fix` - Automatically fixes linting issues
 - **Test**: `bun run test` - Runs tests with Bun and generates coverage report with genhtml
 - **Documentation**: `bun run doc` - Generates TypeDoc documentation with GitHub theme
-- **Benchmark**: `bun run benchmark` - Runs performance benchmarks
 
 ## Architecture
 
