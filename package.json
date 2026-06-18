@@ -30,6 +30,26 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
+    "./browser": {
+      "types": "./dist/browser/index.d.mts",
+      "import": "./dist/browser/index.mjs"
+    },
+    "./builders": {
+      "types": "./dist/builders/index.d.mts",
+      "import": "./dist/builders/index.mjs"
+    },
+    "./decorators": {
+      "types": "./dist/decorators/index.d.mts",
+      "import": "./dist/decorators/index.mjs"
+    },
+    "./format": {
+      "types": "./dist/format/index.d.mts",
+      "import": "./dist/format/index.mjs"
+    },
+    "./tools": {
+      "types": "./dist/tools/index.d.mts",
+      "import": "./dist/tools/index.mjs"
+    },
     "./*": {
       "types": "./dist/*.d.mts",
       "import": "./dist/*.mjs"
