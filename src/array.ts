@@ -45,6 +45,39 @@ export function shuffleArray(array: any[]) {
   }
 }
 
+/**
+ * Samples `n` items uniformly at random without replacement.
+ * Uses partial Fisher-Yates — O(n) in sample size, not array length.
+ * Clamps `n` to `[0, items.length]`.
+ */
+export function sample<T>(items: T[], n: number): T[] {
+  const pool = [...items]
+  const count = Math.max(0, Math.min(n, pool.length))
+
+  for (let i = 0; i < count; i++) {
+    const j = i + Math.floor(Math.random() * (pool.length - i));
+
+    [pool[i], pool[j]] = [pool[j]!, pool[i]!]
+  }
+
+  return pool.slice(0, count)
+}
+
+/**
+ * Creates a `rows × cols` 2D array where each cell is independent.
+ * `fill` may be a static value or a factory `(row, col) => T`.
+ */
+export function createBoard<T>(
+  rows: number,
+  cols: number,
+  fill: T | ((row: number, col: number) => T),
+): T[][] {
+  const fn = typeof fill === 'function' ? fill as (r: number, c: number) => T : () => fill
+
+  return Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: cols }, (_, c) => fn(r, c)))
+}
+
 export function toArray<T>(value: T | T[]): T[] {
   return Array.isArray(value) ? value : [value]
 }
