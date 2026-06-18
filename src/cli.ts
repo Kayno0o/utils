@@ -2,6 +2,52 @@ import { existsSync } from 'node:fs'
 import { notNullish, toArray } from './array'
 import { colors } from './tools/colors'
 
+export interface SpawnResult { stdout: string, stderr: string, exitCode: number }
+
+class SpawnError extends Error {
+  constructor(cmd: string, code: number, stderr: string) {
+    super(`Command failed (exit ${code}): ${cmd}\n${stderr.trim()}`)
+    this.name = 'SpawnError'
+  }
+}
+
+/** Runs `cmd` (with optional `args`) and resolves with trimmed stdout. Throws on non-zero exit. */
+export async function spawnText(cmd: string, args: string[] = []): Promise<string> {
+  const proc = Bun.spawn([cmd, ...args], { stdout: 'pipe', stderr: 'pipe' })
+  const [out, err, code] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ])
+
+  if (code !== 0)
+    throw new SpawnError([cmd, ...args].join(' '), code, err)
+
+  return out.trim()
+}
+
+/** Runs `cmd` (with optional `args`) and resolves with raw stdout bytes. Throws on non-zero exit. */
+export async function spawnBytes(cmd: string, args: string[] = []): Promise<Uint8Array> {
+  const proc = Bun.spawn([cmd, ...args], { stdout: 'pipe', stderr: 'pipe' })
+  const [bytes, err, code] = await Promise.all([
+    new Response(proc.stdout).arrayBuffer(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ])
+
+  if (code !== 0)
+    throw new SpawnError([cmd, ...args].join(' '), code, err)
+
+  return new Uint8Array(bytes)
+}
+
+/** Runs `cmd` (with optional `args`) and resolves with the exit code, never throws. */
+export async function spawnExit(cmd: string, args: string[] = []): Promise<number> {
+  const proc = Bun.spawn([cmd, ...args], { stdout: 'pipe', stderr: 'pipe' })
+
+  return proc.exited
+}
+
 type NumberOptionType = 'number' | 'int' | 'float'
 type StringOptionType = 'string' | 'date' | 'path'
 type OptionType = 'boolean' | StringOptionType | NumberOptionType
