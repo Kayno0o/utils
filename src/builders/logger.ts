@@ -33,7 +33,7 @@ export function declareCustomLogger<
 }
 
 /**
- * `error: 0, warning: 1, success: 2, info: 3`
+ * `error: 0, warn: 1, success: 2, info: 3`
  * will only log if level <= option.logLevel
  */
 export function declareLogger(options?: { logLevel?: number, onLog?: (log: string) => void | Promise<void> }) {
@@ -44,7 +44,7 @@ export function declareLogger(options?: { logLevel?: number, onLog?: (log: strin
         color: colors.red,
         level: 0,
       },
-      warning: {
+      warn: {
         char: '!',
         color: colors.yellow,
         level: 1,
