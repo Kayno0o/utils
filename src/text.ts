@@ -332,18 +332,50 @@ export function strTemplate<T extends string>(str: T, variables: ExtractParams<T
   return str
 }
 
+export type MaskKey = 'creditCard' | 'custom' | 'email' | 'iban' | 'ip' | 'phone' | 'token' | 'url'
+
+export interface MaskCustomRule {
+  pattern: RegExp
+  replacer: (match: string) => string
+}
+
+export interface MaskRange {
+  end: number
+  key: MaskKey
+  original: string
+  start: number
+}
+
 export interface MaskOptions {
+  creditCard?: boolean
+  custom?: MaskCustomRule[]
   email?: boolean
+  iban?: boolean
   ip?: boolean
+  mode?: 'mask' | 'redact'
   phone?: boolean
+  replace?: string
+  token?: boolean
+  url?: boolean
+}
+
+export interface MaskResult {
+  hits: Record<MaskKey, number>
+  ranges: MaskRange[]
+  result: string
 }
 
 const EMAIL_RE = /[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi
 // ponytail: matches French-style 10-digit phones; extend regex for other formats
 const PHONE_RE = /\b(?:\+\d{1,3}\s?)?0\d(?:[\s\-.]?\d{2}){4}\b/g
 const IP_RE = /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g
+const IBAN_RE = /\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){2,7}(?:\s?[A-Z0-9]{1,4})?\b/g
+const CREDIT_CARD_RE = /\b(?:\d{4}[\s-]?){3}\d{4}\b/g
+const BEARER_RE = /\bBearer\s+\S+/gi
+const JWT_RE = /\beyJ[\w-]+\.[\w-]+\.[\w-]*/g
+const URL_QUERY_RE = /([?&][^=&#\s]+)=([^&#\s]+)/g
 
-function maskEmail(m: string): string {
+function maskEmail(m: string, char: string): string {
   const [local, domain] = m.split('@')
 
   if (!local || !domain)
@@ -351,31 +383,125 @@ function maskEmail(m: string): string {
 
   const dot = domain.lastIndexOf('.')
 
-  return `${local[0]}***@${domain[0]}***${domain.slice(dot)}`
+  return `${local[0]}${char.repeat(3)}@${domain[0]}${char.repeat(3)}${domain.slice(dot)}`
 }
 
-function maskPhone(m: string): string {
+function maskPhone(m: string, char: string): string {
   const d = m.replace(/\D/g, '')
   const groups = Math.max(0, Math.floor((d.length - 4) / 2))
 
-  return `${d.slice(0, 2)} ${'** '.repeat(groups).trim()} ${d.slice(-2)}`
+  return `${d.slice(0, 2)} ${`${char}${char} `.repeat(groups).trim()} ${d.slice(-2)}`
 }
 
-function maskIp(m: string): string {
+function maskIp(m: string, char: string): string {
   const [a, b] = m.split('.')
 
-  return `${a}.${b}.*.*`
+  return `${a}.${b}.${char}.${char}`
 }
 
-export function mask(str: string, { email = true, ip = true, phone = true }: MaskOptions = {}): string {
+function maskIban(m: string, char: string): string {
+  const clean = m.replace(/\s/g, '')
+  const end = clean.length - 4
+  let idx = 0
+
+  return [...m].map(c => c === ' ' ? c : (i => i >= 4 && i < end ? char : c)(idx++)).join('')
+}
+
+function maskCreditCard(m: string, char: string): string {
+  const digits = m.replace(/\D/g, '')
+  const masked = digits[0] + char.repeat(digits.length - 5) + digits.slice(-4)
+  let i = 0
+
+  return m.replace(/\d/g, () => masked[i++]!)
+}
+
+function maskJwt(m: string, char: string): string {
+  const dot = m.indexOf('.')
+
+  return `${m.slice(0, dot)}.${char.repeat(3)}.${char.repeat(3)}`
+}
+
+function maskBearer(m: string, char: string): string {
+  const token = m.slice(m.search(/\s/) + 1).trim()
+
+  return `Bearer ${token.startsWith('eyJ') ? maskJwt(token, char) : char.repeat(3)}`
+}
+
+function maskUrlParam(m: string, char: string): string {
+  return `${m.slice(0, m.indexOf('=') + 1)}${char.repeat(3)}`
+}
+
+// offset tracks cumulative length shift from prior replacements so ranges map to result positions
+function applyMask(str: string, re: RegExp, fn: (m: string) => string, key: MaskKey, ranges: MaskRange[]): [string, number] {
+  let count = 0
+  let offset = 0
+
+  const result = str.replace(re, (m, ...args) => {
+    const replacement = fn(m)
+    const start = (args[args.length - 2] as number) + offset
+
+    ranges.push({ end: start + replacement.length, key, original: m, start })
+    offset += replacement.length - m.length
+    count++
+
+    return replacement
+  })
+
+  return [result, count]
+}
+
+export function mask(str: string, {
+  creditCard = true,
+  custom,
+  email = true,
+  iban = true,
+  ip = true,
+  mode = 'mask',
+  phone = true,
+  replace: char = '*',
+  token = true,
+  url = true,
+}: MaskOptions = {}): MaskResult {
+  const hits: Record<MaskKey, number> = { creditCard: 0, custom: 0, email: 0, iban: 0, ip: 0, phone: 0, token: 0, url: 0 }
+  const ranges: MaskRange[] = []
+
+  const wrap = (masker: (m: string, char: string) => string) =>
+    mode === 'redact' ? () => '[REDACTED]' : (m: string) => masker(m, char)
+
   if (email)
-    str = str.replace(EMAIL_RE, maskEmail)
+    [str, hits.email] = applyMask(str, EMAIL_RE, wrap(maskEmail), 'email', ranges)
 
   if (phone)
-    str = str.replace(PHONE_RE, maskPhone)
+    [str, hits.phone] = applyMask(str, PHONE_RE, wrap(maskPhone), 'phone', ranges)
 
   if (ip)
-    str = str.replace(IP_RE, maskIp)
+    [str, hits.ip] = applyMask(str, IP_RE, wrap(maskIp), 'ip', ranges)
 
-  return str
+  if (iban)
+    [str, hits.iban] = applyMask(str, IBAN_RE, wrap(maskIban), 'iban', ranges)
+
+  if (creditCard)
+    [str, hits.creditCard] = applyMask(str, CREDIT_CARD_RE, wrap(maskCreditCard), 'creditCard', ranges)
+
+  if (token) {
+    [str, hits.token] = applyMask(str, BEARER_RE, wrap(maskBearer), 'token', ranges)
+    const [s, c] = applyMask(str, JWT_RE, wrap(maskJwt), 'token', ranges)
+
+    str = s
+    hits.token += c
+  }
+
+  if (url)
+    [str, hits.url] = applyMask(str, URL_QUERY_RE, wrap(maskUrlParam), 'url', ranges)
+
+  if (custom) {
+    for (const { pattern, replacer } of custom) {
+      const [newStr, count] = applyMask(str, pattern, replacer, 'custom', ranges)
+
+      str = newStr
+      hits.custom += count
+    }
+  }
+
+  return { hits, ranges, result: str }
 }

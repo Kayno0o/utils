@@ -645,25 +645,97 @@ describe('Case conversion between formats', () => {
 
 describe('mask', () => {
   it('masks emails', () => {
-    expect(mask('contact john@email.com for help')).toBe('contact j***@e***.com for help')
+    expect(mask('contact john@email.com for help').result).toBe('contact j***@e***.com for help')
   })
 
   it('masks French phone numbers', () => {
-    expect(mask('call 0612345678')).toBe('call 06 ** ** ** 78')
+    expect(mask('call 0612345678').result).toBe('call 06 ** ** ** 78')
   })
 
   it('masks IP addresses', () => {
-    expect(mask('server at 192.168.1.100')).toBe('server at 192.168.*.*')
+    expect(mask('server at 192.168.1.100').result).toBe('server at 192.168.*.*')
+  })
+
+  it('masks IBANs', () => {
+    expect(mask('IBAN: FR76 3000 6000 0112 3456 7890 189').result).toBe('IBAN: FR76 **** **** **** **** ***0 189')
+  })
+
+  it('masks credit cards', () => {
+    expect(mask('card 4111 1111 1111 1111').result).toBe('card 4*** **** **** 1111')
+    expect(mask('card 4111111111111111').result).toBe('card 4***********1111')
   })
 
   it('disables masking per type', () => {
-    expect(mask('email@example.com and 0612345678', { phone: false })).toBe('e***@e***.com and 0612345678')
-    expect(mask('email@example.com and 0612345678', { email: false })).toBe('email@example.com and 06 ** ** ** 78')
+    expect(mask('email@example.com and 0612345678', { phone: false }).result).toBe('e***@e***.com and 0612345678')
+    expect(mask('email@example.com and 0612345678', { email: false }).result).toBe('email@example.com and 06 ** ** ** 78')
+  })
+
+  it('uses custom replace char', () => {
+    expect(mask('john@example.com', { replace: '#' }).result).toBe('j###@e###.com')
+  })
+
+  it('applies custom rules', () => {
+    const result = mask('SSN: 123-45-6789', {
+      email: false,
+      phone: false,
+      ip: false,
+      iban: false,
+      creditCard: false,
+      custom: [{ pattern: /\d{3}-\d{2}-\d{4}/g, replacer: () => '***-**-****' }],
+    })
+
+    expect(result.result).toBe('SSN: ***-**-****')
+    expect(result.hits.custom).toBe(1)
+  })
+
+  it('masks JWT tokens', () => {
+    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+
+    expect(mask(jwt).result).toBe('eyJhbGciOiJIUzI1NiJ9.***.***')
+  })
+
+  it('masks Bearer tokens', () => {
+    expect(mask('Authorization: Bearer opaque-token-abc123').result).toBe('Authorization: Bearer ***')
+    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.sig'
+
+    expect(mask(`Authorization: Bearer ${jwt}`).result).toBe('Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.***.***')
+  })
+
+  it('masks URL query params', () => {
+    expect(mask('https://api.com/users?token=abc123&page=1').result).toBe('https://api.com/users?token=***&page=***')
+  })
+
+  it('redact mode replaces all with [REDACTED]', () => {
+    expect(mask('email john@example.com', { mode: 'redact' }).result).toBe('email [REDACTED]')
+    expect(mask('Bearer secret', { mode: 'redact' }).result).toBe('[REDACTED]')
+  })
+
+  it('returns ranges mapping to result positions', () => {
+    const { result, ranges } = mask('email: john@example.com', {
+      phone: false,
+      ip: false,
+      iban: false,
+      creditCard: false,
+      token: false,
+      url: false,
+    })
+
+    expect(ranges).toHaveLength(1)
+    expect(ranges[0]!.key).toBe('email')
+    expect(ranges[0]!.original).toBe('john@example.com')
+    expect(result.slice(ranges[0]!.start, ranges[0]!.end)).toBe('j***@e***.com')
+  })
+
+  it('tracks hits', () => {
+    const { hits } = mask('admin@site.org and 0611223344')
+
+    expect(hits.email).toBe(1)
+    expect(hits.phone).toBe(1)
+    expect(hits.ip).toBe(0)
   })
 
   it('masks multiple patterns in one string', () => {
-    const input = 'contact admin@site.org or 0611223344 from 10.0.0.1'
-    const result = mask(input)
+    const { result } = mask('contact admin@site.org or 0611223344 from 10.0.0.1')
 
     expect(result).not.toContain('admin@site.org')
     expect(result).not.toContain('0611223344')
