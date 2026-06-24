@@ -1,3 +1,15 @@
+const NANOID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+
+// ponytail: % biases slightly when alphabet.length is not a power of 2; default 64-char alphabet is bias-free
+export function nanoid(size = 21, alphabet = NANOID_ALPHABET): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(size))
+  let id = ''
+
+  for (let i = 0; i < size; i++) id += alphabet[bytes[i]! % alphabet.length]
+
+  return id
+}
+
 export async function hashPassword(password: string) {
   const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)))
     .map(byte => byte.toString(16).padStart(2, '0'))
