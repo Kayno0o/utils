@@ -175,7 +175,7 @@ Validation (standalone, not Rules-class)
 
 Data structures
 
-- [ ] LRUCache<K, V>(capacity) — least-recently-used cache with get/set/has/delete
+- [x] LRUCache<K, V>(capacity) — least-recently-used cache with get/set/has/delete
   ```ts
   const cache = new LRUCache<string, number>(3)
 
