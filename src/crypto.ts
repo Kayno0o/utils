@@ -10,6 +10,14 @@ export function nanoid(size = 21, alphabet = NANOID_ALPHABET): string {
   return id
 }
 
+export async function hmac(key: string, message: string, algorithm: 'SHA-1' | 'SHA-256' | 'SHA-384' | 'SHA-512' = 'SHA-256'): Promise<string> {
+  const enc = new TextEncoder()
+  const cryptoKey = await crypto.subtle.importKey('raw', enc.encode(key), { name: 'HMAC', hash: algorithm }, false, ['sign'])
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(message))
+
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
 export async function hashPassword(password: string) {
   const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)))
     .map(byte => byte.toString(16).padStart(2, '0'))
