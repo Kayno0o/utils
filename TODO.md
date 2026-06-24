@@ -5,7 +5,7 @@ String / Text
 - [x] truncate(str, maxLength, suffix?) — truncate with "..." (or custom suffix), respecting word boundaries
 - [x] stripHtml(str) — remove HTML tags from a string (regex-based, no DOM needed)
 - [x] template(str, vars) — lightweight string interpolation: template("Hello {name}", { name: "World" })
-- [ ] mask(str, options?) — mask sensitive data: "john@email.com" → "j***@e***.com", credit cards → "**** **** **** 1234"
+- [x] mask(str, options?) — mask sensitive data: "john@email.com" → "j***@e***.com", credit cards → "**** **** **** 1234"
   ```ts
   mask('john@email.com') // → "j***@e***.com"
   mask('4242424242421234', { type: 'card' }) // → "**** **** **** 1234"
@@ -211,7 +211,7 @@ Encoding
 
 Environment
 
-- [ ] isBrowser() / isNode() / isWorker() / isBun() — runtime detection, relevant since your lib has both browser and Node code
+- [x] isBrowser() / isNode() / isWorker() / isBun() — runtime detection, relevant since your lib has both browser and Node code
   ```ts
   if (isBrowser()) { /* DOM available */ }
 
@@ -304,13 +304,13 @@ URL
 
 Crypto / ID
 
-- [ ] nanoid(size?, alphabet?) — short, URL-safe unique ID generator (like nanoid but zero-dep), useful for DB keys, session tokens, file names
+- [x] nanoid(size?, alphabet?) — short, URL-safe unique ID generator (like nanoid but zero-dep), useful for DB keys, session tokens, file names
   ```ts
   nanoid() // → "V1StGXR8_Z5jdHi6B-myT" (21 chars, default)
   nanoid(10) // → "IRFa-VaY2b"
   nanoid(8, '0123456789') // → "48293720"
   ```
-- [ ] hmac(key, message, algorithm?) — HMAC signing using Web Crypto API, useful for webhook signature verification in APIs
+- [x] hmac(key, message, algorithm?) — HMAC signing using Web Crypto API, useful for webhook signature verification in APIs
   ```ts
   await hmac('secret-key', 'payload-to-sign') // → "a1b2c3d4e5..." (hex string)
   await hmac('secret', 'data', 'SHA-512') // → "f6e7d8c9..."
@@ -375,13 +375,13 @@ Tree / Graph
 
 CSV / Data
 
-- [ ] csvParse<T>(str, options?) — parse a CSV string into typed objects (with header row mapping), useful for data import in APIs and CLIs
+- [x] csvParse<T>(str, options?) — parse a CSV string into typed objects (with header row mapping), useful for data import in APIs and CLIs
   ```ts
   csvParse<{ name: string, age: string }>('name,age\nAlice,30\nBob,25')
   // → [{ name: 'Alice', age: '30' }, { name: 'Bob', age: '25' }]
   csvParse('a;b\n1;2', { separator: ';' }) // → [{ a: '1', b: '2' }]
   ```
-- [ ] csvStringify(rows, options?) — serialize objects/arrays to CSV string, pairs with your existing escapeCSV
+- [x] csvStringify(rows, options?) — serialize objects/arrays to CSV string, pairs with your existing escapeCSV
   ```ts
   csvStringify([{ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 }])
   // → "name,age\nAlice,30\nBob,25"
@@ -422,13 +422,13 @@ HTTP
 
 Format
 
-- [ ] formatDuration(ms, options?) — human-readable duration: 90061000 → "1d 1h 1m 1s" or "1 day, 1 hour", pairs with your stringToMsDuration (inverse operation)
+- [x] formatDuration(ms, options?) — human-readable duration: 90061000 → "1d 1h 1m 1s" or "1 day, 1 hour", pairs with your stringToMsDuration (inverse operation)
   ```ts
   formatDuration(90061000) // → "1d 1h 1m 1s"
   formatDuration(90061000, { long: true }) // → "1 day, 1 hour, 1 minute, 1 second"
   formatDuration(3600000) // → "1h"
   ```
-- [ ] formatRelativeTime(date) — "2 minutes ago", "in 3 hours", "yesterday" — useful in frontend and CLI
+- [x] formatRelativeTime(date) — "2 minutes ago", "in 3 hours", "yesterday" — useful in frontend and CLI
   ```ts
   formatRelativeTime(new Date(Date.now() - 120000)) // → "2 minutes ago"
   formatRelativeTime(new Date(Date.now() + 3600000)) // → "in 1 hour"
