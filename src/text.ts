@@ -331,3 +331,51 @@ export function strTemplate<T extends string>(str: T, variables: ExtractParams<T
 
   return str
 }
+
+export interface MaskOptions {
+  email?: boolean
+  ip?: boolean
+  phone?: boolean
+}
+
+const EMAIL_RE = /[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi
+// ponytail: matches French-style 10-digit phones; extend regex for other formats
+const PHONE_RE = /\b(?:\+\d{1,3}\s?)?0\d(?:[\s\-.]?\d{2}){4}\b/g
+const IP_RE = /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g
+
+function maskEmail(m: string): string {
+  const [local, domain] = m.split('@')
+
+  if (!local || !domain)
+    return m
+
+  const dot = domain.lastIndexOf('.')
+
+  return `${local[0]}***@${domain[0]}***${domain.slice(dot)}`
+}
+
+function maskPhone(m: string): string {
+  const d = m.replace(/\D/g, '')
+  const groups = Math.max(0, Math.floor((d.length - 4) / 2))
+
+  return `${d.slice(0, 2)} ${'** '.repeat(groups).trim()} ${d.slice(-2)}`
+}
+
+function maskIp(m: string): string {
+  const [a, b] = m.split('.')
+
+  return `${a}.${b}.*.*`
+}
+
+export function mask(str: string, { email = true, ip = true, phone = true }: MaskOptions = {}): string {
+  if (email)
+    str = str.replace(EMAIL_RE, maskEmail)
+
+  if (phone)
+    str = str.replace(PHONE_RE, maskPhone)
+
+  if (ip)
+    str = str.replace(IP_RE, maskIp)
+
+  return str
+}

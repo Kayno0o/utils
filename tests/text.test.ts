@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, matchingSubstring, matchLength, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle } from '../src'
+import { escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, matchingSubstring, matchLength, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -640,5 +640,33 @@ describe('Case conversion between formats', () => {
     expect(toCamel(input)).toBe('helloWorldExample')
     expect(toPascal(input)).toBe('HelloWorldExample')
     expect(toConstant(input)).toBe('HELLO_WORLD_EXAMPLE')
+  })
+})
+
+describe('mask', () => {
+  it('masks emails', () => {
+    expect(mask('contact john@email.com for help')).toBe('contact j***@e***.com for help')
+  })
+
+  it('masks French phone numbers', () => {
+    expect(mask('call 0612345678')).toBe('call 06 ** ** ** 78')
+  })
+
+  it('masks IP addresses', () => {
+    expect(mask('server at 192.168.1.100')).toBe('server at 192.168.*.*')
+  })
+
+  it('disables masking per type', () => {
+    expect(mask('email@example.com and 0612345678', { phone: false })).toBe('e***@e***.com and 0612345678')
+    expect(mask('email@example.com and 0612345678', { email: false })).toBe('email@example.com and 06 ** ** ** 78')
+  })
+
+  it('masks multiple patterns in one string', () => {
+    const input = 'contact admin@site.org or 0611223344 from 10.0.0.1'
+    const result = mask(input)
+
+    expect(result).not.toContain('admin@site.org')
+    expect(result).not.toContain('0611223344')
+    expect(result).not.toContain('10.0.0.1')
   })
 })
