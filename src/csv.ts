@@ -4,54 +4,57 @@ function escapeField(value: unknown, sep: string): string {
   return s.includes('"') || s.includes(sep) || s.includes('\n') ? `"${s}"` : s
 }
 
-// ponytail: does not handle multi-line quoted fields; add RFC 4180 parser if needed
-function parseRow(line: string, sep: string): string[] {
-  const result: string[] = []
+export function csvParse<T extends Record<string, string>>(str: string, { separator = ',' }: { separator?: string } = {}): T[] {
+  const rows: string[][] = []
   let cur = ''
   let inQuotes = false
+  let row: string[] = []
+  const s = str.replace(/\r\n?/g, '\n')
 
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]!
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]!
 
     if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') {
+      if (ch === '"' && s[i + 1] === '"') {
         cur += '"'
         i++
       }
       else if (ch === '"') {
         inQuotes = false
       }
-      else {
-        cur += ch
-      }
+      else { cur += ch }
     }
     else if (ch === '"') {
       inQuotes = true
     }
-    else if (line.startsWith(sep, i)) {
-      result.push(cur)
+    else if (s.startsWith(separator, i)) {
+      row.push(cur)
       cur = ''
-      i += sep.length - 1
+      i += separator.length - 1
     }
-    else {
-      cur += ch
+    else if (ch === '\n') {
+      row.push(cur)
+      cur = ''
+
+      if (row.some(f => f.length))
+        rows.push(row)
+
+      row = []
     }
+    else { cur += ch }
   }
 
-  result.push(cur)
+  row.push(cur)
 
-  return result
-}
+  if (row.some(f => f.length))
+    rows.push(row)
 
-export function csvParse<T extends Record<string, string>>(str: string, { separator = ',' }: { separator?: string } = {}): T[] {
-  const lines = str.replace(/\r\n?/g, '\n').split('\n').filter(line => line.length)
-
-  if (lines.length < 2)
+  if (rows.length < 2)
     return []
 
-  const headers = parseRow(lines[0]!, separator)
+  const headers = rows[0]!
 
-  return lines.slice(1).map(line => Object.fromEntries(headers.map((h, i) => [h, parseRow(line, separator)[i] ?? ''])) as T)
+  return rows.slice(1).map(r => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? ''])) as T)
 }
 
 export function csvStringify(rows: Record<string, unknown>[], { separator = ',', headers }: { separator?: string, headers?: string[] } = {}): string {
