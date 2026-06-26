@@ -28,6 +28,10 @@ describe('csvParse', () => {
   it('handles CRLF line endings', () => {
     expect(csvParse('a,b\r\n1,2')).toEqual([{ a: '1', b: '2' }])
   })
+
+  it('handles multi-line quoted fields', () => {
+    expect(csvParse('a,b\n1,"line1\nline2"')).toEqual([{ a: '1', b: 'line1\nline2' }])
+  })
 })
 
 describe('csvStringify', () => {
@@ -53,6 +57,16 @@ describe('csvStringify', () => {
 
   it('round-trips with csvParse', () => {
     const data = [{ name: 'Alice', age: '30' }, { name: 'Bob', age: '25' }]
+
+    expect(csvParse(csvStringify(data))).toEqual(data)
+  })
+
+  it('escapes newlines in values', () => {
+    expect(csvStringify([{ note: 'line1\nline2' }])).toBe('note\n"line1\nline2"')
+  })
+
+  it('round-trips multi-line fields', () => {
+    const data = [{ a: '1', b: 'line1\nline2' }]
 
     expect(csvParse(csvStringify(data))).toEqual(data)
   })
