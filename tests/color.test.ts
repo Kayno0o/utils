@@ -212,3 +212,94 @@ describe('hexToHsl function', () => {
     expect(result).toEqual([207, 44, 49]) // Expected HSL for steel blue
   })
 })
+
+describe('hsv conversions', () => {
+  it('should convert HSV to rgb correctly', () => {
+    expect(Color.from('hsv', [0, 100, 100]).to('rgb')).toStrictEqual([255, 0, 0]) // Red
+    expect(Color.from('hsv', [120, 100, 100]).to('rgb')).toStrictEqual([0, 255, 0]) // Green
+    expect(Color.from('hsv', [240, 100, 100]).to('rgb')).toStrictEqual([0, 0, 255]) // Blue
+    expect(Color.from('hsv', [0, 0, 100]).to('rgb')).toStrictEqual([255, 255, 255]) // White
+    expect(Color.from('hsv', [0, 0, 0]).to('rgb')).toStrictEqual([0, 0, 0]) // Black
+  })
+
+  it('should convert HSV object to rgb correctly', () => {
+    expect(Color.from('hsv', { h: 207, s: 61, v: 71 }).to('rgb')).toStrictEqual([71, 131, 181])
+  })
+
+  it('should convert rgb to HSV correctly', () => {
+    expect(Color.from('rgb', [255, 0, 0]).to('hsv')).toEqual([0, 100, 100]) // Red
+    expect(Color.from('rgb', [0, 255, 0]).to('hsv')).toEqual([120, 100, 100]) // Green
+    expect(Color.from('rgb', [0, 0, 255]).to('hsv')).toEqual([240, 100, 100]) // Blue
+    expect(Color.from('rgb', [255, 255, 255]).to('hsv')).toEqual([0, 0, 100]) // White
+    expect(Color.from('rgb', [0, 0, 0]).to('hsv')).toEqual([0, 0, 0]) // Black
+    expect(Color.from('hex', '#4682b4').to('hsv')).toEqual([207, 61, 71]) // Steel blue
+  })
+
+  it('should carry alpha through hsva', () => {
+    expect(Color.from('hsv', [0, 100, 100, 0.5]).to('hsva')).toEqual([0, 100, 100, 0.5])
+  })
+
+  it('should round-trip rgb through hsv', () => {
+    const hsv = Color.from('rgb', [71, 131, 181]).to('hsv')
+
+    expect(Color.from('hsv', hsv).to('rgb')).toStrictEqual([71, 131, 181])
+  })
+})
+
+describe('cmyk conversions', () => {
+  it('should convert rgb to cmyk correctly', () => {
+    expect(Color.from('rgb', [255, 0, 0]).to('cmyk')).toStrictEqual([0, 100, 100, 0]) // Red
+    expect(Color.from('rgb', [0, 0, 0]).to('cmyk')).toStrictEqual([0, 0, 0, 100]) // Black
+    expect(Color.from('rgb', [255, 255, 255]).to('cmyk')).toStrictEqual([0, 0, 0, 0]) // White
+    expect(Color.from('hex', '#4682b4').to('cmyk')).toStrictEqual([61, 28, 0, 29]) // Steel blue
+  })
+
+  it('should convert cmyk to rgb correctly', () => {
+    expect(Color.from('cmyk', [0, 100, 100, 0]).to('rgb')).toStrictEqual([255, 0, 0]) // Red
+    expect(Color.from('cmyk', [0, 0, 0, 100]).to('rgb')).toStrictEqual([0, 0, 0]) // Black
+    expect(Color.from('cmyk', { c: 0, m: 0, y: 0, k: 0 }).to('rgb')).toStrictEqual([255, 255, 255]) // White
+  })
+
+  it('should carry alpha through cmyka', () => {
+    expect(Color.from('cmyk', [0, 100, 100, 0, 0.5]).to('cmyka')).toStrictEqual([0, 100, 100, 0, 0.5])
+  })
+})
+
+describe('oklch conversions', () => {
+  it('should convert rgb to oklch correctly', () => {
+    expect(Color.from('rgb', [255, 0, 0]).to('oklch')).toStrictEqual([0.628, 0.2577, 29.22]) // Red
+    expect(Color.from('rgb', [255, 255, 255]).to('oklch')).toStrictEqual([1, 0, 0]) // White
+  })
+
+  it('should convert oklch back to rgb correctly', () => {
+    expect(Color.from('oklch', [0.628, 0.2577, 29.22]).to('rgb')).toStrictEqual([255, 0, 0])
+    expect(Color.from('oklch', { l: 1, c: 0, h: 0 }).to('rgb')).toStrictEqual([255, 255, 255])
+  })
+
+  it('should round-trip rgb through oklch', () => {
+    const oklch = Color.from('rgb', [71, 131, 181]).to('oklch')
+
+    expect(Color.from('oklch', oklch).to('rgb')).toStrictEqual([71, 131, 181])
+  })
+
+  it('should carry alpha through oklcha', () => {
+    expect(Color.from('oklch', [0.628, 0.2577, 29.22, 0.5]).to('oklcha')).toStrictEqual([0.628, 0.2577, 29.22, 0.5])
+  })
+})
+
+describe('oklab conversions', () => {
+  it('should convert rgb to oklab correctly', () => {
+    expect(Color.from('rgb', [255, 0, 0]).to('oklab')).toStrictEqual([0.628, 0.2249, 0.1258]) // Red
+    expect(Color.from('rgb', [255, 255, 255]).to('oklab')).toStrictEqual([1, 0, 0]) // White
+  })
+
+  it('should round-trip rgb through oklab', () => {
+    const oklab = Color.from('rgb', [71, 131, 181]).to('oklab')
+
+    expect(Color.from('oklab', oklab).to('rgb')).toStrictEqual([71, 131, 181])
+  })
+
+  it('should carry alpha through oklaba', () => {
+    expect(Color.from('oklab', [0.628, 0.2249, 0.1258, 0.5]).to('oklaba')).toStrictEqual([0.628, 0.2249, 0.1258, 0.5])
+  })
+})

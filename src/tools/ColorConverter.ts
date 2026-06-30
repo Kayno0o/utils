@@ -6,6 +6,22 @@ export type HslArrayType = [h: number, s: number, l: number]
 export interface HslObjectType { h: number, s: number, l: number, a?: number }
 export type HslaArrayType = [h: number, s: number, l: number, a: number]
 
+export type HsvArrayType = [h: number, s: number, v: number]
+export interface HsvObjectType { h: number, s: number, v: number, a?: number }
+export type HsvaArrayType = [h: number, s: number, v: number, a: number]
+
+export type CmykArrayType = [c: number, m: number, y: number, k: number]
+export interface CmykObjectType { c: number, m: number, y: number, k: number, a?: number }
+export type CmykaArrayType = [c: number, m: number, y: number, k: number, a: number]
+
+export type OklchArrayType = [l: number, c: number, h: number]
+export interface OklchObjectType { l: number, c: number, h: number, a?: number }
+export type OklchaArrayType = [l: number, c: number, h: number, a: number]
+
+export type OklabArrayType = [l: number, a: number, b: number]
+export interface OklabObjectType { l: number, a: number, b: number, alpha?: number }
+export type OklabaArrayType = [l: number, a: number, b: number, alpha: number]
+
 function hexToRgb(hex: string): [number, number, number] | [number, number, number, number] {
   // Remove leading '#' and convert to lowercase
   const cleanHex = hex.startsWith('#') ? hex.slice(1).toLowerCase() : hex.toLowerCase()
@@ -97,6 +113,126 @@ function rgbToHsl(rgb: RgbArrayType): HslArrayType {
   return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)]
 }
 
+function hsvToRgb(h: number, s: number, v: number): RgbArrayType {
+  h = (h % 360 + 360) % 360
+  s /= 100
+  v /= 100
+
+  const f = (n: number) => {
+    const k = (n + h / 60) % 6
+    const color = v - v * s * Math.max(Math.min(k, 4 - k, 1), 0)
+
+    return Math.round(255 * color)
+  }
+
+  return [f(5), f(3), f(1)]
+}
+
+function rgbToHsv(rgb: RgbArrayType): HsvArrayType {
+  let [r, g, b] = rgb
+
+  r /= 255
+  g /= 255
+  b /= 255
+
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const d = max - min
+  let h = 0
+  const s = max === 0 ? 0 : d / max
+  const v = max
+
+  if (d !== 0) {
+    if (max === r)
+      h = (g - b) / d + (g < b ? 6 : 0)
+    else if (max === g)
+      h = (b - r) / d + 2
+    else h = (r - g) / d + 4
+
+    h /= 6
+  }
+
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(v * 100)]
+}
+
+function rgbToCmyk(rgb: RgbArrayType): CmykArrayType {
+  const r = rgb[0] / 255
+  const g = rgb[1] / 255
+  const b = rgb[2] / 255
+
+  const k = 1 - Math.max(r, g, b)
+
+  if (k === 1)
+    return [0, 0, 0, 100]
+
+  const c = (1 - r - k) / (1 - k)
+  const m = (1 - g - k) / (1 - k)
+  const y = (1 - b - k) / (1 - k)
+
+  return [Math.round(c * 100), Math.round(m * 100), Math.round(y * 100), Math.round(k * 100)]
+}
+
+function cmykToRgb(c: number, m: number, y: number, k: number): RgbArrayType {
+  c /= 100
+  m /= 100
+  y /= 100
+  k /= 100
+
+  return [
+    Math.round(255 * (1 - c) * (1 - k)),
+    Math.round(255 * (1 - m) * (1 - k)),
+    Math.round(255 * (1 - y) * (1 - k)),
+  ]
+}
+
+const srgbToLinear = (c: number) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+const linearToSrgb = (c: number) => c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055
+const roundTo = (n: number, p: number) => Math.round(n * 10 ** p) / 10 ** p
+
+function rgbToOklab(rgb: RgbArrayType): OklabArrayType {
+  const r = srgbToLinear(rgb[0] / 255)
+  const g = srgbToLinear(rgb[1] / 255)
+  const b = srgbToLinear(rgb[2] / 255)
+
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+
+  return [
+    roundTo(0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s, 4),
+    roundTo(1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, 4),
+    roundTo(0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s, 4),
+  ]
+}
+
+function oklabToRgb(L: number, a: number, b: number): RgbArrayType {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3
+
+  const r = linearToSrgb(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s)
+  const g = linearToSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s)
+  const bb = linearToSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s)
+
+  const clamp = (c: number) => Math.min(255, Math.max(0, Math.round(c * 255)))
+
+  return [clamp(r), clamp(g), clamp(bb)]
+}
+
+function rgbToOklch(rgb: RgbArrayType): OklchArrayType {
+  const [l, a, b] = rgbToOklab(rgb)
+  const c = Math.sqrt(a * a + b * b)
+  const h = (Math.atan2(b, a) * 180 / Math.PI + 360) % 360
+
+  return [roundTo(l, 4), roundTo(c, 4), roundTo(h, 2)]
+}
+
+function oklchToRgb(l: number, c: number, h: number): RgbArrayType {
+  const rad = h * Math.PI / 180
+
+  return oklabToRgb(l, c * Math.cos(rad), c * Math.sin(rad))
+}
+
 /**
  * Convert sRGB channel (0–255) → linearized channel per WCAG2 (for relative luminance).
  */
@@ -108,7 +244,7 @@ function linearize(channel: number): number {
     : ((c + 0.055) / 1.055) ** 2.4
 }
 
-export type ColorType = 'hsl' | 'rgb' | 'hex' | 'hsl' | 'hsla' | 'rgba' | 'hexa'
+export type ColorType = 'hsl' | 'rgb' | 'hex' | 'hsl' | 'hsla' | 'rgba' | 'hexa' | 'hsv' | 'hsva' | 'cmyk' | 'cmyka' | 'oklch' | 'oklcha' | 'oklab' | 'oklaba'
 
 export class Color {
   private r: number
@@ -126,6 +262,10 @@ export class Color {
   static from(type: 'hex', value: string | number): Color
   static from(type: 'rgb', value: RgbArrayType | RgbaArrayType | RgbObjectType): Color
   static from(type: 'hsl', value: HslArrayType | HslaArrayType | HslObjectType): Color
+  static from(type: 'hsv', value: HsvArrayType | HsvaArrayType | HsvObjectType): Color
+  static from(type: 'cmyk', value: CmykArrayType | CmykaArrayType | CmykObjectType): Color
+  static from(type: 'oklch', value: OklchArrayType | OklchaArrayType | OklchObjectType): Color
+  static from(type: 'oklab', value: OklabArrayType | OklabaArrayType | OklabObjectType): Color
   static from(type: ColorType, value: any): Color {
     if (type === 'hex') {
       const [r, g, b, a] = hexToRgb(value)
@@ -159,18 +299,82 @@ export class Color {
       return new Color(r, g, b, a)
     }
 
+    if (type === 'hsv') {
+      let h, s, v, a
+
+      if (Array.isArray(value))
+        [h, s, v, a] = value
+
+      else
+        ({ h, s, v, a } = value as HsvObjectType)
+
+      const [r, g, b] = hsvToRgb(h, s, v)
+
+      return new Color(r, g, b, a)
+    }
+
+    if (type === 'cmyk') {
+      let c, m, y, k, a
+
+      if (Array.isArray(value))
+        [c, m, y, k, a] = value
+
+      else
+        ({ c, m, y, k, a } = value as CmykObjectType)
+
+      const [r, g, b] = cmykToRgb(c, m, y, k)
+
+      return new Color(r, g, b, a)
+    }
+
+    if (type === 'oklch') {
+      let l, c, h, a
+
+      if (Array.isArray(value))
+        [l, c, h, a] = value
+
+      else
+        ({ l, c, h, a } = value as OklchObjectType)
+
+      const [r, g, b] = oklchToRgb(l, c, h)
+
+      return new Color(r, g, b, a)
+    }
+
+    if (type === 'oklab') {
+      let l, a, b, alpha
+
+      if (Array.isArray(value))
+        [l, a, b, alpha] = value
+
+      else
+        ({ l, a, b, alpha } = value as OklabObjectType)
+
+      const [r, g, bl] = oklabToRgb(l, a, b)
+
+      return new Color(r, g, bl, alpha)
+    }
+
     throw new Error('Invalid input')
   }
 
   to(type: 'hsl'): HslArrayType
   to(type: 'rgb'): RgbArrayType
   to(type: 'hsla'): HslaArrayType
+  to(type: 'hsv'): HsvArrayType
+  to(type: 'hsva'): HsvaArrayType
+  to(type: 'cmyk'): CmykArrayType
+  to(type: 'cmyka'): CmykaArrayType
+  to(type: 'oklch'): OklchArrayType
+  to(type: 'oklcha'): OklchaArrayType
+  to(type: 'oklab'): OklabArrayType
+  to(type: 'oklaba'): OklabaArrayType
   to(type: 'rgba'): RgbaArrayType
   /** @return hex without # */
   to(type: 'hex'): string
   /** @return hex(a) without # */
   to(type: 'hexa'): string
-  to(type: ColorType): RgbArrayType | RgbaArrayType | HslArrayType | HslaArrayType | string {
+  to(type: ColorType): RgbArrayType | RgbaArrayType | HslArrayType | HslaArrayType | HsvArrayType | HsvaArrayType | CmykArrayType | CmykaArrayType | OklchArrayType | OklchaArrayType | OklabArrayType | OklabaArrayType | string {
     switch (type) {
       case 'rgb':
         return [this.r, this.g, this.b]
@@ -189,6 +393,30 @@ export class Color {
 
       case 'hsla':
         return [...rgbToHsl([this.r, this.g, this.b]), this.a]
+
+      case 'hsv':
+        return rgbToHsv([this.r, this.g, this.b])
+
+      case 'hsva':
+        return [...rgbToHsv([this.r, this.g, this.b]), this.a]
+
+      case 'cmyk':
+        return rgbToCmyk([this.r, this.g, this.b])
+
+      case 'cmyka':
+        return [...rgbToCmyk([this.r, this.g, this.b]), this.a]
+
+      case 'oklch':
+        return rgbToOklch([this.r, this.g, this.b])
+
+      case 'oklcha':
+        return [...rgbToOklch([this.r, this.g, this.b]), this.a]
+
+      case 'oklab':
+        return rgbToOklab([this.r, this.g, this.b])
+
+      case 'oklaba':
+        return [...rgbToOklab([this.r, this.g, this.b]), this.a]
       default:
         return [this.r, this.g, this.b]
     }
