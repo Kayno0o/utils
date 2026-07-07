@@ -22,7 +22,9 @@ export type IconType<T extends Record<string, IconifyJSON>> = {
 }[keyof T & string]
 
 export function createIconify<const T extends Record<string, IconifyJSON>>(libs: T) {
-  function getIconData(name: IconType<T>): IconData | null {
+  type Name = IconType<T>
+
+  function getIconData(name: Name): IconData | null {
     const [prefix, iconName] = name.split(':') as [string, string]
 
     const library = libs[prefix]
@@ -43,5 +45,31 @@ export function createIconify<const T extends Record<string, IconifyJSON>>(libs:
     return { svg: icon.body, viewBox: `${left} ${top} ${width} ${height}` }
   }
 
-  return { getIconData }
+  function has(name: string): name is Name {
+    return getIconData(name as Name) !== null
+  }
+
+  function renderSvg(name: Name, attrs?: Record<string, string | number>): string {
+    const data = getIconData(name)
+
+    if (!data)
+      return ''
+
+    const extra = Object.entries(attrs ?? {})
+      .map(([k, v]) => ` ${k}="${v}"`)
+      .join('')
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${data.viewBox}"${extra}>${data.svg}</svg>`
+  }
+
+  function inlineIconUrl(name: Name): string {
+    const doc = renderSvg(name)
+
+    if (!doc)
+      return ''
+
+    return `data:image/svg+xml;utf8,${encodeURIComponent(doc)}`
+  }
+
+  return { getIconData, has, renderSvg, inlineIconUrl }
 }

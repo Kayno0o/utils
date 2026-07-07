@@ -1,7 +1,7 @@
 import { describe, expect, test as it } from 'bun:test'
 import { createIconify } from '../src/tools'
 
-const { getIconData } = createIconify({
+const { getIconData, has, renderSvg, inlineIconUrl } = createIconify({
   ti: {
     icons: {
       home: { body: '<path d="M3 12l9-9 9 9"/>' },
@@ -45,5 +45,24 @@ describe('createIconify', () => {
 
   it('returns null for unknown icon', () => {
     expect(getIconData('ti:missing' as never)).toBeNull()
+  })
+
+  it('has narrows known names', () => {
+    expect(has('ti:home')).toBe(true)
+    expect(has('ti:missing')).toBe(false)
+  })
+
+  it('renders svg markup with attrs', () => {
+    expect(renderSvg('ti:home', { class: 'icon', width: 24 })).toBe(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon" width="24"><path d="M3 12l9-9 9 9"/></svg>',
+    )
+    expect(renderSvg('ti:missing' as never)).toBe('')
+  })
+
+  it('builds an inline data url', () => {
+    expect(inlineIconUrl('ti:home')).toBe(
+      `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/></svg>')}`,
+    )
+    expect(inlineIconUrl('ti:missing' as never)).toBe('')
   })
 })
