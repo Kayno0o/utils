@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { calculateEaster, formatRelativeTime, getFrenchHolidays, isHoliday, isLeapYear, msDurationToString, stringToMsDuration } from '../src'
+import { calculateEaster, DAY_MS, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, getFrenchHolidays, HOUR_MS, isHoliday, isLeapYear, MINUTE_MS, msDurationToString, parseDateLabel, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, stringToMsDuration, WEEK_MS } from '../src'
 
 describe('msDurationToString function', () => {
   it('decomposes a duration into the largest units first', () => {
@@ -176,5 +176,70 @@ describe('stringToMsDuration function', () => {
     const result = stringToMsDuration(1000)
 
     expect(result).toBe(1000) // should return the input as it is already a number
+  })
+})
+
+describe('time constants', () => {
+  it('exposes millisecond constants', () => {
+    expect(SECOND_MS).toBe(1000)
+    expect(MINUTE_MS).toBe(60_000)
+    expect(HOUR_MS).toBe(3_600_000)
+    expect(DAY_MS).toBe(86_400_000)
+    expect(WEEK_MS).toBe(604_800_000)
+  })
+
+  it('exposes second constants', () => {
+    expect(SECONDS_IN_MINUTE).toBe(60)
+    expect(SECONDS_IN_HOUR).toBe(3600)
+    expect(SECONDS_IN_DAY).toBe(86_400)
+    expect(SECONDS_IN_WEEK).toBe(604_800)
+  })
+})
+
+describe('formatDayMonth function', () => {
+  it('formats in day-before-month order', () => {
+    expect(formatDayMonth(new Date(2026, 0, 15))).toBe('15 Jan')
+    expect(formatDayMonth(new Date(2026, 11, 3))).toBe('3 Dec')
+  })
+})
+
+describe('formatMonthYear function', () => {
+  it('formats short month and full year', () => {
+    expect(formatMonthYear(new Date(2026, 0, 15))).toBe('Jan 2026')
+    expect(formatMonthYear(new Date(2024, 6, 1))).toBe('Jul 2024')
+  })
+})
+
+describe('formatMonthShort function', () => {
+  it('formats short month', () => {
+    expect(formatMonthShort(new Date(2026, 0, 15))).toBe('Jan')
+    expect(formatMonthShort(new Date(2026, 5, 1))).toBe('Jun')
+  })
+})
+
+describe('parseDateLabel function', () => {
+  it('parses YYYY-MM-DD into a local-midnight date', () => {
+    expect(parseDateLabel('2026-01-15')).toEqual(new Date(2026, 0, 15))
+  })
+
+  it('parses YYYYMMDD', () => {
+    expect(parseDateLabel('20260115')).toEqual(new Date(2026, 0, 15))
+  })
+
+  it('parses D/M/Y with a four-digit year', () => {
+    expect(parseDateLabel('5/3/2026')).toEqual(new Date(2026, 2, 5))
+  })
+
+  it('parses D/M/Y with a two-digit year as 2000+', () => {
+    expect(parseDateLabel('5/3/26')).toEqual(new Date(2026, 2, 5))
+  })
+
+  it('ignores a trailing time on the ISO form', () => {
+    expect(parseDateLabel('2026-01-15T12:30:00')).toEqual(new Date(2026, 0, 15))
+  })
+
+  it('returns null for unrecognized labels', () => {
+    expect(parseDateLabel('not a date')).toBeNull()
+    expect(parseDateLabel('')).toBeNull()
   })
 })
