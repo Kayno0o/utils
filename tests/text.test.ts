@@ -839,4 +839,50 @@ describe('mask', () => {
 
     expect(ranges[0]!.original).toBeUndefined()
   })
+
+  it('masks GitHub classic tokens', () => {
+    const { result, hits } = mask('token ghp_abcdef1234567890abcdef1234567890abcd')
+
+    expect(result).toBe('token ghp_***')
+    expect(hits.gitToken).toBe(1)
+  })
+
+  it('masks GitHub fine-grained tokens', () => {
+    const { result } = mask('token github_pat_11ABCDEF0_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdef')
+
+    expect(result).toBe('token github_pat_***')
+  })
+
+  it('masks GitLab tokens', () => {
+    const { result } = mask('token glpat-abcdef1234567890abcd')
+
+    expect(result).toBe('token glpat-***')
+  })
+
+  it('masks MAC addresses', () => {
+    expect(mask('mac 00:1B:44:11:3A:B7').result).toBe('mac 00** 44** 3A**')
+    expect(mask('mac 00-1B-44-11-3A-B7').result).toBe('mac 00** 44** 3A**')
+  })
+
+  it('masks PEM private keys', () => {
+    const pem = '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA0Z3VS5JJcds3xfn/ygWyF8PbnGy0AHB7MhgwKVPSmwaFkYLv\n-----END RSA PRIVATE KEY-----'
+    const { result } = mask(pem)
+
+    expect(result).toContain('-----BEGIN RSA PRIVATE KEY-----')
+    expect(result).toContain('-----END RSA PRIVATE KEY-----')
+    expect(result).not.toContain('MIIEpAIBAAKCAQEA0Z3VS5JJcds3xfn/ygWyF8PbnGy0AHB7MhgwKVPSmwaFkYLv')
+  })
+
+  it('masks database connection strings', () => {
+    const { result, hits } = mask('conn postgres://user:secret@localhost:5432/db')
+
+    expect(result).toBe('conn postgres://user:***@localhost:5432/db')
+    expect(hits.dbUrl).toBe(1)
+  })
+
+  it('leaves database connection strings without credentials unchanged', () => {
+    const { result } = mask('conn postgres://localhost/db')
+
+    expect(result).toBe('conn postgres://localhost/db')
+  })
 })

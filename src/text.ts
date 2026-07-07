@@ -332,7 +332,7 @@ export function strTemplate<T extends string>(str: T, variables: ExtractParams<T
   return str
 }
 
-export type MaskKey = 'creditCard' | 'custom' | 'email' | 'iban' | 'ip' | 'phone' | 'token' | 'url'
+export type MaskKey = 'creditCard' | 'custom' | 'dbUrl' | 'email' | 'gitToken' | 'iban' | 'ip' | 'mac' | 'pem' | 'phone' | 'token' | 'url'
 
 export interface MaskCustomRule {
   pattern: RegExp
@@ -350,7 +350,9 @@ export interface MaskRange {
 export interface MaskOptions {
   creditCard?: boolean
   custom?: MaskCustomRule[]
+  dbUrl?: boolean
   email?: boolean
+  gitToken?: boolean
   iban?: boolean
   ip?: boolean
   /**
@@ -358,7 +360,9 @@ export interface MaskOptions {
    * defaults to `false` because the masked result should not carry the raw secrets.
    */
   keepOriginals?: boolean
+  mac?: boolean
   mode?: 'mask' | 'redact'
+  pem?: boolean
   phone?: boolean
   replace?: string
   token?: boolean
@@ -384,6 +388,10 @@ const BEARER_RE = /\bBearer\s+\S+/gi
 const JWT_RE = /\beyJ[\w-]+\.[\w-]+\.[\w-]*/g
 // only mask query parameters that commonly carry secrets
 const URL_QUERY_RE = /([?&](?:token|key|api[_-]?key|secret|password|auth|code|session)[^=&#\s]*)=([^&#\s]+)/gi
+const GIT_TOKEN_RE = /\b(?:gh[pousr]_\w{36}|github_pat_\w+|glpat-[\w-]{20,})\b/gi
+const MAC_RE = /\b(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}\b/gi
+const PEM_RE = /-----BEGIN [A-Z0-9 ]+-----[A-Za-z0-9+/=\s]+-----END [A-Z0-9 ]+-----/g
+const DB_URL_RE = /\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis|sqlite|mssql|oracle):\/\/\S+/gi
 
 function maskEmail(m: string, char: string): string {
   const [local, domain] = m.split('@')
@@ -454,6 +462,44 @@ function maskUrlParam(m: string, char: string): string {
   const eq = m.indexOf('=')
 
   return `${m.slice(0, eq + 1)}${char.repeat(3)}`
+}
+
+function maskGitToken(m: string, char: string): string {
+  const prefix = m.match(/^(?:gh[pousr]_|github_pat_|glpat-|gldt-)/)?.[0] ?? m.slice(0, 7)
+
+  return `${prefix}${char.repeat(3)}`
+}
+
+function maskMac(m: string, char: string): string {
+  const groups = m.split(/[:-]/)
+
+  return `${groups[0]}${char.repeat(2)} ${groups[2]}${char.repeat(2)} ${groups[4]}${char.repeat(2)}`
+}
+
+function maskPem(m: string, char: string): string {
+  const lines = m.split('\n')
+
+  return lines.map((line, i) => {
+    if (i === 0 || i === lines.length - 1 || line.trim() === '')
+      return line
+
+    return char.repeat(line.length)
+  }).join('\n')
+}
+
+function maskDbUrl(m: string, char: string): string {
+  const at = m.indexOf('@')
+
+  if (at === -1)
+    return m
+
+  const prefix = m.slice(0, at)
+  const colon = prefix.lastIndexOf(':')
+
+  if (colon === -1)
+    return m
+
+  return `${prefix.slice(0, colon + 1)}${char.repeat(3)}${m.slice(at)}`
 }
 
 /** Luhn checksum for 13-19 digit identifiers (credit cards, etc.) */
@@ -583,11 +629,15 @@ function resolveOverlaps(matches: MaskMatch[]): MaskMatch[] {
 export function mask(str: string, {
   creditCard = true,
   custom,
+  dbUrl = true,
   email = true,
+  gitToken = true,
   iban = true,
   ip = true,
   keepOriginals = false,
+  mac = true,
   mode = 'mask',
+  pem = true,
   phone = true,
   replace: char = '*',
   token = true,
@@ -603,7 +653,7 @@ export function mask(str: string, {
     }
   }
 
-  const hits: Record<MaskKey, number> = { creditCard: 0, custom: 0, email: 0, iban: 0, ip: 0, phone: 0, token: 0, url: 0 }
+  const hits: Record<MaskKey, number> = { creditCard: 0, custom: 0, dbUrl: 0, email: 0, gitToken: 0, iban: 0, ip: 0, mac: 0, pem: 0, phone: 0, token: 0, url: 0 }
 
   const applyMode = (fn: (m: string) => string | null) =>
     mode === 'redact' ? () => '[REDACTED]' : fn
@@ -621,6 +671,9 @@ export function mask(str: string, {
     matches.push(...collect(str, IPV6_RE, applyMode(m => isValidIpv6(m) ? maskIp(m, char) : null), 'ip', 31))
   }
 
+  if (mac)
+    matches.push(...collect(str, MAC_RE, applyMode(m => maskMac(m, char)), 'mac', 35))
+
   if (iban) {
     matches.push(...collect(str, IBAN_RE, applyMode((m) => {
       return ibanCheck(m.replace(/\s/g, '')) ? maskIban(m, char) : null
@@ -633,6 +686,9 @@ export function mask(str: string, {
     }), 'creditCard', 50))
   }
 
+  if (gitToken)
+    matches.push(...collect(str, GIT_TOKEN_RE, applyMode(m => maskGitToken(m, char)), 'gitToken', 55))
+
   if (token) {
     matches.push(...collect(str, JWT_RE, applyMode(m => maskJwt(m, char)), 'token', 60))
     matches.push(...collect(str, BEARER_RE, applyMode(m => maskBearer(m, char)), 'token', 70))
@@ -640,6 +696,12 @@ export function mask(str: string, {
 
   if (url)
     matches.push(...collect(str, URL_QUERY_RE, applyMode(m => maskUrlParam(m, char)), 'url', 80))
+
+  if (dbUrl)
+    matches.push(...collect(str, DB_URL_RE, applyMode(m => maskDbUrl(m, char)), 'dbUrl', 82))
+
+  if (pem)
+    matches.push(...collect(str, PEM_RE, applyMode(m => maskPem(m, char)), 'pem', 85))
 
   if (custom) {
     for (const { pattern, replacer } of custom) {
