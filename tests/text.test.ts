@@ -702,7 +702,7 @@ describe('mask', () => {
   })
 
   it('masks URL query params', () => {
-    expect(mask('https://api.com/users?token=abc123&page=1').result).toBe('https://api.com/users?token=***&page=***')
+    expect(mask('https://api.com/users?token=abc123&page=1').result).toBe('https://api.com/users?token=***&page=1')
   })
 
   it('redact mode replaces all with [REDACTED]', () => {
@@ -718,6 +718,7 @@ describe('mask', () => {
       creditCard: false,
       token: false,
       url: false,
+      keepOriginals: true,
     })
 
     expect(ranges).toHaveLength(1)
@@ -740,5 +741,102 @@ describe('mask', () => {
     expect(result).not.toContain('admin@site.org')
     expect(result).not.toContain('0611223344')
     expect(result).not.toContain('10.0.0.1')
+  })
+
+  it('keeps ranges accurate after length-changing replacements', () => {
+    const { result, ranges } = mask('phone 0612345678 then email john@example.com', {
+      ip: false,
+      iban: false,
+      creditCard: false,
+      token: false,
+      url: false,
+      keepOriginals: true,
+    })
+
+    const phoneRange = ranges.find(r => r.key === 'phone')
+    const emailRange = ranges.find(r => r.key === 'email')
+
+    expect(phoneRange).toBeDefined()
+    expect(emailRange).toBeDefined()
+    expect(result.slice(phoneRange!.start, phoneRange!.end)).toBe('06 ** ** ** 78')
+    expect(result.slice(emailRange!.start, emailRange!.end)).toBe('j***@e***.com')
+    expect(emailRange!.original).toBe('john@example.com')
+  })
+
+  it('does not double-mask overlapping matches', () => {
+    const { result, hits } = mask('https://api.com/pay?api_key=4111111111111111', {
+      email: false,
+      phone: false,
+      ip: false,
+      iban: false,
+      token: false,
+    })
+
+    expect(result).toBe('https://api.com/pay?api_key=***')
+    expect(hits.creditCard).toBe(0)
+    expect(hits.url).toBe(1)
+  })
+
+  it('applies redact mode to custom rules', () => {
+    const { result } = mask('SSN: 123-45-6789', {
+      email: false,
+      phone: false,
+      ip: false,
+      iban: false,
+      creditCard: false,
+      token: false,
+      url: false,
+      mode: 'redact',
+      custom: [{ pattern: /\d{3}-\d{2}-\d{4}/g, replacer: () => '***-**-****' }],
+    })
+
+    expect(result).toBe('SSN: [REDACTED]')
+  })
+
+  it('throws when a custom pattern is missing the global flag', () => {
+    expect(() => mask('x', {
+      email: false,
+      phone: false,
+      ip: false,
+      iban: false,
+      creditCard: false,
+      token: false,
+      url: false,
+      custom: [{ pattern: /x/, replacer: () => 'y' }],
+    })).toThrow(/must use the 'g' flag/)
+  })
+
+  it('filters invalid credit cards via Luhn check', () => {
+    const { result, hits } = mask('valid 4111 1111 1111 1111 invalid 1234 5678 9012 3456')
+
+    expect(result).toContain('1234 5678 9012 3456')
+    expect(result).not.toContain('4111 1111 1111 1111')
+    expect(hits.creditCard).toBe(1)
+  })
+
+  it('filters invalid IBANs via mod-97 check', () => {
+    const { result, hits } = mask('valid FR76 3000 6000 0112 3456 7890 189 invalid US12 3456 7890 1234')
+
+    expect(result).toContain('US12 3456 7890 1234')
+    expect(result).not.toContain('FR76 3000 6000 0112 3456 7890 189')
+    expect(hits.iban).toBe(1)
+  })
+
+  it('preserves phone country codes', () => {
+    expect(mask('call +33 06 12 34 56 78').result).toBe('call +33 06 ** ** ** 78')
+  })
+
+  it('masks IPv6 addresses', () => {
+    expect(mask('server 2001:0db8:85a3:0000:0000:8a2e:0370:7334').result).toBe('server 2001:*:7334')
+  })
+
+  it('masks one-character email local parts completely', () => {
+    expect(mask('a@x.com').result).toBe('****@x***.com')
+  })
+
+  it('omits original matches by default', () => {
+    const { ranges } = mask('email john@example.com')
+
+    expect(ranges[0]!.original).toBeUndefined()
   })
 })

@@ -342,7 +342,8 @@ export interface MaskCustomRule {
 export interface MaskRange {
   end: number
   key: MaskKey
-  original: string
+  /** only present when `keepOriginals: true` */
+  original?: string
   start: number
 }
 
@@ -352,6 +353,11 @@ export interface MaskOptions {
   email?: boolean
   iban?: boolean
   ip?: boolean
+  /**
+   * keep the original matched text in `ranges[].original`.
+   * defaults to `false` because the masked result should not carry the raw secrets.
+   */
+  keepOriginals?: boolean
   mode?: 'mask' | 'redact'
   phone?: boolean
   replace?: string
@@ -368,12 +374,16 @@ export interface MaskResult {
 const EMAIL_RE = /[\w.%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi
 // ponytail: matches French-style 10-digit phones; extend regex for other formats
 const PHONE_RE = /\b(?:\+\d{1,3}\s?)?0\d(?:[\s\-.]?\d{2}){4}\b/g
-const IP_RE = /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g
+const IPV4_RE = /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g
+// anything colon-dense that could be an IPv6 address (≥2 colons, optional IPv4 tail, optional zone)
+const IPV6_RE = /(?<![\w.:])(?=[0-9a-f:]*:[0-9a-f:]*:)[0-9a-f:]{2,45}(?:(?:\d{1,3}\.){3}\d{1,3})?(?:%[0-9a-z]+)?(?![\w.:])/gi
+const IPV4_TAIL_RE = /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$/
 const IBAN_RE = /\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){2,7}(?:\s?[A-Z0-9]{1,4})?\b/g
 const CREDIT_CARD_RE = /\b(?:\d{4}[\s-]?){3}\d{4}\b/g
 const BEARER_RE = /\bBearer\s+\S+/gi
 const JWT_RE = /\beyJ[\w-]+\.[\w-]+\.[\w-]*/g
-const URL_QUERY_RE = /([?&][^=&#\s]+)=([^&#\s]+)/g
+// only mask query parameters that commonly carry secrets
+const URL_QUERY_RE = /([?&](?:token|key|api[_-]?key|secret|password|auth|code|session)[^=&#\s]*)=([^&#\s]+)/gi
 
 function maskEmail(m: string, char: string): string {
   const [local, domain] = m.split('@')
@@ -382,18 +392,31 @@ function maskEmail(m: string, char: string): string {
     return m
 
   const dot = domain.lastIndexOf('.')
+  const maskedLocal = local.length <= 1 ? char.repeat(4) : `${local[0]}${char.repeat(3)}`
 
-  return `${local[0]}${char.repeat(3)}@${domain[0]}${char.repeat(3)}${domain.slice(dot)}`
+  return `${maskedLocal}@${domain[0]}${char.repeat(3)}${domain.slice(dot)}`
 }
 
 function maskPhone(m: string, char: string): string {
-  const d = m.replace(/\D/g, '')
+  const prefixMatch = m.match(/^\+\d{1,3}/)
+  const prefix = prefixMatch ? prefixMatch[0] : ''
+  const body = prefix ? m.slice(prefix.length) : m
+  const d = body.replace(/\D/g, '')
   const groups = Math.max(0, Math.floor((d.length - 4) / 2))
+  const masked = `${d.slice(0, 2)} ${`${char}${char} `.repeat(groups).trim()} ${d.slice(-2)}`
 
-  return `${d.slice(0, 2)} ${`${char}${char} `.repeat(groups).trim()} ${d.slice(-2)}`
+  return prefix ? `${prefix} ${masked}` : masked
 }
 
 function maskIp(m: string, char: string): string {
+  if (m.includes(':')) {
+    const segments = m.split(':')
+    const first = segments.find(Boolean) ?? ''
+    const last = [...segments].reverse().find(Boolean) ?? ''
+
+    return `${first}:${char}:${last}`
+  }
+
   const [a, b] = m.split('.')
 
   return `${a}.${b}.${char}.${char}`
@@ -428,26 +451,133 @@ function maskBearer(m: string, char: string): string {
 }
 
 function maskUrlParam(m: string, char: string): string {
-  return `${m.slice(0, m.indexOf('=') + 1)}${char.repeat(3)}`
+  const eq = m.indexOf('=')
+
+  return `${m.slice(0, eq + 1)}${char.repeat(3)}`
 }
 
-// offset tracks cumulative length shift from prior replacements so ranges map to result positions
-function applyMask(str: string, re: RegExp, fn: (m: string) => string, key: MaskKey, ranges: MaskRange[]): [string, number] {
+/** Luhn checksum for 13-19 digit identifiers (credit cards, etc.) */
+function luhnCheck(digits: string): boolean {
+  let sum = 0
+  let alternate = false
+
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = Number.parseInt(digits[i]!, 10)
+
+    if (alternate) {
+      n *= 2
+
+      if (n > 9)
+        n -= 9
+    }
+
+    sum += n
+    alternate = !alternate
+  }
+
+  return sum % 10 === 0
+}
+
+function isValidIpv6(s: string): boolean {
+  const [addr] = s.split('%')
+  const halves = addr!.split('::')
+
+  if (halves.length > 2)
+    return false // more than one "::"
+
+  const toGroups = (side: string) => side === '' ? [] : side.split(':')
+  const groups = [...toGroups(halves[0]!), ...toGroups(halves[1] ?? '')]
   let count = 0
-  let offset = 0
 
-  const result = str.replace(re, (m, ...args) => {
-    const replacement = fn(m)
-    const start = (args[args.length - 2] as number) + offset
+  for (let i = 0; i < groups.length; i++) {
+    const g = groups[i]!
 
-    ranges.push({ end: start + replacement.length, key, original: m, start })
-    offset += replacement.length - m.length
-    count++
+    if (g.includes('.')) {
+      if (i !== groups.length - 1 || !IPV4_TAIL_RE.test(g))
+        return false
 
-    return replacement
-  })
+      count += 2 // embedded IPv4 = two 16-bit groups
+    }
+    else {
+      if (!(/^[0-9a-f]{1,4}$/i).test(g))
+        return false
 
-  return [result, count]
+      count += 1
+    }
+  }
+
+  return halves.length === 2 ? count < 8 : count === 8
+}
+
+/** ISO 13616 mod-97 IBAN validation */
+function ibanCheck(iban: string): boolean {
+  const rearranged = iban.slice(4) + iban.slice(0, 4)
+  const numeric = [...rearranged].map((c) => {
+    const code = c.toUpperCase().charCodeAt(0)
+
+    return code >= 65 && code <= 90 ? String(code - 55) : c
+  }).join('')
+  let remainder = numeric
+
+  while (remainder.length > 2) {
+    const block = remainder.slice(0, 9)
+
+    remainder = (Number.parseInt(block, 10) % 97) + remainder.slice(9)
+  }
+
+  return Number.parseInt(remainder, 10) % 97 === 1
+}
+
+interface MaskMatch {
+  end: number
+  key: MaskKey
+  original: string
+  priority: number
+  replacement: string
+  start: number
+}
+
+/**
+ * collect all matches for a detector against the original string.
+ * returning `null` from the replacer drops the match (used for checksum validation).
+ */
+function collect(str: string, re: RegExp, replacer: (match: string) => string | null, key: MaskKey, priority: number): MaskMatch[] {
+  return [...str.matchAll(re)]
+    .map((m) => {
+      const replacement = replacer(m[0])
+
+      if (replacement === null)
+        return null
+
+      return {
+        start: m.index!,
+        end: m.index! + m[0].length,
+        key,
+        original: m[0],
+        priority,
+        replacement,
+      }
+    })
+    .filter((m): m is MaskMatch => m !== null)
+}
+
+/** drop overlapping matches; higher priority wins, first wins on ties */
+function resolveOverlaps(matches: MaskMatch[]): MaskMatch[] {
+  matches.sort((a, b) => a.start - b.start)
+
+  const kept: MaskMatch[] = []
+
+  for (const m of matches) {
+    const overlaps = kept.filter(k => k.start < m.end && k.end > m.start)
+
+    if (overlaps.some(k => k.priority >= m.priority))
+      continue
+
+    kept.splice(0, kept.length, ...kept.filter(k => !overlaps.includes(k)))
+    kept.push(m)
+  }
+
+  return kept
 }
 
 export function mask(str: string, {
@@ -456,52 +586,92 @@ export function mask(str: string, {
   email = true,
   iban = true,
   ip = true,
+  keepOriginals = false,
   mode = 'mask',
   phone = true,
   replace: char = '*',
   token = true,
   url = true,
 }: MaskOptions = {}): MaskResult {
-  const hits: Record<MaskKey, number> = { creditCard: 0, custom: 0, email: 0, iban: 0, ip: 0, phone: 0, token: 0, url: 0 }
-  const ranges: MaskRange[] = []
-
-  const wrap = (masker: (m: string, char: string) => string) =>
-    mode === 'redact' ? () => '[REDACTED]' : (m: string) => masker(m, char)
-
-  if (email)
-    [str, hits.email] = applyMask(str, EMAIL_RE, wrap(maskEmail), 'email', ranges)
-
-  if (phone)
-    [str, hits.phone] = applyMask(str, PHONE_RE, wrap(maskPhone), 'phone', ranges)
-
-  if (ip)
-    [str, hits.ip] = applyMask(str, IP_RE, wrap(maskIp), 'ip', ranges)
-
-  if (iban)
-    [str, hits.iban] = applyMask(str, IBAN_RE, wrap(maskIban), 'iban', ranges)
-
-  if (creditCard)
-    [str, hits.creditCard] = applyMask(str, CREDIT_CARD_RE, wrap(maskCreditCard), 'creditCard', ranges)
-
-  if (token) {
-    [str, hits.token] = applyMask(str, BEARER_RE, wrap(maskBearer), 'token', ranges)
-    const [s, c] = applyMask(str, JWT_RE, wrap(maskJwt), 'token', ranges)
-
-    str = s
-    hits.token += c
-  }
-
-  if (url)
-    [str, hits.url] = applyMask(str, URL_QUERY_RE, wrap(maskUrlParam), 'url', ranges)
-
   if (custom) {
-    for (const { pattern, replacer } of custom) {
-      const [newStr, count] = applyMask(str, pattern, replacer, 'custom', ranges)
-
-      str = newStr
-      hits.custom += count
+    for (const { pattern } of custom) {
+      if (!pattern.global) {
+        throw new TypeError(
+          `custom pattern ${pattern} must use the 'g' flag`,
+        )
+      }
     }
   }
 
-  return { hits, ranges, result: str }
+  const hits: Record<MaskKey, number> = { creditCard: 0, custom: 0, email: 0, iban: 0, ip: 0, phone: 0, token: 0, url: 0 }
+
+  const applyMode = (fn: (m: string) => string | null) =>
+    mode === 'redact' ? () => '[REDACTED]' : fn
+
+  const matches: MaskMatch[] = []
+
+  if (email)
+    matches.push(...collect(str, EMAIL_RE, applyMode(m => maskEmail(m, char)), 'email', 10))
+
+  if (phone)
+    matches.push(...collect(str, PHONE_RE, applyMode(m => maskPhone(m, char)), 'phone', 20))
+
+  if (ip) {
+    matches.push(...collect(str, IPV4_RE, applyMode(m => maskIp(m, char)), 'ip', 30))
+    matches.push(...collect(str, IPV6_RE, applyMode(m => isValidIpv6(m) ? maskIp(m, char) : null), 'ip', 31))
+  }
+
+  if (iban) {
+    matches.push(...collect(str, IBAN_RE, applyMode((m) => {
+      return ibanCheck(m.replace(/\s/g, '')) ? maskIban(m, char) : null
+    }), 'iban', 40))
+  }
+
+  if (creditCard) {
+    matches.push(...collect(str, CREDIT_CARD_RE, applyMode((m) => {
+      return luhnCheck(m.replace(/\D/g, '')) ? maskCreditCard(m, char) : null
+    }), 'creditCard', 50))
+  }
+
+  if (token) {
+    matches.push(...collect(str, JWT_RE, applyMode(m => maskJwt(m, char)), 'token', 60))
+    matches.push(...collect(str, BEARER_RE, applyMode(m => maskBearer(m, char)), 'token', 70))
+  }
+
+  if (url)
+    matches.push(...collect(str, URL_QUERY_RE, applyMode(m => maskUrlParam(m, char)), 'url', 80))
+
+  if (custom) {
+    for (const { pattern, replacer } of custom) {
+      matches.push(...collect(str, pattern, applyMode(m => replacer(m)), 'custom', 90))
+    }
+  }
+
+  const kept = resolveOverlaps(matches)
+
+  let result = ''
+  let pos = 0
+  const ranges: MaskRange[] = []
+
+  for (const m of kept) {
+    result += str.slice(pos, m.start)
+
+    const start = result.length
+
+    result += m.replacement
+
+    ranges.push({
+      start,
+      end: result.length,
+      key: m.key,
+      ...(keepOriginals ? { original: m.original } : {}),
+    })
+
+    pos = m.end
+    hits[m.key]++
+  }
+
+  result += str.slice(pos)
+
+  return { hits, ranges, result }
 }
