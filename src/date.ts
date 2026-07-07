@@ -1,3 +1,14 @@
+export const SECOND_MS = 1000
+export const MINUTE_MS = 60 * SECOND_MS
+export const HOUR_MS = 60 * MINUTE_MS
+export const DAY_MS = 24 * HOUR_MS
+export const WEEK_MS = 7 * DAY_MS
+
+export const SECONDS_IN_MINUTE = 60
+export const SECONDS_IN_HOUR = 3600
+export const SECONDS_IN_DAY = 86400
+export const SECONDS_IN_WEEK = 604800
+
 export function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month, 0).getDate()
 }
@@ -185,7 +196,40 @@ export function formatRelativeTime(date: Date | string | number, options: Format
   return formatter.format(0, 'second')
 }
 
-const DAY_MS = 86_400_000
+/** Short day-month label in day-before-month order, e.g. "15 Jan" (never the US month-first order). */
+export function formatDayMonth(d: Date): string {
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
+/** Short month-year label, e.g. "Jan 2026". */
+export function formatMonthYear(d: Date): string {
+  return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+}
+
+/** Short month label, e.g. "Jan". */
+export function formatMonthShort(d: Date): string {
+  return d.toLocaleDateString('en-GB', { month: 'short' })
+}
+
+/** Parse a date label in `YYYY-MM-DD`, `YYYYMMDD` or `D/M/Y` form into a local-midnight Date, or `null`. */
+export function parseDateLabel(label: string): Date | null {
+  let m = label.match(/^(\d{4})-(\d{2})-(\d{2})/)
+
+  if (m)
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+
+  m = label.match(/^(\d{4})(\d{2})(\d{2})$/)
+
+  if (m)
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+
+  m = label.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/)
+
+  if (m)
+    return new Date(m[3]!.length === 2 ? 2000 + Number(m[3]) : Number(m[3]), Number(m[2]) - 1, Number(m[1]))
+
+  return null
+}
 
 /** Local-date ISO string `YYYY-MM-DD` without UTC shift (unlike `toISOString`). */
 export function toISODate(d: Date): string {
