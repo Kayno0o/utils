@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, jest } from 'bun:test'
 import { createWsClient } from '../src/browser/wsClient'
 
 class MockWebSocket {
@@ -40,12 +40,14 @@ function last() {
 }
 
 beforeEach(() => {
+  jest.useFakeTimers()
   MockWebSocket.instances = []
   globalThis.WebSocket = MockWebSocket as unknown as typeof WebSocket
   globalThis.location = { protocol: 'https:', host: 'example.com' } as Location
 })
 
 afterEach(() => {
+  jest.useRealTimers()
   // @ts-expect-error cleanup test globals
   delete globalThis.WebSocket
   // @ts-expect-error cleanup test globals
@@ -164,22 +166,22 @@ describe('createWsClient', () => {
     expect(MockWebSocket.instances).toHaveLength(1)
   })
 
-  it('reconnects 500ms after a drop when enabled', async () => {
+  it('reconnects 500ms after a drop when enabled', () => {
     createWsClient({ path: '/ws', reconnect: 500, onMessage: () => undefined })
     last().close()
 
     expect(MockWebSocket.instances).toHaveLength(1)
-    await new Promise(r => setTimeout(r, 600))
+    jest.advanceTimersByTime(600)
     expect(MockWebSocket.instances).toHaveLength(2)
   })
 
-  it('does not reconnect after an explicit close', async () => {
+  it('does not reconnect after an explicit close', () => {
     const client = createWsClient({ path: '/ws', reconnect: 500, onMessage: () => undefined })
 
     last().open()
     client.close()
 
-    await new Promise(r => setTimeout(r, 600))
+    jest.advanceTimersByTime(600)
     expect(MockWebSocket.instances).toHaveLength(1)
   })
 })

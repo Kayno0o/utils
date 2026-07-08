@@ -1,6 +1,6 @@
 /* eslint-disable ts/class-literal-property-style */
 /* eslint-disable ts/no-unused-expressions */
-import { beforeEach, describe, expect, it } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, setSystemTime } from 'bun:test'
 import { Memoize } from '../src/decorators'
 
 class TestService {
@@ -73,6 +73,10 @@ describe('Memoize decorator', () => {
     service = new TestService()
   })
 
+  afterEach(() => {
+    setSystemTime()
+  })
+
   describe('basic caching', () => {
     it('should cache getter results', () => {
       const first = service.expensiveOperation
@@ -123,22 +127,28 @@ describe('Memoize decorator', () => {
   })
 
   describe('TTL expiration', () => {
-    it('should expire cache after TTL', async () => {
+    it('should expire cache after TTL', () => {
+      const t0 = Date.now()
+
+      setSystemTime(t0)
       const first = service.timedComputation
       const immediate = service.timedComputation
 
       expect(first).toBe(immediate)
 
-      await new Promise(resolve => setTimeout(resolve, 120))
+      setSystemTime(t0 + 120)
       const afterTTL = service.timedComputation
 
       expect(first).not.toBe(afterTTL)
     })
 
-    it('should not expire before TTL', async () => {
+    it('should not expire before TTL', () => {
+      const t0 = Date.now()
+
+      setSystemTime(t0)
       const first = service.timedComputation
 
-      await new Promise(resolve => setTimeout(resolve, 50))
+      setSystemTime(t0 + 50)
       const beforeTTL = service.timedComputation
 
       expect(first).toBe(beforeTTL)
