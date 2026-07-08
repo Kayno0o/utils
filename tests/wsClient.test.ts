@@ -164,22 +164,22 @@ describe('createWsClient', () => {
     expect(MockWebSocket.instances).toHaveLength(1)
   })
 
-  it('reconnects 2s after a drop when enabled', async () => {
-    createWsClient({ path: '/ws', reconnect: true, onMessage: () => undefined })
+  it('reconnects 500ms after a drop when enabled', async () => {
+    createWsClient({ path: '/ws', reconnect: 500, onMessage: () => undefined })
     last().close()
 
     expect(MockWebSocket.instances).toHaveLength(1)
-    await new Promise(r => setTimeout(r, 2100))
+    await new Promise(r => setTimeout(r, 600))
     expect(MockWebSocket.instances).toHaveLength(2)
   })
 
   it('does not reconnect after an explicit close', async () => {
-    const client = createWsClient({ path: '/ws', reconnect: true, onMessage: () => undefined })
+    const client = createWsClient({ path: '/ws', reconnect: 500, onMessage: () => undefined })
 
     last().open()
     client.close()
 
-    await new Promise(r => setTimeout(r, 2100))
+    await new Promise(r => setTimeout(r, 600))
     expect(MockWebSocket.instances).toHaveLength(1)
   })
 })

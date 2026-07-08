@@ -8,7 +8,7 @@ export interface WsClientOptions<TMsg> {
   onError?: () => void
   onClose?: () => void
   /** Auto-reconnect 2s after a drop. Off by default (a game socket needs a full rejoin, not a silent reconnect). */
-  reconnect?: boolean
+  reconnect?: boolean | number
 }
 
 export interface WsClient {
@@ -63,7 +63,7 @@ export function createWsClient<TMsg extends { type: string }>(opts: WsClientOpti
       opts.onClose?.()
 
       if (opts.reconnect && !closed)
-        setTimeout(connect, 2000)
+        setTimeout(connect, typeof opts.reconnect === 'number' ? opts.reconnect : 2000)
     }
   }
 
