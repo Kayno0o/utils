@@ -6,7 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
-      "~/types": ["./types/index.ts"]
+      "~/types": ["./src/types/index.ts"]
     },
     "resolveJsonModule": true,
     "types": ["bun-types"],
@@ -34,7 +34,6 @@
   },
   "include": [
     "src",
-    "types",
     "examples",
     "tests"
   ],
