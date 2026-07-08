@@ -1,4 +1,4 @@
-import type { FunctionKeys, NonFunctionKeys } from '~/types'
+import type { FunctionKeys, NonFunctionKeys } from '../types'
 import { Color } from './ColorConverter'
 
 type ColorStyle = [start: number | string, end: number | string]

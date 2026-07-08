@@ -1,4 +1,4 @@
-import type { DotNotation, ExtractVariables } from '~/types'
+import type { DotNotation, ExtractVariables } from '../types'
 
 export interface TranslationObject {
   [key: string]: string | TranslationObject

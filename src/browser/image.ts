@@ -118,6 +118,33 @@ export async function transformImage(src: string, transform: ImageTransform): Pr
   return { src: canvas.toDataURL('image/png'), width, height }
 }
 
+/** Read a File into a base64 data URL (resolves null for a missing file). */
+export async function base64FromFile(file?: File | null): Promise<string | null> {
+  return new Promise((resolve, reject) => {
+    if (!file)
+      return resolve(null)
+
+    const reader = new FileReader()
+
+    reader.addEventListener('load', () => resolve(String(reader.result)))
+    reader.addEventListener('error', () => reject(new Error('Failed to read file')))
+    reader.readAsDataURL(file)
+  })
+}
+
+/** Fetch a remote image URL and return it as a base64 data URL (null on failure). */
+export async function resolveImageFromUrl(imageUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(imageUrl)
+    const blob = await res.blob()
+
+    return await base64FromFile(new File([blob], 'image'))
+  }
+  catch {
+    return null
+  }
+}
+
 /** Extracts the first image File from a ClipboardEvent, or `undefined` if none. */
 export function readPastedImage(e: ClipboardEvent): File | undefined {
   const items = e.clipboardData?.items

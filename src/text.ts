@@ -1,4 +1,4 @@
-import type { ExtractParams } from '~/types'
+import type { ExtractParams } from './types'
 import { randomInt } from './number'
 import { ObjectEntries } from './object'
 import { STRICT_UUID_REGEX, UUID_REGEX } from './regex'

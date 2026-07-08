@@ -1,5 +1,19 @@
 import type { Buffer } from 'node:buffer'
-import type { DiscordWebhookPayload } from '~/types'
+import type { DiscordWebhookPayload } from './types'
+
+/** Discord CDN avatar URL; picks `gif` for animated hashes (`a_` prefix), else `png`. */
+export function getDiscordAvatarUrl(userId: string, avatarHash: string): string {
+  const format = avatarHash.startsWith('a_') ? 'gif' : 'png'
+
+  return `https://cdn.discordapp.com/avatars/${userId}/${avatarHash}.${format}`
+}
+
+/** Discord CDN banner URL; picks `gif` for animated hashes (`a_` prefix), else `png`. */
+export function getDiscordBannerUrl(userId: string, bannerHash: string): string {
+  const format = bannerHash.startsWith('a_') ? 'gif' : 'png'
+
+  return `https://cdn.discordapp.com/banners/${userId}/${bannerHash}.${format}`
+}
 
 export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPayload, files: { buffer: Buffer, filename: string }[]): Promise<any> {
   const formData = new FormData()

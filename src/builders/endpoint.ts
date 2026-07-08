@@ -1,5 +1,5 @@
 /* eslint-disable ts/no-empty-object-type */
-import type { ExtractParams, ExtractVariables, Key } from '~/types'
+import type { ExtractParams, ExtractVariables, Key } from '../types'
 
 type ResolveParams<
   T extends string,

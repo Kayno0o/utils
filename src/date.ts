@@ -9,6 +9,11 @@ export const SECONDS_IN_HOUR = 3600
 export const SECONDS_IN_DAY = 86400
 export const SECONDS_IN_WEEK = 604800
 
+export const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+export const pad = (n: number) => String(n).padStart(2, '0')
+
 export function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month, 0).getDate()
 }
@@ -271,4 +276,30 @@ export function gridDays(weeks: number, today: Date = new Date()): string[] {
     days.push(toISODate(new Date(t)))
 
   return days
+}
+
+/** Localized short date-time label, e.g. "Jan 15, 03:04 PM". */
+export function formatTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+/** Relative session label: time today, "Yesterday", weekday within a week, else short date. */
+export function formatSessionTime(date: Date): string {
+  const diffDays = Math.floor((Date.now() - date.getTime()) / DAY_MS)
+
+  if (diffDays === 0)
+    return date.toLocaleString(undefined, { hour: '2-digit', minute: '2-digit' })
+
+  if (diffDays === 1)
+    return 'Yesterday'
+
+  if (diffDays < 7)
+    return date.toLocaleString(undefined, { weekday: 'short' })
+
+  return date.toLocaleString(undefined, { month: 'short', day: 'numeric' })
 }
