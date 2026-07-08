@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 BUN_PATH=bun
 
@@ -8,14 +9,16 @@ elif [ -f /usr/local/bin/bun ]; then
   BUN_PATH=/usr/local/bin/bun
 fi
 
+# Slow, independent checks run in the background so their latency overlaps build/check/test.
+$BUN_PATH run duplicates & DUP_PID=$!
+$BUN_PATH x changelogen@latest --dry-run & CHANGELOG_PID=$!
+
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(json|ts)$' | tr '\n' ' ')
+[ -n "$STAGED_FILES" ] && $BUN_PATH eslint --cache $STAGED_FILES
 
-if [ -n "$STAGED_FILES" ]; then
-  $BUN_PATH eslint --cache $STAGED_FILES
-fi
-
-$BUN_PATH run duplicates
 $BUN_PATH run build
 $BUN_PATH run check
-$BUN_PATH run test
-$BUN_PATH x changelogen@latest --dry-run
+$BUN_PATH test
+
+wait $DUP_PID
+wait $CHANGELOG_PID
