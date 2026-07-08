@@ -14,19 +14,16 @@ permissions:
 
 jobs:
   pages:
-    runs-on: debian
+    runs-on: alpine
 
     steps:
-      - name: Install git before checkout
-        run: apt-get update && apt-get install -y git unzip lcov
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Install project deps
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --production
 
       - name: Build pages
         run: |
