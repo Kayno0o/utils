@@ -81,6 +81,7 @@
     }
   },
   "devDependencies": {
+    "@kaynooo/changelogitea": "^1.6.0",
     "@kaynooo/eslint": "^2.2.0",
     "@types/bun": "^1.3.14",
     "@types/jsonwebtoken": "^9.0.10",
