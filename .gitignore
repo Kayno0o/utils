@@ -182,3 +182,6 @@ docs
 .mailmap
 
 .claude
+
+# example output
+examples/output
