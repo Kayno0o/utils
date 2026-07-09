@@ -1,8 +1,8 @@
 import type { QrCodeGenerateData } from 'uqr'
 import { encode, QrCodeDataType } from 'uqr'
 
-export type QrModuleShape = 'square' | 'rounded' | 'dot'
-export type QrEyeShape = 'square' | 'rounded' | 'circle'
+export type QrModuleShape = 'square' | 'rounded' | 'chamfer' | 'dot'
+export type QrEyeShape = 'square' | 'rounded' | 'chamfer' | 'circle'
 
 export interface QrGradientStop {
   offset: number
@@ -57,7 +57,7 @@ export interface QrCodeSvgOptions {
   background?: string | null
 
   moduleShape?: QrModuleShape
-  /** Corner radius for `rounded` modules, 0..0.5 of a module. @default 0.35 */
+  /** Corner radius (`rounded`) or bevel cut (`chamfer`) for modules, 0..0.5 of a module. @default 0.35 */
   moduleRadius?: number
   /** Shrinks each module within its cell for a gapped/breathing look, 0..1. @default 1 */
   moduleScale?: number
@@ -110,13 +110,31 @@ function roundedRectPath(x: number, y: number, w: number, h: number, r: number):
     + `v${n(-(h - 2 * rad))}a${n(rad)} ${n(rad)} 0 0 1 ${n(rad)} ${n(-rad)}z`
 }
 
-/** Unit-square path with each corner rounded independently (for connected modules). */
-function modulePath(x: number, y: number, tl: number, tr: number, br: number, bl: number): string {
+function chamferRectPath(x: number, y: number, w: number, h: number, c: number): string {
+  const cut = Math.max(0, Math.min(c, w / 2, h / 2))
+
+  if (cut <= 0)
+    return `M${n(x)} ${n(y)}h${n(w)}v${n(h)}h${n(-w)}z`
+
+  return `M${n(x + cut)} ${n(y)}`
+    + `h${n(w - 2 * cut)}l${n(cut)} ${n(cut)}`
+    + `v${n(h - 2 * cut)}l${n(-cut)} ${n(cut)}`
+    + `h${n(-(w - 2 * cut))}l${n(-cut)} ${n(-cut)}`
+    + `v${n(-(h - 2 * cut))}l${n(cut)} ${n(-cut)}z`
+}
+
+/** Draws a corner transition of size `r` moving by (dx, dy): an arc when rounded, a straight cut when chamfered. */
+type CornerDrawer = (r: number, dx: number, dy: number) => string
+const arcCorner: CornerDrawer = (r, dx, dy) => `a${n(r)} ${n(r)} 0 0 1 ${n(dx)} ${n(dy)}`
+const chamferCorner: CornerDrawer = (_r, dx, dy) => `l${n(dx)} ${n(dy)}`
+
+/** Unit-square path with each corner transitioned independently (for connected modules). */
+function modulePath(x: number, y: number, tl: number, tr: number, br: number, bl: number, corner: CornerDrawer): string {
   return `M${n(x + tl)} ${n(y)}`
-    + `h${n(1 - tl - tr)}${tr ? `a${n(tr)} ${n(tr)} 0 0 1 ${n(tr)} ${n(tr)}` : ''}`
-    + `v${n(1 - tr - br)}${br ? `a${n(br)} ${n(br)} 0 0 1 ${n(-br)} ${n(br)}` : ''}`
-    + `h${n(-(1 - br - bl))}${bl ? `a${n(bl)} ${n(bl)} 0 0 1 ${n(-bl)} ${n(-bl)}` : ''}`
-    + `v${n(-(1 - bl - tl))}${tl ? `a${n(tl)} ${n(tl)} 0 0 1 ${n(tl)} ${n(-tl)}` : ''}z`
+    + `h${n(1 - tl - tr)}${tr ? corner(tr, tr, tr) : ''}`
+    + `v${n(1 - tr - br)}${br ? corner(br, -br, br) : ''}`
+    + `h${n(-(1 - br - bl))}${bl ? corner(bl, -bl, -bl) : ''}`
+    + `v${n(-(1 - bl - tl))}${tl ? corner(tl, tl, -tl) : ''}z`
 }
 
 function gradientDef(gradient: QrGradient, id: string): string {
@@ -141,6 +159,14 @@ function eyePath(ox: number, oy: number, shape: QrEyeShape, radius: number): str
     const ringOuter = `M${n(ox)} ${n(oy + 3.5)}a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0z`
     const ringInner = `M${n(ox + 0.5)} ${n(oy + 3.5)}a3 3 0 1 1 6 0a3 3 0 1 1 -6 0z`
     const pupil = `M${n(ox + 2)} ${n(oy + 3.5)}a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0z`
+
+    return ringOuter + ringInner + pupil
+  }
+
+  if (shape === 'chamfer') {
+    const ringOuter = chamferRectPath(ox, oy, 7, 7, radius)
+    const ringInner = chamferRectPath(ox + 1, oy + 1, 5, 5, Math.max(0, radius - 1))
+    const pupil = chamferRectPath(ox + 2, oy + 2, 3, 3, Math.max(0, radius - 2))
 
     return ringOuter + ringInner + pupil
   }
@@ -233,23 +259,29 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
 
         modules.push(`M${n(px + 0.5)} ${n(py + inset)}a${n(r)} ${n(r)} 0 1 0 0 ${n(scale)}a${n(r)} ${n(r)} 0 1 0 0 ${n(-scale)}z`)
       }
-      else if (moduleShape === 'rounded' && gapped) {
-        modules.push(roundedRectPath(px + inset, py + inset, scale, scale, radius * scale))
-      }
-      else if (moduleShape === 'rounded') {
-        const top = drawn(x, y - 1)
-        const right = drawn(x + 1, y)
-        const bottom = drawn(x, y + 1)
-        const left = drawn(x - 1, y)
+      else if (moduleShape === 'rounded' || moduleShape === 'chamfer') {
+        if (gapped) {
+          const rectPath = moduleShape === 'rounded' ? roundedRectPath : chamferRectPath
 
-        modules.push(modulePath(
-          px,
-          py,
-          !top && !left ? radius : 0,
-          !top && !right ? radius : 0,
-          !bottom && !right ? radius : 0,
-          !bottom && !left ? radius : 0,
-        ))
+          modules.push(rectPath(px + inset, py + inset, scale, scale, radius * scale))
+        }
+        else {
+          const top = drawn(x, y - 1)
+          const right = drawn(x + 1, y)
+          const bottom = drawn(x, y + 1)
+          const left = drawn(x - 1, y)
+          const corner = moduleShape === 'rounded' ? arcCorner : chamferCorner
+
+          modules.push(modulePath(
+            px,
+            py,
+            !top && !left ? radius : 0,
+            !top && !right ? radius : 0,
+            !bottom && !right ? radius : 0,
+            !bottom && !left ? radius : 0,
+            corner,
+          ))
+        }
       }
       else if (gapped) {
         modules.push(`M${n(px + inset)} ${n(py + inset)}h${n(scale)}v${n(scale)}h${n(-scale)}z`)

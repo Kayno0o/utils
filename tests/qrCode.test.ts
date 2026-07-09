@@ -122,6 +122,25 @@ describe('qrCodeSvg', () => {
     expect(arcs).toBe(moduleStarts * 4)
   })
 
+  it('connects chamfered modules with straight cuts instead of arcs', () => {
+    const svg = qrCodeSvg('hello world', { moduleShape: 'chamfer' })
+    const path = svg.match(/<path fill="black" d="([^"]+)"/)![1]!
+
+    // chamfer joins use line segments (l), never arcs (a)
+    expect(path).not.toContain('a')
+    expect(path).toContain('l')
+  })
+
+  it('renders gapped chamfer modules as standalone octagons', () => {
+    const svg = qrCodeSvg('hello world', { moduleShape: 'chamfer', moduleScale: 0.8 })
+    const path = svg.match(/<path fill="black" d="([^"]+)"/)![1]!
+    const cuts = (path.match(/l/g) ?? []).length
+    const moduleStarts = (path.match(/M/g) ?? []).length
+
+    // every standalone octagon has exactly 4 corner cuts
+    expect(cuts).toBe(moduleStarts * 4)
+  })
+
   it('accepts a gradient eye color', () => {
     const svg = qrCodeSvg('x', {
       id: 'g',
@@ -224,6 +243,10 @@ describe('qrCodeSvg decode round-trip', () => {
     })
 
     expect(scan(svg)).toBe(payload)
+  })
+
+  it('chamfered modules and eyes stay scannable', () => {
+    expect(scan(qrCodeSvg(payload, { moduleShape: 'chamfer', eyeShape: 'chamfer' }))).toBe(payload)
   })
 
   it('gapped modules stay scannable', () => {

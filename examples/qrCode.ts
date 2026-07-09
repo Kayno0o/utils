@@ -11,6 +11,7 @@ const url = 'https://github.com/Kayno0o/utils'
 const codes: Record<string, string> = {
   'basic': qrCodeSvg(url, { title: 'utils repository' }),
   'rounded': qrCodeSvg(url, { moduleShape: 'rounded', eyeShape: 'rounded', title: 'utils repository' }),
+  'chamfer': qrCodeSvg(url, { moduleShape: 'chamfer', eyeShape: 'chamfer', title: 'utils repository' }),
   'dots': qrCodeSvg(url, { moduleShape: 'dot', eyeShape: 'circle' }),
   'gradient': qrCodeSvg(url, {
     moduleShape: 'rounded',
