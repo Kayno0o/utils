@@ -16,6 +16,15 @@ export interface QrGradient {
   stops: QrGradientStop[]
 }
 
+export interface QrEyeStyle {
+  /** Finder-pattern (eye) shape. Defaults to match `moduleShape`. */
+  shape?: QrEyeShape
+  /** Solid color or gradient. Defaults to `eyeColor`, then the foreground. */
+  color?: string | QrGradient
+  /** Corner radius for `rounded` eyes, in modules. Defaults to `eyeRadius`. */
+  radius?: number
+}
+
 export interface QrLogoOptions {
   /** Image source (URL or data URI). */
   href: string
@@ -50,13 +59,17 @@ export interface QrCodeSvgOptions {
   moduleShape?: QrModuleShape
   /** Corner radius for `rounded` modules, 0..0.5 of a module. @default 0.35 */
   moduleRadius?: number
+  /** Shrinks each module within its cell for a gapped/breathing look, 0..1. @default 1 */
+  moduleScale?: number
 
   /** Finder-pattern (eye) shape. Defaults to match `moduleShape`. */
   eyeShape?: QrEyeShape
-  /** Solid eye color. Defaults to the foreground. */
-  eyeColor?: string
+  /** Solid color or gradient for the eyes. Defaults to the foreground. */
+  eyeColor?: string | QrGradient
   /** Corner radius for `rounded` eyes, in modules. @default 0.8 */
   eyeRadius?: number
+  /** Per-eye overrides, in order: top-left, top-right, bottom-left. */
+  eyes?: [QrEyeStyle, QrEyeStyle, QrEyeStyle]
 
   logo?: QrLogoOptions
 
@@ -160,9 +173,11 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
     background = 'white',
     moduleShape = 'square',
     moduleRadius = 0.35,
+    moduleScale = 1,
     eyeShape = moduleShape === 'dot' ? 'circle' : moduleShape,
     eyeColor,
     eyeRadius = 0.8,
+    eyes,
     logo,
     title,
     ariaLabel,
@@ -176,10 +191,18 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
   const count = result.size
   const total = count + margin * 2
 
-  const isGradient = typeof foreground === 'object' && foreground !== null
-  const fgFill = isGradient ? `url(#${safeId}-fg)` : escapeAttr(foreground)
+  const defs: string[] = []
+  const fillFor = (color: string | QrGradient, gradientId: string): string => {
+    if (typeof color === 'object' && color !== null) {
+      defs.push(gradientDef(color, gradientId))
 
-  const defs = isGradient ? `<defs>${gradientDef(foreground, `${safeId}-fg`)}</defs>` : ''
+      return `url(#${gradientId})`
+    }
+
+    return escapeAttr(color)
+  }
+
+  const fgFill = fillFor(foreground, `${safeId}-fg`)
 
   const eyeCorners: [number, number][] = [
     [margin, margin],
@@ -192,6 +215,9 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
     && Boolean(result.data[y]![x]) && result.types[y]![x] !== QrCodeDataType.Position
 
   const radius = Math.max(0, Math.min(moduleRadius, 0.5))
+  const scale = Math.max(0, Math.min(moduleScale, 1))
+  const inset = (1 - scale) / 2
+  const gapped = scale < 1
   const modules: string[] = []
 
   for (let y = 0; y < count; y++) {
@@ -203,7 +229,12 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
       const py = y + margin
 
       if (moduleShape === 'dot') {
-        modules.push(`M${n(px + 0.5)} ${n(py)}a0.5 0.5 0 1 0 0 1a0.5 0.5 0 1 0 0 -1z`)
+        const r = scale / 2
+
+        modules.push(`M${n(px + 0.5)} ${n(py + inset)}a${n(r)} ${n(r)} 0 1 0 0 ${n(scale)}a${n(r)} ${n(r)} 0 1 0 0 ${n(-scale)}z`)
+      }
+      else if (moduleShape === 'rounded' && gapped) {
+        modules.push(roundedRectPath(px + inset, py + inset, scale, scale, radius * scale))
       }
       else if (moduleShape === 'rounded') {
         const top = drawn(x, y - 1)
@@ -220,21 +251,32 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
           !bottom && !left ? radius : 0,
         ))
       }
+      else if (gapped) {
+        modules.push(`M${n(px + inset)} ${n(py + inset)}h${n(scale)}v${n(scale)}h${n(-scale)}z`)
+      }
       else {
         modules.push(`M${n(px)} ${n(py)}h1v1h-1z`)
       }
     }
   }
 
-  const eyes = eyeCorners.map(([ex, ey]) => eyePath(ex, ey, eyeShape, eyeRadius)).join('')
+  const globalEyeFill = eyeColor === undefined ? fgFill : fillFor(eyeColor, `${safeId}-eye`)
+  const eyeParts = eyeCorners.map(([ex, ey], i) => {
+    const style = eyes?.[i]
+    const shape = style?.shape ?? eyeShape
+    const eyeR = style?.radius ?? eyeRadius
+    const fill = style?.color === undefined ? globalEyeFill : fillFor(style.color, `${safeId}-eye${i}`)
 
-  const parts: string[] = [defs]
+    return `<path fill="${fill}" fill-rule="evenodd" d="${eyePath(ex, ey, shape, eyeR)}"/>`
+  })
+
+  const parts: string[] = []
 
   if (background && background !== 'transparent')
     parts.push(`<rect width="${n(total)}" height="${n(total)}" fill="${escapeAttr(background)}"/>`)
 
   parts.push(`<path fill="${fgFill}" d="${modules.join('')}"/>`)
-  parts.push(`<path fill="${eyeColor ? escapeAttr(eyeColor) : fgFill}" fill-rule="evenodd" d="${eyes}"/>`)
+  parts.push(...eyeParts)
 
   if (logo) {
     const { href, size: logoSize = 0.2, margin: logoMargin = 1, background: logoBg, borderRadius = 0 } = logo
@@ -248,6 +290,9 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
     parts.push(`<path fill="${escapeAttr(bg)}" d="${roundedRectPath(cx, cy, knockout, knockout, borderRadius)}"/>`)
     parts.push(`<image href="${escapeAttr(href)}" x="${n(cx + logoMargin)}" y="${n(cy + logoMargin)}" width="${n(dim)}" height="${n(dim)}" preserveAspectRatio="xMidYMid meet"/>`)
   }
+
+  if (defs.length)
+    parts.unshift(`<defs>${defs.join('')}</defs>`)
 
   const label = ariaLabel ?? title
   const a11y = title !== undefined || ariaLabel !== undefined

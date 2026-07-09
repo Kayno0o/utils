@@ -103,6 +103,51 @@ describe('qrCodeSvg', () => {
     expect(arcs).toBeLessThan(moduleStarts * 4)
   })
 
+  it('shrinks modules within their cell when moduleScale < 1', () => {
+    // full-scale square modules span a whole cell (h1 ... v1); scaled ones do not
+    expect(qrCodeSvg('x')).toContain('h1v1h-1z')
+    const scaled = qrCodeSvg('x', { moduleScale: 0.6 })
+
+    expect(scaled).not.toContain('h1v1h-1z')
+    expect(scaled).toContain('h0.6v0.6h-0.6z')
+  })
+
+  it('renders gapped rounded modules as standalone rounded rects', () => {
+    const svg = qrCodeSvg('hello world', { moduleShape: 'rounded', moduleScale: 0.8 })
+    const path = svg.match(/<path fill="black" d="([^"]+)"/)![1]!
+    const arcs = (path.match(/a/g) ?? []).length
+    const moduleStarts = (path.match(/M/g) ?? []).length
+
+    // every standalone rounded module has exactly 4 corner arcs
+    expect(arcs).toBe(moduleStarts * 4)
+  })
+
+  it('accepts a gradient eye color', () => {
+    const svg = qrCodeSvg('x', {
+      id: 'g',
+      eyeColor: { type: 'linear', stops: [{ offset: 0, color: 'red' }, { offset: 1, color: 'lime' }] },
+    })
+
+    expect(svg).toContain('<linearGradient id="g-eye"')
+    expect(svg).toContain('fill="url(#g-eye)"')
+  })
+
+  it('styles each eye independently via the eyes array', () => {
+    const svg = qrCodeSvg('x', {
+      id: 'e',
+      eyes: [
+        { shape: 'circle', color: '#f00' },
+        { shape: 'square', color: '#0f0' },
+        { shape: 'rounded', color: { stops: [{ offset: 0, color: 'a' }, { offset: 1, color: 'b' }] } },
+      ],
+    })
+
+    expect(svg).toContain('fill="#f00"')
+    expect(svg).toContain('fill="#0f0"')
+    expect(svg).toContain('<linearGradient id="e-eye2"')
+    expect(svg).toContain('fill="url(#e-eye2)"')
+  })
+
   it('qrCodeDataUri wraps the svg as a data uri', () => {
     const uri = qrCodeDataUri('x')
 
@@ -176,6 +221,23 @@ describe('qrCodeSvg decode round-trip', () => {
   it('a gradient foreground stays scannable', () => {
     const svg = qrCodeSvg(payload, {
       foreground: { type: 'linear', rotation: 45, stops: [{ offset: 0, color: '#001' }, { offset: 1, color: '#00a' }] },
+    })
+
+    expect(scan(svg)).toBe(payload)
+  })
+
+  it('gapped modules stay scannable', () => {
+    expect(scan(qrCodeSvg(payload, { moduleShape: 'dot', moduleScale: 0.7, eyeShape: 'square' }))).toBe(payload)
+    expect(scan(qrCodeSvg(payload, { moduleShape: 'rounded', moduleScale: 0.85 }))).toBe(payload)
+  })
+
+  it('per-eye styling stays scannable', () => {
+    const svg = qrCodeSvg(payload, {
+      eyes: [
+        { shape: 'square', color: '#e11d48' },
+        { shape: 'rounded' },
+        { shape: 'square', color: { stops: [{ offset: 0, color: '#001' }, { offset: 1, color: '#00a' }] } },
+      ],
     })
 
     expect(scan(svg)).toBe(payload)
