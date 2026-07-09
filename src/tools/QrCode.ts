@@ -60,6 +60,11 @@ export interface QrCodeSvgOptions {
 
   logo?: QrLogoOptions
 
+  /** Accessible name. Emits `role="img"` + a `<title>` element and, unless `ariaLabel` is set, an `aria-label`. */
+  title?: string
+  /** Overrides the `aria-label` value; implies `role="img"` even without a `title`. */
+  ariaLabel?: string
+
   /** Prefix for internal SVG ids. Pass a unique value when embedding many codes in one document. @default 'qr' */
   id?: string
 }
@@ -159,6 +164,8 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
     eyeColor,
     eyeRadius = 0.8,
     logo,
+    title,
+    ariaLabel,
     id = 'qr',
   } = options
 
@@ -242,10 +249,18 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
     parts.push(`<image href="${escapeAttr(href)}" x="${n(cx + logoMargin)}" y="${n(cy + logoMargin)}" width="${n(dim)}" height="${n(dim)}" preserveAspectRatio="xMidYMid meet"/>`)
   }
 
+  const label = ariaLabel ?? title
+  const a11y = title !== undefined || ariaLabel !== undefined
+    ? ` role="img"${label !== undefined ? ` aria-label="${escapeAttr(label)}"` : ''}`
+    : ''
+
+  if (title !== undefined)
+    parts.unshift(`<title>${escapeAttr(title)}</title>`)
+
   const dimensions = size !== undefined ? ` width="${n(size)}" height="${n(size)}"` : ''
   const crisp = moduleShape === 'square' && eyeShape === 'square' ? ' shape-rendering="crispEdges"' : ''
 
-  return `<svg xmlns="http://www.w3.org/2000/svg"${dimensions} viewBox="0 0 ${n(total)} ${n(total)}"${crisp}>${parts.join('')}</svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg"${dimensions} viewBox="0 0 ${n(total)} ${n(total)}"${crisp}${a11y}>${parts.join('')}</svg>`
 }
 
 /**

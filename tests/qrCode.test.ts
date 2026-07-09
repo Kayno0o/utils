@@ -1,3 +1,5 @@
+import decodeQR from '@paulmillr/qr/decode.js'
+import { Resvg } from '@resvg/resvg-js'
 import { describe, expect, test as it } from 'bun:test'
 import { qrCodeDataUri, qrCodeSvg } from '../src/tools'
 
@@ -106,5 +108,84 @@ describe('qrCodeSvg', () => {
 
     expect(uri.startsWith('data:image/svg+xml,')).toBe(true)
     expect(decodeURIComponent(uri.slice('data:image/svg+xml,'.length)).startsWith('<svg')).toBe(true)
+  })
+})
+
+describe('qrCodeSvg accessibility', () => {
+  it('is not labelled by default', () => {
+    const svg = qrCodeSvg('x')
+
+    expect(svg).not.toContain('role="img"')
+    expect(svg).not.toContain('<title>')
+  })
+
+  it('title emits role="img", a <title>, and a matching aria-label', () => {
+    const svg = qrCodeSvg('x', { title: 'Scan me' })
+
+    expect(svg).toContain('role="img"')
+    expect(svg).toContain('aria-label="Scan me"')
+    expect(svg).toContain('<title>Scan me</title>')
+    // the title is the first child of the svg for assistive tech
+    expect(svg).toMatch(/<svg\b[^>]*>\s*<title>/)
+  })
+
+  it('ariaLabel overrides the aria-label but keeps the title text', () => {
+    const svg = qrCodeSvg('x', { title: 'Visible', ariaLabel: 'Spoken' })
+
+    expect(svg).toContain('aria-label="Spoken"')
+    expect(svg).toContain('<title>Visible</title>')
+  })
+
+  it('ariaLabel alone labels the code without a <title>', () => {
+    const svg = qrCodeSvg('x', { ariaLabel: 'Scan me' })
+
+    expect(svg).toContain('role="img"')
+    expect(svg).toContain('aria-label="Scan me"')
+    expect(svg).not.toContain('<title>')
+  })
+
+  it('escapes markup in title and aria-label', () => {
+    const svg = qrCodeSvg('x', { title: '"a" & <b>', ariaLabel: '"c" & <d>' })
+
+    expect(svg).not.toContain('<b>')
+    expect(svg).toContain('<title>&quot;a&quot; &amp; &lt;b&gt;</title>')
+    expect(svg).toContain('aria-label="&quot;c&quot; &amp; &lt;d&gt;"')
+  })
+})
+
+describe('qrCodeSvg decode round-trip', () => {
+  function scan(svg: string): string {
+    const { pixels, width, height } = new Resvg(svg, {
+      fitTo: { mode: 'width', value: 512 },
+      background: 'white',
+    }).render()
+
+    return decodeQR({ width, height, data: new Uint8Array(pixels) })
+  }
+
+  const payload = 'https://example.com/qr-round-trip?id=42'
+
+  it('a plain code renders to pixels that decode back', () => {
+    expect(scan(qrCodeSvg(payload))).toBe(payload)
+  })
+
+  it('rounded modules and eyes stay scannable', () => {
+    expect(scan(qrCodeSvg(payload, { moduleShape: 'rounded', eyeShape: 'rounded' }))).toBe(payload)
+  })
+
+  it('a gradient foreground stays scannable', () => {
+    const svg = qrCodeSvg(payload, {
+      foreground: { type: 'linear', rotation: 45, stops: [{ offset: 0, color: '#001' }, { offset: 1, color: '#00a' }] },
+    })
+
+    expect(scan(svg)).toBe(payload)
+  })
+
+  it('a code with a center logo stays scannable', () => {
+    // 1x1 transparent png; ecc defaults to H so the knockout is recoverable
+    const href = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='
+    const svg = qrCodeSvg(payload, { moduleShape: 'rounded', logo: { href, size: 0.2 } })
+
+    expect(scan(svg)).toBe(payload)
   })
 })
