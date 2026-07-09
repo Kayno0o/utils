@@ -80,6 +80,9 @@
       "optional": true
     }
   },
+  "dependencies": {
+    "uqr": "^0.1.3"
+  },
   "devDependencies": {
     "@kaynooo/changelogitea": "^1.6.1",
     "@kaynooo/eslint": "^3.0.1",
