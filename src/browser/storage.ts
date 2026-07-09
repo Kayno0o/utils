@@ -32,8 +32,16 @@ export class JsonStorage {
     }
   }
 
-  set<T>(key: string, value: T): void {
-    this.storage.setItem(key, JSON.stringify(value))
+  /** Stores the value; returns `false` if the write fails (e.g. quota exceeded, private mode). */
+  set<T>(key: string, value: T): boolean {
+    try {
+      this.storage.setItem(key, JSON.stringify(value))
+
+      return true
+    }
+    catch {
+      return false
+    }
   }
 
   remove(key: string): void {
@@ -44,10 +52,15 @@ export class JsonStorage {
     return this.storage.getItem(key) !== null
   }
 
-  /** Reads the value; if absent, computes it via `factory`, stores it, and returns it. */
+  /** Reads the value; if absent or unparseable, computes it via `factory`, stores it, and returns it. */
   getOrSet<T>(key: string, factory: () => T): T {
-    if (this.has(key))
-      return this.get(key, undefined as T)
+    try {
+      const raw = this.storage.getItem(key)
+
+      if (raw !== null)
+        return JSON.parse(raw) as T
+    }
+    catch { /* fall through to factory */ }
 
     const value = factory()
 
@@ -71,8 +84,22 @@ export class JsonStorage {
   }
 }
 
-export const jsonLocalStorage = new JsonStorage(localStorage)
-export const jsonSessionStorage = new JsonStorage(sessionStorage)
+/** Lazily-resolved singleton so the `Storage` global is only touched on first use (SSR/worker-safe). */
+function lazyJsonStorage(getStorage: () => Storage): JsonStorage {
+  let instance: JsonStorage | undefined
+  const resolve = (): JsonStorage => instance ??= new JsonStorage(getStorage())
+
+  return new Proxy({} as JsonStorage, {
+    get(_target, prop) {
+      const value = resolve()[prop as keyof JsonStorage]
+
+      return typeof value === 'function' ? value.bind(resolve()) : value
+    },
+  })
+}
+
+export const jsonLocalStorage = lazyJsonStorage(() => localStorage)
+export const jsonSessionStorage = lazyJsonStorage(() => sessionStorage)
 
 /** Reads a resolved CSS custom property from the document root (e.g. `--color-accent`). */
 export function cssVar(name: string): string {
