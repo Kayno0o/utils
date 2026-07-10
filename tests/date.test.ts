@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { calculateEaster, DAY_MS, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, getFrenchHolidays, HOUR_MS, isHoliday, isLeapYear, MINUTE_MS, msDurationToString, parseDateLabel, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, stringToMsDuration, WEEK_MS } from '../src'
+import { addDays, addMonths, addYears, age, businessDaysBetween, calculateEaster, DAY_MS, diffInDays, diffInHours, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, getFrenchHolidays, getQuarter, getWeekNumber, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, msDurationToString, parseDateLabel, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, stringToMsDuration, WEEK_MS } from '../src'
 
 describe('msDurationToString function', () => {
   it('decomposes a duration into the largest units first', () => {
@@ -241,5 +241,114 @@ describe('parseDateLabel function', () => {
   it('returns null for unrecognized labels', () => {
     expect(parseDateLabel('not a date')).toBeNull()
     expect(parseDateLabel('')).toBeNull()
+  })
+})
+
+describe('date arithmetic', () => {
+  it('addDays does not mutate and shifts correctly', () => {
+    const base = new Date(2024, 0, 31)
+    const next = addDays(base, 1)
+
+    expect(next).toEqual(new Date(2024, 1, 1))
+    expect(base).toEqual(new Date(2024, 0, 31))
+  })
+
+  it('addMonths clamps the day to the target month', () => {
+    expect(addMonths(new Date(2024, 0, 31), 1)).toEqual(new Date(2024, 1, 29))
+    expect(addMonths(new Date(2023, 0, 31), 1)).toEqual(new Date(2023, 1, 28))
+  })
+
+  it('addYears clamps Feb 29 on non-leap years', () => {
+    expect(addYears(new Date(2024, 1, 29), 1)).toEqual(new Date(2025, 1, 28))
+  })
+})
+
+describe('date diffs', () => {
+  it('diffInDays counts whole calendar days', () => {
+    expect(diffInDays(new Date(2024, 0, 1), new Date(2024, 0, 4))).toBe(3)
+    expect(diffInDays(new Date(2024, 0, 4), new Date(2024, 0, 1))).toBe(-3)
+  })
+
+  it('diffInHours truncates toward zero', () => {
+    const a = new Date(2024, 0, 1, 0, 0)
+    const b = new Date(2024, 0, 1, 5, 30)
+
+    expect(diffInHours(a, b)).toBe(5)
+  })
+})
+
+describe('date boundaries', () => {
+  it('startOfDay / endOfDay', () => {
+    const d = new Date(2024, 5, 15, 13, 45, 30)
+
+    expect(startOfDay(d)).toEqual(new Date(2024, 5, 15, 0, 0, 0, 0))
+    expect(endOfDay(d)).toEqual(new Date(2024, 5, 15, 23, 59, 59, 999))
+  })
+
+  it('startOfMonth / endOfMonth', () => {
+    const d = new Date(2024, 1, 15)
+
+    expect(startOfMonth(d)).toEqual(new Date(2024, 1, 1))
+    expect(endOfMonth(d)).toEqual(new Date(2024, 1, 29, 23, 59, 59, 999))
+  })
+})
+
+describe('date predicates', () => {
+  it('isSameDay ignores time', () => {
+    expect(isSameDay(new Date(2024, 0, 1, 8), new Date(2024, 0, 1, 20))).toBe(true)
+    expect(isSameDay(new Date(2024, 0, 1), new Date(2024, 0, 2))).toBe(false)
+  })
+
+  it('isWeekend', () => {
+    expect(isWeekend(new Date(2024, 0, 6))).toBe(true)
+    expect(isWeekend(new Date(2024, 0, 8))).toBe(false)
+  })
+
+  it('isToday', () => {
+    expect(isToday(new Date())).toBe(true)
+    expect(isToday(new Date(2000, 0, 1))).toBe(false)
+  })
+
+  it('isBetween respects inclusivity', () => {
+    const start = new Date(2024, 0, 1)
+    const end = new Date(2024, 0, 31)
+
+    expect(isBetween(new Date(2024, 0, 15), start, end)).toBe(true)
+    expect(isBetween(start, start, end)).toBe(true)
+    expect(isBetween(start, start, end, false)).toBe(false)
+    expect(isBetween(new Date(2024, 1, 1), start, end)).toBe(false)
+  })
+})
+
+describe('week / quarter / age', () => {
+  it('getWeekNumber returns ISO week', () => {
+    expect(getWeekNumber(new Date(2024, 0, 1))).toBe(1)
+    expect(getWeekNumber(new Date(2024, 11, 30))).toBe(1)
+  })
+
+  it('getQuarter', () => {
+    expect(getQuarter(new Date(2024, 0, 1))).toBe(1)
+    expect(getQuarter(new Date(2024, 3, 1))).toBe(2)
+    expect(getQuarter(new Date(2024, 11, 1))).toBe(4)
+  })
+
+  it('age computes full years', () => {
+    const birth = new Date(2000, 5, 15)
+
+    expect(age(birth, new Date(2024, 5, 15))).toBe(24)
+    expect(age(birth, new Date(2024, 5, 14))).toBe(23)
+    expect(age(birth, new Date(2024, 6, 1))).toBe(24)
+  })
+})
+
+describe('businessDaysBetween function', () => {
+  it('counts weekdays inclusively', () => {
+    expect(businessDaysBetween(new Date(2024, 0, 1), new Date(2024, 0, 5))).toBe(5)
+    expect(businessDaysBetween(new Date(2024, 0, 6), new Date(2024, 0, 7))).toBe(0)
+    expect(businessDaysBetween(new Date(2024, 0, 1), new Date(2024, 0, 7))).toBe(5)
+  })
+
+  it('is order-insensitive', () => {
+    expect(businessDaysBetween(new Date(2024, 0, 5), new Date(2024, 0, 1))).toBe(5)
   })
 })

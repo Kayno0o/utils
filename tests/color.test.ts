@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { opacityColor, randomHex, stringToHexColor } from '../src'
+import { complementary, contrastRatio, darken, isDark, isLight, lighten, luminance, mix, opacityColor, randomHex, stringToHexColor, triadic } from '../src'
 import { Color } from '../src/tools'
 
 describe('hexToRgb function', () => {
@@ -301,5 +301,76 @@ describe('oklab conversions', () => {
 
   it('should carry alpha through oklaba', () => {
     expect(Color.from('oklab', [0.628, 0.2249, 0.1258, 0.5]).to('oklaba')).toStrictEqual([0.628, 0.2249, 0.1258, 0.5])
+  })
+})
+
+describe('luminance function', () => {
+  it('is 0 for black and 1 for white', () => {
+    expect(luminance('#000000')).toBeCloseTo(0)
+    expect(luminance('#FFFFFF')).toBeCloseTo(1)
+  })
+})
+
+describe('contrastRatio function', () => {
+  it('is 21 for black on white', () => {
+    expect(contrastRatio('#000000', '#FFFFFF')).toBeCloseTo(21)
+  })
+
+  it('is order-insensitive', () => {
+    expect(contrastRatio('#FFFFFF', '#000000')).toBeCloseTo(21)
+  })
+
+  it('is 1 for identical colors', () => {
+    expect(contrastRatio('#123456', '#123456')).toBeCloseTo(1)
+  })
+})
+
+describe('isDark / isLight functions', () => {
+  it('classifies dark colors', () => {
+    expect(isDark('#000000')).toBe(true)
+    expect(isLight('#000000')).toBe(false)
+  })
+
+  it('classifies light colors', () => {
+    expect(isDark('#FFFFFF')).toBe(false)
+    expect(isLight('#FFFFFF')).toBe(true)
+  })
+})
+
+describe('lighten / darken functions', () => {
+  it('lighten increases luminance', () => {
+    expect(luminance(lighten('#808080', 0.2))).toBeGreaterThan(luminance('#808080'))
+  })
+
+  it('darken decreases luminance', () => {
+    expect(luminance(darken('#808080', 0.2))).toBeLessThan(luminance('#808080'))
+  })
+
+  it('clamps at the extremes', () => {
+    expect(lighten('#FFFFFF', 0.5)).toBe('#FFFFFF')
+    expect(darken('#000000', 0.5)).toBe('#000000')
+  })
+})
+
+describe('mix function', () => {
+  it('mixes evenly by default', () => {
+    expect(mix('#000000', '#FFFFFF')).toBe('#808080')
+  })
+
+  it('respects the weight toward color2', () => {
+    expect(mix('#000000', '#FFFFFF', 0)).toBe('#000000')
+    expect(mix('#000000', '#FFFFFF', 1)).toBe('#FFFFFF')
+  })
+})
+
+describe('complementary function', () => {
+  it('rotates the hue by 180deg', () => {
+    expect(complementary('#FF0000')).toBe('#00FFFF')
+  })
+})
+
+describe('triadic function', () => {
+  it('returns three hues 120deg apart', () => {
+    expect(triadic('#FF0000')).toEqual(['#FF0000', '#00FF00', '#0000FF'])
   })
 })

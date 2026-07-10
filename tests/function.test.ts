@@ -1,0 +1,120 @@
+import { describe, expect, test as it } from 'bun:test'
+import { compose, curry, identity, negate, noop, partial, pipe, tap, tryCatch } from '../src'
+
+describe('identity / noop', () => {
+  it('identity returns its argument', () => {
+    const obj = { a: 1 }
+
+    expect(identity(obj)).toBe(obj)
+    expect(identity(5)).toBe(5)
+  })
+
+  it('noop returns undefined', () => {
+    expect(noop()).toBeUndefined()
+  })
+})
+
+describe('tap function', () => {
+  it('runs the side effect and returns the value', () => {
+    let seen = 0
+    const result = tap(42, v => (seen = v))
+
+    expect(seen).toBe(42)
+    expect(result).toBe(42)
+  })
+})
+
+describe('negate function', () => {
+  it('inverts a predicate', () => {
+    const isEven = (n: number) => n % 2 === 0
+    const isOdd = negate(isEven)
+
+    expect(isOdd(3)).toBe(true)
+    expect(isOdd(4)).toBe(false)
+  })
+})
+
+describe('partial function', () => {
+  it('pre-applies leading arguments', () => {
+    const add = (a: number, b: number, c: number) => a + b + c
+    const add10 = partial(add, 10)
+
+    expect(add10(20, 30)).toBe(60)
+  })
+})
+
+describe('pipe function', () => {
+  it('composes left to right', () => {
+    const fn = pipe((x: number) => x + 1, x => x * 2, x => String(x))
+
+    expect(fn(3)).toBe('8')
+  })
+
+  it('passes multiple initial arguments to the first function', () => {
+    const fn = pipe((a: number, b: number) => a + b, x => x * 10)
+
+    expect(fn(2, 3)).toBe(50)
+  })
+})
+
+describe('compose function', () => {
+  it('composes right to left', () => {
+    const fn = compose((x: number) => x * 2, (x: number) => x + 1)
+
+    expect(fn(3)).toBe(8)
+  })
+})
+
+describe('curry function', () => {
+  it('collects arguments until arity is reached', () => {
+    const add = (a: number, b: number, c: number) => a + b + c
+    const curried = curry(add)
+
+    expect(curried(1)(2)(3)).toBe(6)
+    expect(curried(1, 2)(3)).toBe(6)
+    expect(curried(1, 2, 3)).toBe(6)
+  })
+})
+
+describe('tryCatch function', () => {
+  it('returns a value tuple on success', () => {
+    const [error, value] = tryCatch(() => 42)
+
+    expect(error).toBeUndefined()
+    expect(value).toBe(42)
+  })
+
+  it('returns an error tuple on throw', () => {
+    const [error, value] = tryCatch((): number => {
+      throw new Error('boom')
+    })
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error?.message).toBe('boom')
+    expect(value).toBeUndefined()
+  })
+
+  it('wraps non-Error throws', () => {
+    const [error] = tryCatch((): number => {
+      // eslint-disable-next-line no-throw-literal
+      throw 'oops'
+    })
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error?.message).toBe('oops')
+  })
+
+  it('handles resolved promises', async () => {
+    const [error, value] = await tryCatch(() => Promise.resolve('ok'))
+
+    expect(error).toBeUndefined()
+    expect(value).toBe('ok')
+  })
+
+  it('handles rejected promises', async () => {
+    const [error, value] = await tryCatch(() => Promise.reject(new Error('nope')))
+
+    expect(error?.message).toBe('nope')
+    expect(value).toBeUndefined()
+  })
+})

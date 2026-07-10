@@ -288,6 +288,133 @@ export function formatTime(timestamp: number): string {
   })
 }
 
+/** Return a new Date shifted by `days` (may be negative). Does not mutate the input. */
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date)
+
+  result.setDate(result.getDate() + days)
+
+  return result
+}
+
+/** Return a new Date shifted by `months`, clamping the day to the target month's length. */
+export function addMonths(date: Date, months: number): Date {
+  const result = new Date(date)
+  const day = result.getDate()
+
+  result.setDate(1)
+  result.setMonth(result.getMonth() + months)
+  result.setDate(Math.min(day, getDaysInMonth(result.getMonth() + 1, result.getFullYear())))
+
+  return result
+}
+
+/** Return a new Date shifted by `years`, clamping Feb 29 to Feb 28 on non-leap years. */
+export function addYears(date: Date, years: number): Date {
+  return addMonths(date, years * 12)
+}
+
+/** Whole days from `a` to `b` (positive when `b` is later), computed on local calendar days (DST-safe). */
+export function diffInDays(a: Date, b: Date): number {
+  return Math.round((startOfDay(b).getTime() - startOfDay(a).getTime()) / DAY_MS)
+}
+
+/** Whole hours from `a` to `b` (positive when `b` is later). */
+export function diffInHours(a: Date, b: Date): number {
+  return Math.trunc((b.getTime() - a.getTime()) / HOUR_MS)
+}
+
+/** New Date at the start of `date`'s day (00:00:00.000 local). */
+export function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+/** New Date at the end of `date`'s day (23:59:59.999 local). */
+export function endOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999)
+}
+
+/** New Date at the start of `date`'s month. */
+export function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+/** New Date at the end of `date`'s month (23:59:59.999 local on the last day). */
+export function endOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999)
+}
+
+/** Whether two dates fall on the same local calendar day. */
+export function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+}
+
+/** Whether `date` falls on a Saturday or Sunday. */
+export function isWeekend(date: Date): boolean {
+  const day = date.getDay()
+
+  return day === 0 || day === 6
+}
+
+/** Whether `date` is on the current local calendar day. */
+export function isToday(date: Date): boolean {
+  return isSameDay(date, new Date())
+}
+
+/** Whether `date` is within `[start, end]`, inclusive by default. */
+export function isBetween(date: Date, start: Date, end: Date, inclusive = true): boolean {
+  const t = date.getTime()
+  const lo = Math.min(start.getTime(), end.getTime())
+  const hi = Math.max(start.getTime(), end.getTime())
+
+  return inclusive ? t >= lo && t <= hi : t > lo && t < hi
+}
+
+/** ISO 8601 week number (1-53), where weeks start on Monday. */
+export function getWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7))
+
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / DAY_MS + 1) / 7)
+}
+
+/** Calendar quarter of `date` (1-4). */
+export function getQuarter(date: Date): number {
+  return Math.floor(date.getMonth() / 3) + 1
+}
+
+/** Full years elapsed from `birth` to `at` (defaults to now). */
+export function age(birth: Date, at: Date = new Date()): number {
+  let years = at.getFullYear() - birth.getFullYear()
+  const monthDiff = at.getMonth() - birth.getMonth()
+
+  if (monthDiff < 0 || (monthDiff === 0 && at.getDate() < birth.getDate()))
+    years--
+
+  return years
+}
+
+/** Count of weekdays (Mon-Fri) within `[start, end]` inclusive. Order-insensitive. */
+export function businessDaysBetween(start: Date, end: Date): number {
+  let from = startOfDay(start)
+  let to = startOfDay(end)
+
+  if (from > to)
+    [from, to] = [to, from]
+
+  let count = 0
+
+  for (let d = from; d <= to; d = addDays(d, 1)) {
+    if (!isWeekend(d))
+      count++
+  }
+
+  return count
+}
+
 /** Relative session label: time today, "Yesterday", weekday within a week, else short date. */
 export function formatSessionTime(date: Date): string {
   const diffDays = Math.floor((Date.now() - date.getTime()) / DAY_MS)
