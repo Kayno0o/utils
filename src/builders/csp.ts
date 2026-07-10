@@ -10,7 +10,7 @@ export type CspType = Partial<Record<CspName, string[]>>
 export function cspBuilder(domainName: string, siteCsp?: CspType): string {
   domainName = String(domainName.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0])
 
-  if (!domainName.includes(''))
+  if (!(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i).test(domainName))
     throw new Error(`Domain is invalid: ${domainName}`)
 
   const csp: CspType = {
