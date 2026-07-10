@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { countBy, getRandomElement, keyBy, mean, median, notNullish, range, sum, uniqueArray } from '../src'
+import { countBy, getRandomElement, keyBy, mean, median, notNullish, range, sum, unique } from '../src'
 
 describe('keyBy function', () => {
   it('indexes items by a key', () => {
@@ -55,17 +55,17 @@ describe('getRandomElement function', () => {
   })
 })
 
-describe('uniqueArray function', () => {
+describe('unique function', () => {
   it('should return an array with unique elements', () => {
     const arr = [1, 2, 2, 3, 4, 4, 5]
-    const uniqueArr = uniqueArray(arr)
+    const uniqueArr = unique(arr)
 
     expect(uniqueArr).toEqual([1, 2, 3, 4, 5])
   })
 
   it('should handle an array with only unique elements', () => {
     const arr = [1, 2, 3, 4, 5]
-    const uniqueArr = uniqueArray(arr)
+    const uniqueArr = unique(arr)
 
     expect(uniqueArr).toEqual([1, 2, 3, 4, 5])
   })

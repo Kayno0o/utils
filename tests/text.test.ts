@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, matchingSubstring, matchLength, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle } from '../src'
+import { commonPrefix, commonPrefixLength, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -322,35 +322,35 @@ describe('escapeCSV function', () => {
   })
 })
 
-describe('matchLength function', () => {
+describe('commonPrefixLength function', () => {
   it('should return length of matching prefix', () => {
-    const result = matchLength('hello', 'helicopter')
+    const result = commonPrefixLength('hello', 'helicopter')
 
     expect(result).toEqual(3)
   })
 
   it('should return zero for non-matching strings', () => {
-    const result = matchLength('hello', 'world')
+    const result = commonPrefixLength('hello', 'world')
 
     expect(result).toEqual(0)
   })
 
   it('should handle empty strings', () => {
-    const result = matchLength('', 'anything')
+    const result = commonPrefixLength('', 'anything')
 
     expect(result).toEqual(0)
   })
 })
 
-describe('matchingSubstring function', () => {
+describe('commonPrefix function', () => {
   it('should return matching substring', () => {
-    const result = matchingSubstring('hello', 'helicopter')
+    const result = commonPrefix('hello', 'helicopter')
 
     expect(result).toEqual('hel')
   })
 
   it('should return empty string for non-matching strings', () => {
-    const result = matchingSubstring('hello', 'world')
+    const result = commonPrefix('hello', 'world')
 
     expect(result).toEqual('')
   })

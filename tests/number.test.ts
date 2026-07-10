@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { degToRad, formatNumber, gcd, isPrime, lcm, map, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, round } from '../src'
+import { degToRad, formatNumber, gcd, isPrime, lcm, mapRange, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, round } from '../src'
 
 describe('randomInt function', () => {
   it('within the specified range', () => {
@@ -50,9 +50,9 @@ describe('randomInt function', () => {
   })
 })
 
-describe('map function', () => {
-  it('map with int value', () => {
-    expect(map(
+describe('mapRange function', () => {
+  it('mapRange with int value', () => {
+    expect(mapRange(
       50,
       0,
       100,
@@ -61,8 +61,8 @@ describe('map function', () => {
     )).toBe(5)
   })
 
-  it('map with float value', () => {
-    expect(map(
+  it('mapRange with float value', () => {
+    expect(mapRange(
       2.5,
       0,
       4,
@@ -71,8 +71,8 @@ describe('map function', () => {
     )).toBe(0.625)
   })
 
-  it('map with start different from 0', () => {
-    expect(map(
+  it('mapRange with start different from 0', () => {
+    expect(mapRange(
       2.5,
       1,
       4,

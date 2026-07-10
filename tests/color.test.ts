@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { complementary, contrastRatio, darken, isDark, isLight, lighten, luminance, mix, opacityColor, randomHex, stringToHexColor, triadic } from '../src'
+import { blendRgb, complementary, contrastRatio, darken, isDark, isLight, lighten, luminance, mix, randomHex, stringToHexColor, triadic } from '../src'
 import { Color } from '../src/tools'
 
 describe('hexToRgb function', () => {
@@ -95,25 +95,25 @@ describe('randomHex function', () => {
   })
 })
 
-describe('opacityColor function', () => {
+describe('blendRgb function', () => {
   const red = Color.from('hex', '#f00').to('rgb')
   const blue = Color.from('hex', '#00f').to('rgb')
   const purple = Color.from('hex', '#800080').to('rgb')
 
   it('should blend two colors based on the specified opacity', () => {
-    const result = opacityColor(red, blue, 0.5) // Red and Blue blend with 50% opacity
+    const result = blendRgb(red, blue, 0.5) // Red and Blue blend with 50% opacity
 
     expect(result).toEqual(purple) // Expected result is purple
   })
 
   it('should return the first color when opacity is 1', () => {
-    const result = opacityColor(red, blue, 1) // Full opacity for the first color
+    const result = blendRgb(red, blue, 1) // Full opacity for the first color
 
     expect(result).toEqual(red)
   })
 
   it('should return the second color when opacity is 0', () => {
-    const result = opacityColor(red, blue, 0) // Full opacity for the second color
+    const result = blendRgb(red, blue, 0) // Full opacity for the second color
 
     expect(result).toEqual(blue)
   })
