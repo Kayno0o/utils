@@ -336,7 +336,9 @@ export function stripHtml(str: string): string {
   return str.replace(/<[^>]+>/g, '')
 }
 
-export function strTemplate<T extends string>(str: T, variables: ExtractParams<T>): string {
+/** @deprecated use `renderTemplate` */
+export const strTemplate = renderTemplate
+export function renderTemplate<T extends string>(str: T, variables: ExtractParams<T>): string {
   for (const [key, value] of typedObjectEntries(variables)) {
     str = str.replaceAll(`{${key}}`, value) as T
   }

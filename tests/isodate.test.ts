@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { fromISODate, gridDays, toISODate, weekStartISO } from '../src'
+import { fromISODate, gridDays, startOfWeekISO, toISODate } from '../src'
 
 describe('toISODate', () => {
   it('formats local date without UTC shift', () => {
@@ -28,19 +28,19 @@ describe('fromISODate', () => {
   })
 })
 
-describe('weekStartISO', () => {
+describe('startOfWeekISO', () => {
   it('returns Monday for any day of the week', () => {
     // 2024-06-10 is Monday
-    expect(weekStartISO(new Date(2024, 5, 10))).toBe('2024-06-10')
-    expect(weekStartISO(new Date(2024, 5, 12))).toBe('2024-06-10') // Wednesday
-    expect(weekStartISO(new Date(2024, 5, 16))).toBe('2024-06-10') // Sunday
+    expect(startOfWeekISO(new Date(2024, 5, 10))).toBe('2024-06-10')
+    expect(startOfWeekISO(new Date(2024, 5, 12))).toBe('2024-06-10') // Wednesday
+    expect(startOfWeekISO(new Date(2024, 5, 16))).toBe('2024-06-10') // Sunday
   })
 
   it('does not mutate the input', () => {
     const d = new Date(2024, 5, 14)
     const before = d.getTime()
 
-    weekStartISO(d)
+    startOfWeekISO(d)
     expect(d.getTime()).toBe(before)
   })
 })

@@ -4,7 +4,9 @@ function escapeField(value: unknown, sep: string): string {
   return s.includes('"') || s.includes(sep) || s.includes('\n') ? `"${s}"` : s
 }
 
-export function csvParse<T extends Record<string, string>>(str: string, { separator = ',' }: { separator?: string } = {}): T[] {
+/** @deprecated use `parseCsv` */
+export const csvParse = parseCsv
+export function parseCsv<T extends Record<string, string>>(str: string, { separator = ',' }: { separator?: string } = {}): T[] {
   const rows: string[][] = []
   let cur = ''
   let inQuotes = false
@@ -57,7 +59,9 @@ export function csvParse<T extends Record<string, string>>(str: string, { separa
   return rows.slice(1).map(r => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? ''])) as T)
 }
 
-export function csvStringify(rows: Record<string, unknown>[], { separator = ',', headers }: { separator?: string, headers?: string[] } = {}): string {
+/** @deprecated use `stringifyCsv` */
+export const csvStringify = stringifyCsv
+export function stringifyCsv(rows: Record<string, unknown>[], { separator = ',', headers }: { separator?: string, headers?: string[] } = {}): string {
   if (!rows.length)
     return ''
 

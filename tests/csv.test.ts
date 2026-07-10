@@ -1,73 +1,73 @@
 import { describe, expect, test as it } from 'bun:test'
-import { csvParse, csvStringify } from '../src'
+import { parseCsv, stringifyCsv } from '../src'
 
-describe('csvParse', () => {
+describe('parseCsv', () => {
   it('parses basic CSV', () => {
-    expect(csvParse('name,age\nAlice,30\nBob,25')).toEqual([
+    expect(parseCsv('name,age\nAlice,30\nBob,25')).toEqual([
       { name: 'Alice', age: '30' },
       { name: 'Bob', age: '25' },
     ])
   })
 
   it('supports custom separator', () => {
-    expect(csvParse('a;b\n1;2', { separator: ';' })).toEqual([{ a: '1', b: '2' }])
+    expect(parseCsv('a;b\n1;2', { separator: ';' })).toEqual([{ a: '1', b: '2' }])
   })
 
   it('handles quoted fields', () => {
-    expect(csvParse('name,note\nAlice,"hello, world"')).toEqual([{ name: 'Alice', note: 'hello, world' }])
+    expect(parseCsv('name,note\nAlice,"hello, world"')).toEqual([{ name: 'Alice', note: 'hello, world' }])
   })
 
   it('handles escaped quotes', () => {
-    expect(csvParse('name,note\nAlice,"say ""hi"""')).toEqual([{ name: 'Alice', note: 'say "hi"' }])
+    expect(parseCsv('name,note\nAlice,"say ""hi"""')).toEqual([{ name: 'Alice', note: 'say "hi"' }])
   })
 
   it('returns empty array for missing data rows', () => {
-    expect(csvParse('name,age')).toEqual([])
+    expect(parseCsv('name,age')).toEqual([])
   })
 
   it('handles CRLF line endings', () => {
-    expect(csvParse('a,b\r\n1,2')).toEqual([{ a: '1', b: '2' }])
+    expect(parseCsv('a,b\r\n1,2')).toEqual([{ a: '1', b: '2' }])
   })
 
   it('handles multi-line quoted fields', () => {
-    expect(csvParse('a,b\n1,"line1\nline2"')).toEqual([{ a: '1', b: 'line1\nline2' }])
+    expect(parseCsv('a,b\n1,"line1\nline2"')).toEqual([{ a: '1', b: 'line1\nline2' }])
   })
 })
 
-describe('csvStringify', () => {
+describe('stringifyCsv', () => {
   it('serializes objects to CSV', () => {
-    expect(csvStringify([{ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 }])).toBe('name,age\nAlice,30\nBob,25')
+    expect(stringifyCsv([{ name: 'Alice', age: 30 }, { name: 'Bob', age: 25 }])).toBe('name,age\nAlice,30\nBob,25')
   })
 
   it('escapes commas in values', () => {
-    expect(csvStringify([{ note: 'hello, world' }])).toBe('note\n"hello, world"')
+    expect(stringifyCsv([{ note: 'hello, world' }])).toBe('note\n"hello, world"')
   })
 
   it('escapes double quotes', () => {
-    expect(csvStringify([{ note: 'say "hi"' }])).toBe('note\n"say ""hi"""')
+    expect(stringifyCsv([{ note: 'say "hi"' }])).toBe('note\n"say ""hi"""')
   })
 
   it('supports custom separator', () => {
-    expect(csvStringify([{ a: '1', b: '2' }], { separator: ';' })).toBe('a;b\n1;2')
+    expect(stringifyCsv([{ a: '1', b: '2' }], { separator: ';' })).toBe('a;b\n1;2')
   })
 
   it('returns empty string for empty rows', () => {
-    expect(csvStringify([])).toBe('')
+    expect(stringifyCsv([])).toBe('')
   })
 
-  it('round-trips with csvParse', () => {
+  it('round-trips with parseCsv', () => {
     const data = [{ name: 'Alice', age: '30' }, { name: 'Bob', age: '25' }]
 
-    expect(csvParse(csvStringify(data))).toEqual(data)
+    expect(parseCsv(stringifyCsv(data))).toEqual(data)
   })
 
   it('escapes newlines in values', () => {
-    expect(csvStringify([{ note: 'line1\nline2' }])).toBe('note\n"line1\nline2"')
+    expect(stringifyCsv([{ note: 'line1\nline2' }])).toBe('note\n"line1\nline2"')
   })
 
   it('round-trips multi-line fields', () => {
     const data = [{ a: '1', b: 'line1\nline2' }]
 
-    expect(csvParse(csvStringify(data))).toEqual(data)
+    expect(parseCsv(stringifyCsv(data))).toEqual(data)
   })
 })
