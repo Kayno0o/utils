@@ -15,9 +15,7 @@ export class JWTBuilder<Payload> {
     try {
       return this.jwt.verify(token, this.secret) as Payload | undefined
     }
-    catch (e) {
-      console.error(e)
-
+    catch {
       return undefined
     }
   }
