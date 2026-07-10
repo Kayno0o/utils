@@ -1,7 +1,7 @@
 import { getRandomElement } from '../array'
 import { getDaysInMonth } from '../date'
 import { randomInt } from '../number'
-import { firstUpper } from '../text'
+import { capitalize } from '../text'
 
 const LOREM_WORDS = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'proin', 'ultricies', 'sed', 'dui', 'scelerisque', 'donec', 'pellentesque', 'diam', 'vel', 'ligula', 'efficitur']
 
@@ -27,7 +27,7 @@ export class Faker {
         const count = randomInt(5, 15, isCrypto)
         const sentence = Faker.lorem.word(count, isCrypto, dictionary).replace(/ /g, () => Math.random() < 0.1 ? ', ' : ' ')
 
-        return `${firstUpper(sentence)}.`
+        return `${capitalize(sentence)}.`
       }).join(' '),
     word: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
       Array.from({ length: Math.max(1, length) }, () => getRandomElement(dictionary, isCrypto)).join(' '),
@@ -62,7 +62,7 @@ export class Faker {
     firstName: () => getRandomElement(FIRST_NAMES),
     fullname: () => `${Faker.name.firstName()} ${Faker.name.lastName()}`,
     lastName: () => getRandomElement(LAST_NAMES),
-    username: () => firstUpper(getRandomElement(ADJECTIVES)) + firstUpper(getRandomElement(OBJECTS)),
+    username: () => capitalize(getRandomElement(ADJECTIVES)) + capitalize(getRandomElement(OBJECTS)),
   }
 
   static internet = {

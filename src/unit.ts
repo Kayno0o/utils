@@ -28,7 +28,9 @@ export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2
   return Math.round(dist)
 }
 
-export function posFrom1D(pos: number, w: number): [x: number, y: number] {
+/** @deprecated use `indexToCoords` */
+export const posFrom1D = indexToCoords
+export function indexToCoords(pos: number, w: number): [x: number, y: number] {
   return [pos % w, Math.floor(pos / w)]
 }
 
@@ -125,6 +127,5 @@ function decodeUnsignedNumber(encoded: string, index: number): [ value: number, 
   return [result, index]
 }
 
-export function get2DPosFrom1D(pos: number, w: number): [x: number, y: number] {
-  return [pos % w, Math.floor(pos / w)]
-}
+/** @deprecated use `indexToCoords` */
+export const get2DPosFrom1D = indexToCoords

@@ -1,5 +1,5 @@
 import { notNullish } from './array'
-import { ObjectEntries } from './object'
+import { typedObjectEntries } from './object'
 
 export function buildUrlQuery(query?: object | null) {
   const output = query
@@ -17,7 +17,7 @@ export function buildUrlQuery(query?: object | null) {
 export function queryToNestedObject(query: Record<string, string>): Record<string, any> {
   const queryObj: Record<string, any> = {}
 
-  for (let [key, value] of ObjectEntries(query)) {
+  for (let [key, value] of typedObjectEntries(query)) {
     if (!key.includes('[') || !key.includes(']')) {
       queryObj[key] ??= value
 

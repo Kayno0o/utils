@@ -6,7 +6,9 @@ export function getRandomElement<T>(values: T[], isCrypto = false): T {
   return values[index]!
 }
 
-export function uniqueArray<T extends string | number | symbol | boolean | null | undefined>(arr: T[]): T[] {
+/** @deprecated use `unique` */
+export const uniqueArray = unique
+export function unique<T extends string | number | symbol | boolean | null | undefined>(arr: T[]): T[] {
   return [...new Set(arr)]
 }
 
@@ -82,7 +84,9 @@ export function toArray<T>(value: T | T[]): T[] {
   return Array.isArray(value) ? value : [value]
 }
 
-export function chunkArray<T>(array: T[], parts: number): T[][] {
+/** @deprecated use `splitIntoParts` */
+export const chunkArray = splitIntoParts
+export function splitIntoParts<T>(array: T[], parts: number): T[][] {
   if (parts <= 0)
     throw new Error('Parts must be greater than 0')
 

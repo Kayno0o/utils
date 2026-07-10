@@ -1,6 +1,6 @@
 import type { DateTranslations } from '../i18n/date/types'
 import en from '../i18n/date/en'
-import { ObjectEntries } from '../object'
+import { typedObjectEntries } from '../object'
 
 type FormatType
   = | `iso`
@@ -94,7 +94,7 @@ export function formatDate(date: Date, format: FormatType): string
 export function formatDate(date: Date, builderOrFormat: DateBuilderFunction | FormatType): string {
   const d: DateObject = dateToObject(date)
 
-  const reverseFormats: Record<string, keyof DateObject> = ObjectEntries(formats)
+  const reverseFormats: Record<string, keyof DateObject> = typedObjectEntries(formats)
     .reduce((acc, [key, values]) => {
       for (const value of values)
         acc[value] = (d as any)[key]

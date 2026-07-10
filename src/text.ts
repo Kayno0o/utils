@@ -1,6 +1,6 @@
 import type { ExtractParams } from './types'
 import { randomInt } from './number'
-import { ObjectEntries } from './object'
+import { typedObjectEntries } from './object'
 import { STRICT_UUID_REGEX, UUID_REGEX } from './regex'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -82,7 +82,9 @@ export function getInitials(...words: string[]): string {
   return words.join(' ').split(' ').map(name => name[0]).join('').slice(0, 3).toLocaleUpperCase()
 }
 
-export function firstUpper(str: string): string {
+/** @deprecated use `capitalize` */
+export const firstUpper = capitalize
+export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
@@ -176,7 +178,9 @@ export function escapeCSV(value: string | number): string {
   return stringValue
 }
 
-export function matchLength(str1: string, str2: string): number {
+/** @deprecated use `commonPrefixLength` */
+export const matchLength = commonPrefixLength
+export function commonPrefixLength(str1: string, str2: string): number {
   let length = 0
   const minLength = Math.min(str1.length, str2.length)
 
@@ -190,8 +194,10 @@ export function matchLength(str1: string, str2: string): number {
   return length
 }
 
-export function matchingSubstring(str1: string, str2: string): string {
-  const length = matchLength(str1, str2)
+/** @deprecated use `commonPrefix` */
+export const matchingSubstring = commonPrefix
+export function commonPrefix(str1: string, str2: string): string {
+  const length = commonPrefixLength(str1, str2)
 
   return str1.substring(0, length)
 }
@@ -286,7 +292,7 @@ export function toCase(str: string | string[]): string[] {
 export type CaseType = 'kebab' | 'snake' | 'camel' | 'pascal' | 'constant' | 'title'
 
 export function toCamel(input: string | string[]) {
-  return toCase(input).map((w, i) => i === 0 ? w : firstUpper(w)).join('')
+  return toCase(input).map((w, i) => i === 0 ? w : capitalize(w)).join('')
 }
 
 export function toKebab(input: string | string[]) {
@@ -298,7 +304,7 @@ export function toSnake(input: string | string[]) {
 }
 
 export function toPascal(input: string | string[]) {
-  return toCase(input).map(firstUpper).join('')
+  return toCase(input).map(capitalize).join('')
 }
 
 export function toConstant(input: string | string[]) {
@@ -306,7 +312,7 @@ export function toConstant(input: string | string[]) {
 }
 
 export function toTitle(input: string | string[]) {
-  return toCase(input).map(firstUpper).join(' ')
+  return toCase(input).map(capitalize).join(' ')
 }
 
 export function frRankLabel(rank: string) {
@@ -331,7 +337,7 @@ export function stripHtml(str: string): string {
 }
 
 export function strTemplate<T extends string>(str: T, variables: ExtractParams<T>): string {
-  for (const [key, value] of ObjectEntries(variables)) {
+  for (const [key, value] of typedObjectEntries(variables)) {
     str = str.replaceAll(`{${key}}`, value) as T
   }
 

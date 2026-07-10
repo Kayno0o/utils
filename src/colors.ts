@@ -1,13 +1,15 @@
 import type { RgbArrayType } from './tools/ColorConverter'
-import { hashStr } from './crypto'
-import { clamp, map, randomInt } from './number'
+import { hashString } from './crypto'
+import { clamp, mapRange, randomInt } from './number'
 import { Color } from './tools/ColorConverter'
 
 export function randomHex(isCrypto = false) {
   return `#${Math.floor(randomInt(0, 16777215, isCrypto)).toString(16).padStart(6, '0')}`.toUpperCase()
 }
 
-export function opacityColor(rgb1: RgbArrayType, rgb2: RgbArrayType, a1: number): RgbArrayType {
+/** @deprecated use `blendRgb` */
+export const opacityColor = blendRgb
+export function blendRgb(rgb1: RgbArrayType, rgb2: RgbArrayType, a1: number): RgbArrayType {
   const [r1, g1, b1] = rgb1
   const [r2, g2, b2] = rgb2
 
@@ -25,8 +27,8 @@ export function stringToHexColor(str: string, {
   l = 65,
   sRange = [40, 60] as [number, number],
 } = {}): string {
-  const h = (Math.round(map(hashStr(`${str}|hue`), 0, 1, 0, 360)) + hueOffset) % 360
-  const s = Math.round(map(hashStr(`${str}|sat`), 0, 1, sRange[0], sRange[1]))
+  const h = (Math.round(mapRange(hashString(`${str}|hue`), 0, 1, 0, 360)) + hueOffset) % 360
+  const s = Math.round(mapRange(hashString(`${str}|sat`), 0, 1, sRange[0], sRange[1]))
 
   return Color.from('hsl', [h, s, l]).to('hex')
 }

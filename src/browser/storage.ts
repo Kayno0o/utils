@@ -1,4 +1,6 @@
-export function storageGet<T>(key: string, fallback: T): T {
+/** @deprecated use `getStorage` */
+export const storageGet = getStorage
+export function getStorage<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key)
 
@@ -9,11 +11,15 @@ export function storageGet<T>(key: string, fallback: T): T {
   }
 }
 
-export function storageSet<T>(key: string, value: T): void {
+/** @deprecated use `setStorage` */
+export const storageSet = setStorage
+export function setStorage<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value))
 }
 
-export function storageRemove(key: string): void {
+/** @deprecated use `removeStorage` */
+export const storageRemove = removeStorage
+export function removeStorage(key: string): void {
   localStorage.removeItem(key)
 }
 

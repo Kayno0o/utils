@@ -65,6 +65,9 @@ export function sfc32(a: number, b: number, c: number, d: number): () => number 
   }
 }
 
+/** @deprecated use `hashString` */
+export const hashStr = hashString
+
 /**
  * Hashes a string to a normalized float in the range [0, 1].
  *
@@ -77,10 +80,10 @@ export function sfc32(a: number, b: number, c: number, d: number): () => number 
  * @returns A deterministic float in [0, 1]
  *
  * @example
- * hashStr('my-service') // 0.6234...
- * hashStr('my-service', { algorithm: 'sfc32' }) // 0.2841...
+ * hashString('my-service') // 0.6234...
+ * hashString('my-service', { algorithm: 'sfc32' }) // 0.2841...
  */
-export function hashStr(str: string, { algorithm = 'FNV-1a' }: { algorithm?: 'FNV-1a' | 'sfc32' | 'djb2' } = {}): number {
+export function hashString(str: string, { algorithm = 'FNV-1a' }: { algorithm?: 'FNV-1a' | 'sfc32' | 'djb2' } = {}): number {
   if (algorithm === 'sfc32') {
     const seed = xmur3(str)
     const rand = sfc32(seed(), seed(), seed(), seed())

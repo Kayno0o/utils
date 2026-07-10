@@ -1,5 +1,5 @@
 import type { Key, RecursivePartial } from './types'
-import { map } from './number'
+import { mapRange } from './number'
 
 export function getObjectValue(object: any, key: Key): any {
   if (typeof object !== 'object')
@@ -35,7 +35,7 @@ export function interpolate<T extends object | number>(start: RecursivePartial<T
 
   if (typeof start === 'number' && typeof end === 'number') {
     for (let i = 0; i <= framesNb; i++) {
-      frames.push(map(
+      frames.push(mapRange(
         i,
         0,
         framesNb,
@@ -56,7 +56,7 @@ export function interpolate<T extends object | number>(start: RecursivePartial<T
       for (const key in end) {
         if (Object.hasOwn(end, key)) {
           if (typeof end[key] === 'number' && typeof start[key] === 'number') {
-            interpolatedFrame[key] = map(
+            interpolatedFrame[key] = mapRange(
               i,
               0,
               framesNb,
@@ -65,7 +65,7 @@ export function interpolate<T extends object | number>(start: RecursivePartial<T
             ) as any
           }
           else if (Array.isArray(end[key]) && Array.isArray(start[key])) {
-            interpolatedFrame[key] = end[key].map((_: any, index: number) => map(
+            interpolatedFrame[key] = end[key].map((_: any, index: number) => mapRange(
               i,
               0,
               framesNb,
@@ -132,7 +132,9 @@ export function omit<T extends object, K extends keyof T>(object: T, keys: K[]):
   return result
 }
 
-export function unfunction<T>(c: T | (() => T)): T {
+/** @deprecated use `resolveValue` */
+export const unfunction = resolveValue
+export function resolveValue<T>(c: T | (() => T)): T {
   if (typeof c === 'function')
     return (c as () => T)()
 
@@ -144,14 +146,20 @@ export function unfunction<T>(c: T | (() => T)): T {
 // mirror that runtime behaviour rather than blindly reusing `keyof Obj`.
 type EnumerableKey<Obj> = Extract<keyof Obj, string | number>
 
-export function ObjectEntries<Obj extends object>(record: Obj): { [K in EnumerableKey<Obj>]: [`${K}`, Obj[K]] }[EnumerableKey<Obj>][] {
+/** @deprecated use `typedObjectEntries` */
+export const ObjectEntries = typedObjectEntries
+export function typedObjectEntries<Obj extends object>(record: Obj): { [K in EnumerableKey<Obj>]: [`${K}`, Obj[K]] }[EnumerableKey<Obj>][] {
   return Object.entries(record) as { [K in EnumerableKey<Obj>]: [`${K}`, Obj[K]] }[EnumerableKey<Obj>][]
 }
 
-export function ObjectKeys<Obj extends object>(record: Obj): `${EnumerableKey<Obj>}`[] {
+/** @deprecated use `typedObjectKeys` */
+export const ObjectKeys = typedObjectKeys
+export function typedObjectKeys<Obj extends object>(record: Obj): `${EnumerableKey<Obj>}`[] {
   return Object.keys(record) as `${EnumerableKey<Obj>}`[]
 }
 
-export function ObjectValues<Obj extends object>(record: Obj): Obj[EnumerableKey<Obj>][] {
+/** @deprecated use `typedObjectValues` */
+export const ObjectValues = typedObjectValues
+export function typedObjectValues<Obj extends object>(record: Obj): Obj[EnumerableKey<Obj>][] {
   return Object.values(record) as Obj[EnumerableKey<Obj>][]
 }
