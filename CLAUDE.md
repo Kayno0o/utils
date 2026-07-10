@@ -5,6 +5,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Keep chat replies concise.** Answer directly, lead with the result, skip preamble and restated context. Use short prose or tight lists; expand only when the user asks or the task genuinely requires it.
 - **Keep comments concise** — default to no comment. When necessary, use at most one tight line per function; never multi-line blocks or per-line narration. Good names and readable code document intent.
 
+## Naming conventions
+
+- **Verb-first for actions.** `getStorage`, `setStorage`, `removeStorage` - not `storageGet`/`storageSet`.
+- **camelCase for functions**, even when mirroring a built-in. Use `typedObjectEntries`, not `ObjectEntries`.
+- **No redundant type suffixes.** `unique`, not `uniqueArray`; add a suffix only when it disambiguates (e.g. `blendRgb`).
+- **The name must match the behavior.** `commonPrefix`/`commonPrefixLength`, not `matchingSubstring`/`matchLength`; `splitIntoParts` (splits into N parts) rather than `chunk` (which implies fixed size); `mapRange` for range remapping.
+- **Prefer standard, well-known names.** `capitalize`, not `firstUpper`.
+- **No abbreviations.** `hashString`, not `hashStr`; `resolveValue`, not `unfunction`.
+- **Renames keep a deprecated alias.** Never hard-rename an export; add the new function and re-export the old name pointing to it, and update internal call sites to the new name:
+  ```ts
+  /** @deprecated use `setStorage` */
+  export const storageSet = setStorage
+  export function setStorage<T>(key: string, value: T): void { /* ... */ }
+  ```
+
 ## Commands
 
 - **Build**: `bun run build` - Builds the library using tsup to generate CJS and ESM outputs
