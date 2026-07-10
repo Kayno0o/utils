@@ -10,9 +10,15 @@ export function randomString(length: number, charset?: string, isCrypto = false)
 
   if (isCrypto) {
     let id = ''
-    const vals = crypto.getRandomValues(new Uint8Array(length))
+    // rejection sampling: discard bytes in the biased tail so every char is equiprobable
+    const limit = Math.floor(256 / charset.length) * charset.length
 
-    for (let i = 0; i < length; i++) id += charset[vals[i]! % charset.length]
+    while (id.length < length) {
+      for (const byte of crypto.getRandomValues(new Uint8Array(length - id.length))) {
+        if (byte < limit)
+          id += charset[byte % charset.length]
+      }
+    }
 
     return id
   }
