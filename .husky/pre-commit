@@ -14,7 +14,7 @@ $BUN_PATH run duplicates & DUP_PID=$!
 $BUN_PATH x changelogen@latest --dry-run & CHANGELOG_PID=$!
 
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(json|ts)$' | tr '\n' ' ')
-[ -n "$STAGED_FILES" ] && $BUN_PATH eslint --cache $STAGED_FILES
+[ -n "$STAGED_FILES" ] && $BUN_PATH x --bun eslint --cache $STAGED_FILES
 
 $BUN_PATH run build
 $BUN_PATH run check
