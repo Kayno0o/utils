@@ -1,6 +1,7 @@
+import type { OllamaOutputChatResponse, OllamaSettings } from '../src/ollama'
 import { describe, expect, it } from 'bun:test'
 import { FetchError } from '../src/browser/fetch'
-import { getOllamaUsage, promptOllama, promptOllamaJson, promptOllamaSafe, streamOllama } from '../src/ollama'
+import { buildOllamaMeta, getOllamaUsage, promptOllama, promptOllamaJson, promptOllamaSafe, resolveOllamaSettings, streamOllama } from '../src/ollama'
 
 interface MockCall {
   url: string
@@ -202,5 +203,86 @@ describe('getOllamaUsage', () => {
     const res = { prompt_eval_count: 12, eval_count: 34 } as Parameters<typeof getOllamaUsage>[0]
 
     expect(getOllamaUsage(res)).toEqual({ input_tokens: 12, output_tokens: 34 })
+  })
+})
+
+describe('resolveOllamaSettings', () => {
+  const base: OllamaSettings = { model: 'llama3', num_ctx: 4096, temperature: 0.4, think: false }
+
+  it('falls back to the base settings', () => {
+    expect(resolveOllamaSettings(base)).toEqual({
+      model: 'llama3',
+      think: false,
+      options: { num_ctx: 4096, temperature: 0.4 },
+    })
+  })
+
+  it('applies overrides over the base', () => {
+    expect(resolveOllamaSettings(base, { model: 'gemma', num_ctx: 8192, temperature: 0.9, think: true })).toEqual({
+      model: 'gemma',
+      think: true,
+      options: { num_ctx: 8192, temperature: 0.9 },
+    })
+  })
+
+  it('keeps a zero temperature override', () => {
+    expect(resolveOllamaSettings(base, { temperature: 0 }).options.temperature).toBe(0)
+  })
+
+  it('ignores an empty model override', () => {
+    expect(resolveOllamaSettings(base, { model: '' }).model).toBe('llama3')
+  })
+
+  it('omits num_predict unless a non-zero value resolves', () => {
+    expect(resolveOllamaSettings(base).options).not.toHaveProperty('num_predict')
+    expect(resolveOllamaSettings(base, { num_predict: 0 }).options).not.toHaveProperty('num_predict')
+    expect(resolveOllamaSettings({ ...base, num_predict: 256 }).options.num_predict).toBe(256)
+    expect(resolveOllamaSettings({ ...base, num_predict: 256 }, { num_predict: 512 }).options.num_predict).toBe(512)
+  })
+})
+
+describe('buildOllamaMeta', () => {
+  const res = {
+    model: 'llama3',
+    message: { role: 'assistant', content: 'out', thinking: 'hmm' },
+    total_duration: 2e9,
+    load_duration: 1e8,
+    prompt_eval_duration: 5e8,
+    eval_duration: 1e9,
+    prompt_eval_count: 12,
+    eval_count: 50,
+  } as OllamaOutputChatResponse
+
+  it('converts nanosecond durations to milliseconds', () => {
+    const meta = buildOllamaMeta(res, 'in')
+
+    expect(meta).toMatchObject({ totalMs: 2000, loadMs: 100, promptEvalMs: 500, evalMs: 1000 })
+  })
+
+  it('carries model, token counts and raw text', () => {
+    const meta = buildOllamaMeta(res, 'in')
+
+    expect(meta).toMatchObject({
+      model: 'llama3',
+      promptTokens: 12,
+      outputTokens: 50,
+      rawInput: 'in',
+      rawOutput: 'out',
+      thinking: 'hmm',
+    })
+  })
+
+  it('derives tokens per second from the eval duration', () => {
+    expect(buildOllamaMeta(res, 'in').tokensPerSec).toBe(50)
+  })
+
+  it('reports zero tokens per second when nothing was evaluated', () => {
+    expect(buildOllamaMeta({ ...res, eval_duration: 0 }, 'in').tokensPerSec).toBe(0)
+  })
+
+  it('defaults missing durations and counts to zero', () => {
+    const meta = buildOllamaMeta({ model: 'llama3', message: { role: 'assistant', content: '' } } as OllamaOutputChatResponse, '')
+
+    expect(meta).toMatchObject({ totalMs: 0, loadMs: 0, promptTokens: 0, outputTokens: 0, tokensPerSec: 0 })
   })
 })

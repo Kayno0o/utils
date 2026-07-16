@@ -181,6 +181,82 @@ export function getOllamaUsage(res: OllamaOutputChatResponse): OllamaOutputUsage
   return { input_tokens: res.prompt_eval_count, output_tokens: res.eval_count }
 }
 
+/** Base generation settings for a single use case. */
+export interface OllamaSettings {
+  model: string
+  num_ctx: number
+  temperature: number
+  think: boolean
+  /** Max output tokens (Ollama num_predict). 0/undefined = unbounded. */
+  num_predict?: number
+}
+
+/** Per-request overrides adjusting a base `OllamaSettings`. All optional. */
+export interface OllamaSettingsOverride {
+  model?: string
+  num_ctx?: number
+  temperature?: number
+  num_predict?: number
+  think?: boolean
+}
+
+/** Merges base settings with optional overrides into the shape `promptOllama` wants. */
+export function resolveOllamaSettings(
+  base: OllamaSettings,
+  override: OllamaSettingsOverride = {},
+): { model: string, think: boolean, options: OllamaInputOptions } {
+  const options: OllamaInputOptions = {
+    num_ctx: override.num_ctx ?? base.num_ctx,
+    temperature: override.temperature ?? base.temperature,
+  }
+
+  const numPredict = override.num_predict ?? base.num_predict
+
+  if (numPredict)
+    options.num_predict = numPredict
+
+  return {
+    model: override.model || base.model,
+    think: override.think ?? base.think,
+    options,
+  }
+}
+
+/** Ollama's nanosecond durations and token counts, converted to UI-friendly units. */
+export interface OllamaMeta {
+  model: string
+  loadMs: number
+  promptEvalMs: number
+  evalMs: number
+  totalMs: number
+  promptTokens: number
+  outputTokens: number
+  tokensPerSec: number
+  rawInput: string
+  rawOutput: string
+  thinking?: string
+}
+
+const NS_PER_MS = 1e6
+const NS_PER_S = 1e9
+
+/** Converts an Ollama response's durations and token counts into an `OllamaMeta`. */
+export function buildOllamaMeta(res: OllamaOutputChatResponse, rawInput: string): OllamaMeta {
+  return {
+    model: res.model,
+    loadMs: (res.load_duration ?? 0) / NS_PER_MS,
+    promptEvalMs: (res.prompt_eval_duration ?? 0) / NS_PER_MS,
+    evalMs: (res.eval_duration ?? 0) / NS_PER_MS,
+    totalMs: (res.total_duration ?? 0) / NS_PER_MS,
+    promptTokens: res.prompt_eval_count ?? 0,
+    outputTokens: res.eval_count ?? 0,
+    tokensPerSec: res.eval_duration ? res.eval_count / (res.eval_duration / NS_PER_S) : 0,
+    rawInput,
+    rawOutput: res.message.content,
+    thinking: res.message.thinking,
+  }
+}
+
 /** POSTs a chat request with `stream: true`, yielding each NDJSON chunk as it arrives. */
 export async function* streamOllama(
   url: string,
