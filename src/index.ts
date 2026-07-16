@@ -1,5 +1,6 @@
 export * from './array'
 export * from './builders'
+export * from './cache'
 export * from './colors'
 export * from './cron'
 export * from './crypto'

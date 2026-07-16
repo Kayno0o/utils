@@ -1,4 +1,113 @@
-export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
+import type { TtlCache } from '../cache'
+import { createTtlCache } from '../cache'
+
+interface MemoizeDecoratorOptions {
+  /** Properties whose assignment invalidates this cache. */
+  clearOn?: string[]
+  /** Entry lifetime in ms. Defaults to no expiry. */
+  ttl?: number
+}
+
+interface MemoizeState {
+  caches: Map<string, TtlCache<string, any>>
+  deps: Map<string, string[]>
+  patched: Set<string>
+}
+
+const states = new WeakMap<object, MemoizeState>()
+
+const GETTER_KEY = ''
+
+function stateOf(instance: object): MemoizeState {
+  let state = states.get(instance)
+
+  if (!state) {
+    state = { caches: new Map(), deps: new Map(), patched: new Set() }
+    states.set(instance, state)
+  }
+
+  return state
+}
+
+function cacheOf(instance: object, propertyKey: string, ttl?: number) {
+  const { caches } = stateOf(instance)
+  let cache = caches.get(propertyKey)
+
+  if (!cache) {
+    cache = createTtlCache<string, any>(ttl)
+    caches.set(propertyKey, cache)
+  }
+
+  return cache
+}
+
+function clearDependents(instance: object, changedProp: string) {
+  const state = states.get(instance)
+
+  if (!state)
+    return
+
+  for (const [propertyKey, deps] of state.deps) {
+    if (deps.includes(changedProp))
+      state.caches.get(propertyKey)?.clear()
+  }
+}
+
+/** Intercept assignment to `prop` so dependent memoized caches are cleared. */
+function watchProp(instance: object, prop: string) {
+  const state = stateOf(instance)
+
+  if (state.patched.has(prop))
+    return
+
+  state.patched.add(prop)
+
+  const existing = Object.getOwnPropertyDescriptor(instance, prop)
+    ?? Object.getOwnPropertyDescriptor(Object.getPrototypeOf(instance), prop)
+
+  if (existing?.set) {
+    const originalSetter = existing.set
+
+    Object.defineProperty(instance, prop, {
+      get: existing.get,
+      set(value: any) {
+        originalSetter.call(this, value)
+        clearDependents(this, prop)
+      },
+      enumerable: existing.enumerable,
+      configurable: true,
+    })
+
+    return
+  }
+
+  let currentValue = (instance as any)[prop]
+
+  Object.defineProperty(instance, prop, {
+    get() {
+      return currentValue
+    },
+    set(value: any) {
+      currentValue = value
+      clearDependents(this, prop)
+    },
+    enumerable: true,
+    configurable: true,
+  })
+}
+
+function register(instance: object, propertyKey: string, options?: MemoizeDecoratorOptions) {
+  if (!options?.clearOn)
+    return
+
+  stateOf(instance).deps.set(propertyKey, options.clearOn)
+
+  for (const prop of options.clearOn)
+    watchProp(instance, prop)
+}
+
+/** Memoize a getter or method per instance, with optional TTL and `clearOn` invalidation. */
+export function Memoize(options?: MemoizeDecoratorOptions) {
   return function (target: any, propertyKey: string, descriptor?: PropertyDescriptor) {
     descriptor ||= Object.getOwnPropertyDescriptor(target, propertyKey)
 
@@ -10,133 +119,39 @@ export function Memoize(options?: { clearOn?: string[], ttl?: number }) {
 
     if (isGetter) {
       const originalGetter = descriptor.get!
-      const cacheKey = `_${propertyKey}_cache`
-      const cacheSetKey = `_${propertyKey}_cached`
-      const timestampKey = `_${propertyKey}_timestamp`
 
       descriptor.get = function () {
-        const now = Date.now()
+        register(this, propertyKey, options)
 
-        setupClearHandlers.call(this)
+        const cache = cacheOf(this, propertyKey, options?.ttl)
 
-        if ((this as any)[cacheSetKey]) {
-          if (options?.ttl === undefined || (now - (this as any)[timestampKey]) < options.ttl) {
-            return (this as any)[cacheKey]
-          }
-
-          (this as any)[cacheSetKey] = false
-        }
+        if (cache.has(GETTER_KEY))
+          return cache.get(GETTER_KEY)
 
         const result = originalGetter.call(this)
 
-        ;(this as any)[cacheKey] = result
-        ;(this as any)[cacheSetKey] = true
-        ;(this as any)[timestampKey] = now
+        cache.set(GETTER_KEY, result)
 
         return result
       }
     }
-    else if (isMethod) {
+    else {
       const originalMethod = descriptor.value
-      const cacheMapKey = `_${propertyKey}_methodCache`
 
       descriptor.value = function (...args: any[]) {
-        const now = Date.now()
-        const argKey = JSON.stringify(args)
+        register(this, propertyKey, options)
 
-        setupClearHandlers.call(this);
+        const cache = cacheOf(this, propertyKey, options?.ttl)
+        const key = JSON.stringify(args)
 
-        (this as any)[cacheMapKey] ??= new Map()
-
-        const cache = (this as any)[cacheMapKey]
-        const cached = cache.get(argKey)
-
-        if (cached && (!options?.ttl || (now - cached.timestamp) < options.ttl))
-          return cached.result
+        if (cache.has(key))
+          return cache.get(key)
 
         const result = originalMethod.apply(this, args)
 
-        cache.set(argKey, {
-          result,
-          timestamp: now,
-        })
+        cache.set(key, result)
 
         return result
-      }
-    }
-
-    function setupClearHandlers(this: any) {
-      if (!(this as any)._clearMemoizedCaches) {
-        (this as any)._memoizedGetters = new Map();
-        (this as any)._memoizedMethods = new Map()
-
-        ;(this as any)._clearMemoizedCaches = (changedProp: string) => {
-          for (const [getterName, deps] of (this as any)._memoizedGetters.entries()) {
-            if (deps.includes(changedProp))
-              (this as any)[`_${getterName}_cached`] = false
-          }
-
-          for (const [methodName, deps] of (this as any)._memoizedMethods.entries()) {
-            if (deps.includes(changedProp)) {
-              const cacheMapKey = `_${methodName}_methodCache`
-
-              if ((this as any)[cacheMapKey])
-                (this as any)[cacheMapKey].clear()
-            }
-          }
-        }
-      }
-
-      if (options?.clearOn) {
-        if (isGetter)
-          (this as any)._memoizedGetters.set(propertyKey, options.clearOn)
-
-        else
-          (this as any)._memoizedMethods.set(propertyKey, options.clearOn)
-
-        for (const prop of options.clearOn) {
-          const setupKey = `_${prop}_memoize_setup`
-
-          if (!(this as any)[setupKey]) {
-            (this as any)[setupKey] = true
-
-            // get existing property descriptor
-            const existingDesc = Object.getOwnPropertyDescriptor(this, prop)
-              || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), prop)
-
-            if (existingDesc && existingDesc.set) {
-              // property already has a setter, wrap it
-              const originalSetter = existingDesc.set
-              const originalGetter = existingDesc.get
-
-              Object.defineProperty(this, prop, {
-                get: originalGetter,
-                set(value: any) {
-                  originalSetter.call(this, value)
-                  ;(this as any)._clearMemoizedCaches?.(prop)
-                },
-                enumerable: existingDesc.enumerable,
-                configurable: true,
-              })
-            }
-            else {
-              // property doesn't exist or is a simple value, create getter/setter
-              let currentValue = (this as any)[prop]
-
-              Object.defineProperty(this, prop, {
-                get() {
-                  return currentValue
-                },
-                set(value: any) {
-                  currentValue = value
-                  ;(this as any)._clearMemoizedCaches?.(prop)
-                },
-                enumerable: true,
-                configurable: true,
-              })
-            }
-          }
-        }
       }
     }
 

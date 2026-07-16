@@ -70,7 +70,9 @@ Create configured instances with fluent APIs:
 
 ### ⚡ Performance & Caching
 
-- **@Memoize decorator** - Method result caching with TTL
+- **createTtlCache** - TTL store with oldest-entry eviction and `getOrLoad` in-flight dedup
+- **memoize** - Wrap any function in that cache, keyed by its arguments
+- **@Memoize decorator** - Getter/method result caching with TTL
 - **Cache invalidation** - Smart cache clearing based on property changes
 - **Timing utilities** - Delays, intervals, and performance measurement
 
