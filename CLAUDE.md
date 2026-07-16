@@ -50,8 +50,9 @@ This is a TypeScript utility library (`@kaynooo/utils`) that provides a collecti
   - `Faker.ts` - Data generation utilities
   - `colors.ts` - Color manipulation functions
 - **Decorators** (`src/decorators/`) - Function decorators like memoization
-- **Cache** (`src/cache.ts`) - `createTtlCache` (TTL store with eviction, `has`/`delete`/`clear`,
-  `getOrLoad` in-flight dedup) and `memoize` (fn wrapper). Both back the `@Memoize` decorator.
+- **Cache** (`src/cache.ts`) - the single caching core. `createTtlCache(ttlMs?, { maxEntries, lru })`
+  (TTL store, FIFO or LRU eviction, `getOrLoad` in-flight dedup) and `memoize` (fn wrapper).
+  Backs the `@Memoize` decorator and the deprecated `LRU` class - don't add another cache.
 - **Domain-specific utilities** - Colors, crypto, date, image, text, etc.
 
 ### Key Features

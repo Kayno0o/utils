@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, setSystemTime, test } from 'bun:test'
 import { createTtlCache, memoize } from '../src/cache'
 
 describe('createTtlCache', () => {
@@ -25,7 +25,7 @@ describe('createTtlCache', () => {
   })
 
   test('evicts the oldest entry when maxEntries is exceeded', () => {
-    const cache = createTtlCache<string, number>(1000, 2)
+    const cache = createTtlCache<string, number>(1000, { maxEntries: 2 })
 
     cache.set('a', 1)
     cache.set('b', 2)
@@ -34,6 +34,97 @@ describe('createTtlCache', () => {
     expect(cache.get('a')).toBeUndefined()
     expect(cache.get('b')).toBe(2)
     expect(cache.get('c')).toBe(3)
+  })
+
+  test('rejects a non-positive maxEntries', () => {
+    expect(() => createTtlCache(1000, { maxEntries: 0 })).toThrow(RangeError)
+    expect(() => createTtlCache(1000, { maxEntries: -1 })).toThrow(RangeError)
+  })
+
+  test('re-setting a key moves it to the back of the eviction queue', () => {
+    const cache = createTtlCache<string, number>(1000, { maxEntries: 2 })
+
+    cache.set('a', 1)
+    cache.set('b', 2)
+    cache.set('a', 3)
+    cache.set('c', 4)
+
+    expect(cache.get('a')).toBe(3)
+    expect(cache.get('b')).toBeUndefined()
+    expect(cache.get('c')).toBe(4)
+  })
+
+  test('get does not promote under the default FIFO policy', () => {
+    const cache = createTtlCache<string, number>(1000, { maxEntries: 2 })
+
+    cache.set('a', 1)
+    cache.set('b', 2)
+    cache.get('a')
+    cache.set('c', 3)
+
+    expect(cache.get('a')).toBeUndefined()
+  })
+
+  test('lru evicts the least recently used entry', () => {
+    const cache = createTtlCache<string, number>(1000, { maxEntries: 2, lru: true })
+
+    cache.set('a', 1)
+    cache.set('b', 2)
+    cache.get('a')
+    cache.set('c', 3)
+
+    expect(cache.get('a')).toBe(1)
+    expect(cache.get('b')).toBeUndefined()
+    expect(cache.get('c')).toBe(3)
+  })
+
+  test('lru peek and has do not promote', () => {
+    const cache = createTtlCache<string, number>(1000, { maxEntries: 2, lru: true })
+
+    cache.set('a', 1)
+    cache.set('b', 2)
+    cache.peek('a')
+    cache.has('a')
+    cache.set('c', 3)
+
+    expect(cache.get('a')).toBeUndefined()
+  })
+
+  test('lru promotion does not extend the TTL', () => {
+    const t0 = Date.now()
+
+    setSystemTime(t0)
+
+    const cache = createTtlCache<string, number>(100, { lru: true })
+
+    cache.set('a', 1)
+
+    setSystemTime(t0 + 60)
+    expect(cache.get('a')).toBe(1)
+
+    setSystemTime(t0 + 120)
+    expect(cache.get('a')).toBeUndefined()
+
+    setSystemTime()
+  })
+
+  test('iterates live entries in eviction order', () => {
+    const cache = createTtlCache<string, number>(1000, { maxEntries: 3, lru: true })
+
+    cache.set('a', 1)
+    cache.set('b', 2)
+    cache.set('c', 3)
+    cache.get('a')
+
+    expect([...cache]).toEqual([['b', 2], ['c', 3], ['a', 1]])
+  })
+
+  test('iteration skips expired entries', () => {
+    const cache = createTtlCache<string, number>(-1)
+
+    cache.set('a', 1)
+
+    expect([...cache]).toEqual([])
   })
 
   test('has distinguishes a cached undefined from a miss', () => {

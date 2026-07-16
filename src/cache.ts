@@ -1,18 +1,34 @@
+export interface TtlCacheOptions {
+  /** Evict past this many entries. Defaults to unbounded. */
+  maxEntries?: number
+  /** Promote an entry to most-recently-used on `get`, so eviction drops the least recently used. Defaults to insertion order (FIFO). */
+  lru?: boolean
+}
+
 export interface TtlCache<K, V> {
   get: (key: K) => V | undefined
+  peek: (key: K) => V | undefined
   has: (key: K) => boolean
   set: (key: K, value: V) => void
   delete: (key: K) => boolean
   clear: () => void
   readonly size: number
   getOrLoad: (key: K, loader: (key: K) => Promise<V>) => Promise<V>
+  /** Live entries in eviction order (first out first). */
+  [Symbol.iterator]: () => IterableIterator<[K, V]>
 }
 
-/** In-memory TTL cache with optional oldest-entry eviction (Maps keep insertion order). */
-export function createTtlCache<K, V>(ttlMs = Infinity, maxEntries = Infinity): TtlCache<K, V> {
+/** In-memory TTL cache with optional size-based eviction, FIFO by default or LRU via `options.lru`. */
+export function createTtlCache<K, V>(ttlMs = Infinity, options?: TtlCacheOptions): TtlCache<K, V> {
+  const { maxEntries = Infinity, lru = false } = options ?? {}
+
+  if (maxEntries <= 0)
+    throw new RangeError('maxEntries must be > 0')
+
   const map = new Map<K, { value: V, at: number }>()
   const inflight = new Map<K, Promise<V>>()
 
+  /** Drops the entry if expired. `at` is the write time, so promotion must not touch it. */
   function read(key: K) {
     const hit = map.get(key)
 
@@ -30,19 +46,31 @@ export function createTtlCache<K, V>(ttlMs = Infinity, maxEntries = Infinity): T
 
   const cache: TtlCache<K, V> = {
     get(key) {
+      const hit = read(key)
+
+      if (!hit)
+        return undefined
+
+      if (lru) {
+        map.delete(key)
+        map.set(key, hit)
+      }
+
+      return hit.value
+    },
+    /** Like `get`, but never promotes. */
+    peek(key) {
       return read(key)?.value
     },
-    /** Distinguishes a cached `undefined` from a miss, unlike `get`. */
+    /** Distinguishes a cached `undefined` from a miss, unlike `get`. Never promotes. */
     has(key) {
       return read(key) !== undefined
     },
     set(key, value) {
-      if (map.size >= maxEntries && !map.has(key)) {
-        const oldest = map.keys().next().value
-
-        if (oldest !== undefined)
-          map.delete(oldest)
-      }
+      if (map.has(key))
+        map.delete(key)
+      else if (map.size >= maxEntries)
+        map.delete(map.keys().next().value as K)
 
       map.set(key, { value, at: Date.now() })
     },
@@ -87,16 +115,22 @@ export function createTtlCache<K, V>(ttlMs = Infinity, maxEntries = Infinity): T
 
       return promise
     },
+    * [Symbol.iterator]() {
+      for (const key of [...map.keys()]) {
+        const hit = read(key)
+
+        if (hit)
+          yield [key, hit.value] as [K, V]
+      }
+    },
   }
 
   return cache
 }
 
-export interface MemoizeOptions<A extends any[]> {
+export interface MemoizeOptions<A extends any[]> extends TtlCacheOptions {
   /** Entry lifetime in ms. Defaults to no expiry. */
   ttl?: number
-  /** Evict the oldest entry past this many keys. Defaults to unbounded. */
-  maxEntries?: number
   /** Cache key for a call. Defaults to `JSON.stringify(args)`. */
   key?: (...args: A) => string
 }
@@ -108,7 +142,7 @@ export type Memoized<A extends any[], R> = ((...args: A) => R) & { cache: TtlCac
  * so concurrent calls share one in-flight run and a rejection evicts the entry.
  */
 export function memoize<A extends any[], R>(fn: (...args: A) => R, options?: MemoizeOptions<A>): Memoized<A, R> {
-  const cache = createTtlCache<string, R>(options?.ttl, options?.maxEntries)
+  const cache = createTtlCache<string, R>(options?.ttl, options)
   const toKey = options?.key ?? ((...args: A) => JSON.stringify(args))
 
   const memoized = function (this: unknown, ...args: A): R {

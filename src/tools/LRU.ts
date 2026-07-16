@@ -1,67 +1,47 @@
-export class LRU<K, V> {
-  private readonly _map = new Map<K, V>()
+import type { TtlCache } from '../cache'
+import { createTtlCache } from '../cache'
 
-  constructor(private readonly max: number) {
-    if (max <= 0)
-      throw new RangeError('LRU max must be > 0')
+/** @deprecated use `createTtlCache(ttlMs, { maxEntries, lru: true })` */
+export class LRU<K, V> {
+  private readonly _cache: TtlCache<K, V>
+
+  constructor(max: number) {
+    this._cache = createTtlCache<K, V>(Infinity, { maxEntries: max, lru: true })
   }
 
   get(key: K): V | undefined {
-    const v = this._map.get(key)
-
-    if (v === undefined)
-      return undefined
-
-    this._map.delete(key)
-    this._map.set(key, v)
-
-    return v
+    return this._cache.get(key)
   }
 
   /** Get without promoting to MRU. */
   peek(key: K): V | undefined {
-    return this._map.get(key)
+    return this._cache.peek(key)
   }
 
   set(key: K, value: V): this {
-    if (this._map.has(key))
-      this._map.delete(key)
-    else if (this._map.size >= this.max)
-      this._map.delete(this._map.keys().next().value as K)
-
-    this._map.set(key, value)
+    this._cache.set(key, value)
 
     return this
   }
 
   has(key: K): boolean {
-    return this._map.has(key)
+    return this._cache.has(key)
   }
 
   delete(key: K): boolean {
-    return this._map.delete(key)
+    return this._cache.delete(key)
   }
 
   clear(): void {
-    this._map.clear()
+    this._cache.clear()
   }
 
   get size(): number {
-    return this._map.size
+    return this._cache.size
   }
 
   /** MRU-first. */
   [Symbol.iterator](): IterableIterator<[K, V]> {
-    const entries = [...this._map.entries()].reverse()
-    let i = 0
-
-    return {
-      next(): IteratorResult<[K, V]> {
-        return i < entries.length
-          ? { value: entries[i++]!, done: false }
-          : { value: undefined as any, done: true }
-      },
-      [Symbol.iterator]() { return this },
-    }
+    return [...this._cache].reverse()[Symbol.iterator]()
   }
 }
