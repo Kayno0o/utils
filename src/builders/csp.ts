@@ -7,27 +7,41 @@ export type CspName
 
 export type CspType = Partial<Record<CspName, string[]>>
 
-export function cspBuilder(domainName: string, siteCsp?: CspType): string {
-  domainName = String(domainName.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0])
+function normalizeDomain(domainName: string): string {
+  const domain = String(domainName.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0])
 
-  if (!(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i).test(domainName))
-    throw new Error(`Domain is invalid: ${domainName}`)
+  if (!(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i).test(domain))
+    throw new Error(`Domain is invalid: ${domain}`)
+
+  return domain
+}
+
+/** Pass several domains to cover every apex a site is served on; each directive lists them in the given order. */
+export function cspBuilder(domainName: string | string[], siteCsp?: CspType): string {
+  const domains = (Array.isArray(domainName) ? domainName : [domainName]).map(normalizeDomain)
+
+  if (!domains.length)
+    throw new Error('At least one domain is required')
+
+  const bare = domains.map(domain => `*.${domain}`)
+  const https = domains.map(domain => `https://*.${domain}`)
+  const wss = domains.map(domain => `wss://*.${domain}`)
 
   const csp: CspType = {
     'base-uri': ['\'self\''],
-    'connect-src': ['\'self\'', `https://*.${domainName}`, `wss://*.${domainName}`],
-    'default-src': ['\'self\'', `*.${domainName}`],
+    'connect-src': ['\'self\'', ...https, ...wss],
+    'default-src': ['\'self\'', ...bare],
     'font-src': ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
     'form-action': ['\'self\''],
-    'frame-ancestors': ['\'self\'', `https://*.${domainName}`],
-    'img-src': ['\'self\'', 'data:', `https://*.${domainName}`],
-    'manifest-src': ['\'self\'', `https://*.${domainName}`],
-    'media-src': ['\'self\'', 'blob:', `*.${domainName}`],
-    'object-src': ['\'self\'', `https://*.${domainName}`],
-    'script-src': ['\'self\'', `https://*.${domainName}`],
-    'style-src': ['\'self\'', `https://*.${domainName}`, 'https://fonts.googleapis.com', '\'unsafe-inline\''],
+    'frame-ancestors': ['\'self\'', ...https],
+    'img-src': ['\'self\'', 'data:', ...https],
+    'manifest-src': ['\'self\'', ...https],
+    'media-src': ['\'self\'', 'blob:', ...bare],
+    'object-src': ['\'self\'', ...https],
+    'script-src': ['\'self\'', ...https],
+    'style-src': ['\'self\'', ...https, 'https://fonts.googleapis.com', '\'unsafe-inline\''],
     'upgrade-insecure-requests': [],
-    'worker-src': ['\'self\'', 'blob:', 'data:', `https://*.${domainName}`],
+    'worker-src': ['\'self\'', 'blob:', 'data:', ...https],
   }
 
   if (siteCsp) {
