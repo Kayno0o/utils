@@ -77,9 +77,43 @@ export function slugify(str: string, {
   return result
 }
 
-/** Get the initials of the given words, max 3 characters */
-export function getInitials(...words: string[]): string {
-  return words.join(' ').split(' ').map(name => name[0]).join('').slice(0, 3).toLocaleUpperCase()
+/**
+ * Initials of a name, for avatars and monograms. Words are split by {@link toCase}, so
+ * separators, camelCase and non-Latin scripts all work. Accents are kept - an initial is the
+ * name as written, not a slug of it; reach for {@link slugify} when you want it folded to ASCII.
+ * @param {string|string[]} name one string (`'Ada Lovelace'`) or its parts (`['Ada', 'Lovelace']`)
+ * @param {object} [options]
+ * @param {number} [options.max] how many characters to return (default=2).
+ * @param {boolean} [options.pad] top a single-word name up to `max` from its own letters, so
+ * `'ada'` reads as `AD` rather than a lone `A` (default=true).
+ * @example getInitials('Ada Lovelace') // 'AL'
+ * @example getInitials('ada-lovelace') // 'AL'
+ * @example getInitials('José Álvarez') // 'JÁ'
+ * @example getInitials('kaynooo') // 'KA'
+ * @example getInitials('kaynooo', { pad: false }) // 'K'
+ * @example getInitials('International Business Machines', { max: 3 }) // 'IBM'
+ */
+export function getInitials(name: string | string[], {
+  max = 2,
+  pad = true,
+}: {
+  max?: number
+  pad?: boolean
+} = {}): string {
+  // Joined, not handed to toCase as an array: its array branch lowercases parts without splitting them.
+  const words = toCase(Array.isArray(name) ? name.join(' ') : name)
+
+  if (!words.length || max < 1)
+    return ''
+
+  // Spread, not `[0]`: indexing a string cuts astral characters in half and yields a lone surrogate.
+  const letters = words.slice(0, max).map(word => [...word][0]!)
+
+  if (pad && words.length === 1)
+    letters.push(...[...words[0]!].slice(1, max))
+
+  // Re-slice by code point: uppercasing can lengthen a letter (`ß` -> `SS`) past `max`.
+  return [...letters.join('').toLocaleUpperCase()].slice(0, max).join('')
 }
 
 /** @deprecated use `capitalize` */
@@ -277,16 +311,17 @@ export function toCase(str: string | string[]): string[] {
   if (Array.isArray(str))
     return str.map(s => s.toLowerCase())
 
-  // Replace separators with space, then match all word segments
+  // Replace separators with space, then match all word segments. Unicode-aware throughout:
+  // matching ASCII only would drop `Ünal` to `nal`, silently changing which letter starts the word.
   const normalized = str
     .replace(/[_-]+/g, ' ') // snake_case / kebab-case -> space
-    .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase -> camel Case
+    .replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2') // camelCase -> camel Case
     .replace(/\s+/g, ' ') // collapse multiple spaces
     .trim()
 
-  const words = normalized.match(/[a-z0-9]+/gi)
+  const words = normalized.match(/[\p{L}\p{N}]+/gu)
 
-  return words ? words.map(w => w.toLowerCase()) : []
+  return words ? words.map(w => w.toLocaleLowerCase()) : []
 }
 
 export type CaseType = 'kebab' | 'snake' | 'camel' | 'pascal' | 'constant' | 'title'

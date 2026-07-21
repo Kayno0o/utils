@@ -179,8 +179,8 @@ describe('slugify function', () => {
 })
 
 describe('getInitials function', () => {
-  it('initials of the given words', () => {
-    const result = getInitials('John', 'Doe')
+  it('initials of the given parts', () => {
+    const result = getInitials(['John', 'Doe'])
 
     expect(result).toEqual('JD')
   })
@@ -188,31 +188,63 @@ describe('getInitials function', () => {
   it('multiple words with spaces', () => {
     const result = getInitials('John Doe Smith')
 
-    expect(result).toEqual('JDS')
+    expect(result).toEqual('JD')
   })
 
-  it('one-word input', () => {
+  it('separators and camelCase split words too', () => {
+    expect(getInitials('ada-lovelace')).toEqual('AL')
+    expect(getInitials('ada_lovelace')).toEqual('AL')
+    expect(getInitials('ada.lovelace')).toEqual('AL')
+    expect(getInitials('adaLovelace')).toEqual('AL')
+  })
+
+  it('keeps accents and non-Latin scripts', () => {
+    expect(getInitials('José Álvarez')).toEqual('JÁ')
+    expect(getInitials('Ünal')).toEqual('ÜN')
+    expect(getInitials('Пётр Ильич')).toEqual('ПИ')
+    expect(getInitials('Ελένη Παπά')).toEqual('ΕΠ')
+    expect(getInitials('大西 洋')).toEqual('大洋')
+  })
+
+  it('one-word input is padded from its own letters', () => {
     const result = getInitials('Alice')
+
+    expect(result).toEqual('AL')
+  })
+
+  it('padding is opt-out', () => {
+    const result = getInitials('Alice', { pad: false })
 
     expect(result).toEqual('A')
   })
 
-  it('empty input', () => {
-    const result = getInitials()
+  it('padding only ever tops up a single word', () => {
+    const result = getInitials('Ada Lovelace', { max: 3 })
 
-    expect(result).toEqual('')
+    expect(result).toEqual('AL')
   })
 
-  it('longer words and trim to 3 characters', () => {
-    const result = getInitials('International Business Machines Etc')
-
-    expect(result).toEqual('IBM')
+  it('empty and punctuation-only input', () => {
+    expect(getInitials('')).toEqual('')
+    expect(getInitials([])).toEqual('')
+    expect(getInitials(' - _ . ')).toEqual('')
+    expect(getInitials('$%^')).toEqual('')
   })
 
-  it('non-alphabetic characters', () => {
-    const result = getInitials('123', 'ABC', '$%^')
+  it('max bounds the result', () => {
+    expect(getInitials('International Business Machines Etc', { max: 3 })).toEqual('IBM')
+    expect(getInitials('John Doe Smith', { max: 1 })).toEqual('J')
+    expect(getInitials('John Doe Smith', { max: 0 })).toEqual('')
+  })
 
-    expect(result).toEqual('1A$')
+  it('digits count as word characters', () => {
+    expect(getInitials(['123', 'ABC'])).toEqual('1A')
+    expect(getInitials('user42')).toEqual('US')
+  })
+
+  it('keeps astral characters whole', () => {
+    // CJK extension B - a single letter that does not fit in one UTF-16 unit.
+    expect(getInitials('\u{2000B}\u{2010C}')).toEqual('\u{2000B}\u{2010C}')
   })
 })
 
@@ -511,6 +543,17 @@ describe('toCase function', () => {
 
   it('returns empty array on string with no words', () => {
     expect(toCase('---__  ')).toEqual([])
+  })
+
+  it('keeps letters outside ASCII instead of dropping them', () => {
+    expect(toCase('José Álvarez')).toEqual(['josé', 'álvarez'])
+    expect(toCase('Ünal')).toEqual(['ünal'])
+    expect(toCase('Пётр Ильич')).toEqual(['пётр', 'ильич'])
+    expect(toCase('Ελένη')).toEqual(['ελένη'])
+  })
+
+  it('splits camelCase on non-ASCII boundaries', () => {
+    expect(toCase('éclairAuChocolat')).toEqual(['éclair', 'au', 'chocolat'])
   })
 })
 
