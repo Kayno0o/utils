@@ -1,11 +1,21 @@
 const NANOID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 
-// ponytail: % biases slightly when alphabet.length is not a power of 2; default 64-char alphabet is bias-free
+/** Random id of `size` symbols drawn uniformly from `alphabet`, which must hold 1-256 of them. */
 export function nanoid(size = 21, alphabet = NANOID_ALPHABET): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(size))
+  if (alphabet.length < 1 || alphabet.length > 256)
+    throw new RangeError('nanoid alphabet must hold 1-256 symbols')
+
+  // Bytes past the last whole run over the alphabet fold back onto its first symbols and
+  // skew them, so they are drawn again rather than taken modulo.
+  const limit = 256 - (256 % alphabet.length)
   let id = ''
 
-  for (let i = 0; i < size; i++) id += alphabet[bytes[i]! % alphabet.length]
+  while (id.length < size) {
+    for (const byte of crypto.getRandomValues(new Uint8Array(size - id.length))) {
+      if (byte < limit)
+        id += alphabet[byte % alphabet.length]
+    }
+  }
 
   return id
 }
@@ -18,12 +28,41 @@ export async function hmac(key: string, message: string, algorithm: 'SHA-1' | 'S
   return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
+/**
+ * Pinned rather than left to Bun's defaults, so a runtime upgrade can't quietly split the
+ * stored corpus into two cost levels. Above the OWASP floor of m=19456, t=2, p=1.
+ */
+export const PASSWORD_HASH_PARAMS = { algorithm: 'argon2id', memoryCost: 65536, timeCost: 2 } as const
+
 export async function hashPassword(password: string): Promise<string> {
-  return Bun.password.hash(password, { algorithm: 'argon2id' })
+  return Bun.password.hash(password, PASSWORD_HASH_PARAMS)
 }
 
+/** Verifies against any supported hash format; a malformed or unknown one is a mismatch, not a throw. */
 export async function comparePasswords(plaintextPassword: string, hashedPassword: string): Promise<boolean> {
-  return Bun.password.verify(plaintextPassword, hashedPassword)
+  try {
+    return await Bun.password.verify(plaintextPassword, hashedPassword)
+  }
+  catch {
+    return false
+  }
+}
+
+function argonCost(params: string, key: 'm' | 't'): number {
+  return Number(params.split(',').find(p => p.startsWith(`${key}=`))?.slice(2))
+}
+
+/**
+ * True when `hashedPassword` was made with anything weaker than `PASSWORD_HASH_PARAMS` -
+ * call it after a successful `comparePasswords` to re-hash the plaintext while you hold it.
+ */
+export function passwordNeedsRehash(hashedPassword: string): boolean {
+  const [, algorithm, , params = ''] = hashedPassword.split('$')
+
+  // Negated comparisons so an absent or unparsable cost reads as NaN and needs a rehash.
+  return algorithm !== PASSWORD_HASH_PARAMS.algorithm
+    || !(argonCost(params, 'm') >= PASSWORD_HASH_PARAMS.memoryCost)
+    || !(argonCost(params, 't') >= PASSWORD_HASH_PARAMS.timeCost)
 }
 
 // string → seed hash (32-bit)
