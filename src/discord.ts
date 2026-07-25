@@ -15,7 +15,7 @@ export function getDiscordBannerUrl(userId: string, bannerHash: string): string 
   return `https://cdn.discordapp.com/banners/${userId}/${bannerHash}.${format}`
 }
 
-export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPayload, files: { buffer: Buffer, filename: string }[]): Promise<any> {
+export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPayload, files: { buffer: Buffer, filename: string }[] = []): Promise<any> {
   const formData = new FormData()
 
   formData.append('payload_json', JSON.stringify(payload))
@@ -34,6 +34,10 @@ export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPay
 
   if (!response.ok)
     throw new Error(`Webhook failed with status ${response.status}: ${response.statusText}`)
+
+  // Discord answers 204 with no body unless the url carries `?wait=true`.
+  if (response.status === 204)
+    return null
 
   return await response.json()
 }
