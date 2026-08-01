@@ -5,16 +5,22 @@ export async function retry<T>(
   fn: (retryCount: number) => Promise<T>,
   { attempts = 3, delay = 1000, backoff = 2 }: { attempts?: number, delay?: number, backoff?: number } = {},
 ): Promise<T> {
+  let last: unknown
+
   for (let i = 0; i < attempts + 1; i++) {
     try {
       return await fn(i)
     }
     catch (e) {
-      await sleep(delay * backoff ** i)
+      last = e
+
+      // The wait spaces out the next try, and there is none left after the last one.
+      if (i < attempts)
+        await sleep(delay * backoff ** i)
     }
   }
 
-  throw new Error(`Failed after ${attempts} ${plural('retry', attempts)}`)
+  throw new Error(`Failed after ${attempts} ${plural('retry', attempts)}`, { cause: last })
 }
 
 export class TimeoutError extends Error {}
