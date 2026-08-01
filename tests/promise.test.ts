@@ -1,5 +1,5 @@
-import { describe, expect, test as it } from 'bun:test'
-import { retry } from '../src'
+import { describe, expect, test as it, spyOn } from 'bun:test'
+import { retry, sleep, timeout, TimeoutError } from '../src'
 
 describe('retry function', () => {
   it('returns the first result without waiting', async () => {
@@ -67,5 +67,36 @@ describe('retry function', () => {
 
     expect(took).toBeGreaterThanOrEqual(90)
     expect(took).toBeLessThan(135)
+  })
+})
+
+describe('timeout function', () => {
+  it('returns what finished in time', async () => {
+    expect(await timeout(async () => 'ok', 100)).toBe('ok')
+  })
+
+  it('gives up on what did not', async () => {
+    await expect(timeout(() => sleep(200), 40)).rejects.toBeInstanceOf(TimeoutError)
+  })
+
+  it('passes on the failure rather than waiting it out', async () => {
+    const started = Date.now()
+
+    await expect(timeout(async () => {
+      throw new Error('the real reason')
+    }, 500)).rejects.toThrow('the real reason')
+
+    expect(Date.now() - started).toBeLessThan(100)
+  })
+
+  it('leaves no timer behind when the call fails', async () => {
+    const cleared = spyOn(globalThis, 'clearTimeout')
+
+    await expect(timeout(async () => {
+      throw new Error('nope')
+    }, 5000)).rejects.toThrow('nope')
+
+    expect(cleared).toHaveBeenCalled()
+    cleared.mockRestore()
   })
 })

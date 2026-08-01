@@ -26,15 +26,17 @@ export async function retry<T>(
 export class TimeoutError extends Error {}
 
 export async function timeout<T>(fn: () => Promise<T>, maxTime = 5000): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const pid = setTimeout(() => {
-      reject(new TimeoutError('Method took too long to process'))
-    }, maxTime)
+  let pid: ReturnType<typeof setTimeout> | undefined
 
-    // eslint-disable-next-line kaynooo/no-then
-    fn().then((val: T) => {
-      clearTimeout(pid)
-      resolve(val)
-    })
-  })
+  try {
+    return await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        pid = setTimeout(() => reject(new TimeoutError('Method took too long to process')), maxTime)
+      }),
+    ])
+  }
+  finally {
+    clearTimeout(pid)
+  }
 }
