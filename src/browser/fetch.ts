@@ -91,14 +91,48 @@ function combineSignals(signal: AbortSignal | null | undefined, timeout: number 
   return signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal
 }
 
+/** A refusal's body as JSON, where an api puts a 422's problems or a 409's roster. */
+function parsedBody(body: string): unknown {
+  if (!body)
+    return undefined
+
+  try {
+    return JSON.parse(body)
+  }
+  catch {
+    return undefined
+  }
+}
+
+/** The api's own word for what went wrong, under whichever of the usual keys it wrote it. */
+function statedBy(data: unknown): string | undefined {
+  if (!isPlainObject(data))
+    return undefined
+
+  for (const key of ['error', 'message', 'detail'] as const) {
+    if (typeof data[key] === 'string' && data[key])
+      return data[key]
+  }
+
+  return undefined
+}
+
 export class FetchError extends Error {
   constructor(
     public readonly status: number,
     public readonly statusText: string,
     public readonly url: string,
     public readonly body?: string,
+    /**
+     * The body parsed as JSON, when it is one. A caller wanting to read a refusal rather than
+     * only report it - a 422's problems, a 409's roster - narrows this instead of reparsing
+     * `body` or forking the fetcher to keep it.
+     */
+    public readonly data?: unknown,
   ) {
-    super(`HTTP ${status} ${statusText} - ${url}${body ? ` - ${body}` : ''}`)
+    const said = statedBy(data) ?? body
+
+    super(`HTTP ${status} ${statusText} - ${url}${said ? ` - ${said}` : ''}`)
     this.name = 'FetchError'
   }
 }
@@ -114,7 +148,7 @@ export async function toFetchError(res: Response, fallbackUrl: string): Promise<
     body = ''
   }
 
-  return new FetchError(res.status, res.statusText, res.url || fallbackUrl, body || undefined)
+  return new FetchError(res.status, res.statusText, res.url || fallbackUrl, body || undefined, parsedBody(body))
 }
 
 /** Thrown when a 2xx response body is not valid JSON. */
@@ -142,11 +176,16 @@ export interface FetchJsonOptions extends Omit<RequestInit, 'body' | 'headers'> 
   headers?: HeadersInput
   /** Aborts the request after this many milliseconds, combined with any caller `signal`. */
   timeout?: number
+  /**
+   * Every response, ok or not, before it is read. Where a session that has expired under the
+   * page is noticed once rather than at each call site - the body is still untouched here.
+   */
+  onResponse?: (res: Response) => void
 }
 
 /** Fetches JSON from `url`, throwing `FetchError` on non-2xx responses. An empty body resolves to `null`. */
 export async function fetchJson<T>(url: string, options: FetchJsonOptions = {}): Promise<T> {
-  const { baseUrl, token, query, body, headers, timeout, signal, ...init } = options
+  const { baseUrl, token, query, body, headers, timeout, signal, onResponse, ...init } = options
 
   const fullUrl = applyQuery(baseUrl ? new URL(url, baseUrl).href : url, query)
   const jsonBody = isJsonBody(body)
@@ -172,6 +211,8 @@ export async function fetchJson<T>(url: string, options: FetchJsonOptions = {}):
       ? undefined
       : jsonBody ? JSON.stringify(body) : body as BodyInit,
   })
+
+  onResponse?.(res)
 
   if (!res.ok)
     throw await toFetchError(res, fullUrl)

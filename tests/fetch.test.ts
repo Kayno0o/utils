@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { createFetcher, FetchError, fetchJson, FetchParseError, mergeHeaders } from '../src/browser/fetch'
+import { tryCatch } from '../src/function'
 
 interface MockCall {
   url: string
@@ -267,5 +268,118 @@ describe('createFetcher', () => {
     await fetcher('/users', { token: 'override' })
 
     expect(new Headers(call.init.headers).get('Authorization')).toBe('Bearer override')
+  })
+})
+
+/** A refusal whose body is not JSON at all, which `mockFetch` cannot produce. */
+function mockText(status: number, text: string): void {
+  globalThis.fetch = Object.assign(
+    async (url: RequestInfo | URL) => ({
+      ok: status >= 200 && status < 300,
+      status,
+      statusText: 'Error',
+      url: String(url),
+      text: async () => text,
+    } as unknown as Response),
+    // eslint-disable-next-line ts/no-empty-function
+    { preconnect: () => {} },
+  ) as unknown as typeof fetch
+}
+
+describe('FetchError body', () => {
+  async function refused(): Promise<FetchError> {
+    try {
+      await fetchJson('http://example.com/refused')
+    }
+    catch (e) {
+      return e as FetchError
+    }
+
+    throw new Error('expected a refusal')
+  }
+
+  it('carries the refusal parsed, so a caller reads it rather than reparsing', async () => {
+    mockFetch(422, { error: 'Nom déjà pris', problems: ['name'] }, false)
+
+    const error = await refused()
+
+    expect(error.data).toEqual({ error: 'Nom déjà pris', problems: ['name'] })
+    expect(error.body).toBe('{"error":"Nom déjà pris","problems":["name"]}')
+  })
+
+  it('leaves data undefined when the body is not JSON', async () => {
+    mockText(502, '<html>Bad Gateway</html>')
+
+    const error = await refused()
+
+    expect(error.data).toBeUndefined()
+    expect(error.body).toBe('<html>Bad Gateway</html>')
+  })
+
+  it('leaves data undefined when there is no body', async () => {
+    mockText(404, '')
+
+    const error = await refused()
+
+    expect(error.data).toBeUndefined()
+    expect(error.body).toBeUndefined()
+  })
+
+  it('says what the api said rather than dumping its json', async () => {
+    mockFetch(409, { error: 'Déjà lié' }, false)
+
+    expect((await refused()).message).toBe('HTTP 409 Error - http://example.com/refused - Déjà lié')
+  })
+
+  it('reads message and detail as well as error', async () => {
+    mockFetch(400, { message: 'from message' }, false)
+    expect((await refused()).message).toEndWith('- from message')
+
+    mockFetch(400, { detail: 'from detail' }, false)
+    expect((await refused()).message).toEndWith('- from detail')
+  })
+
+  it('falls back to the raw body when the api states nothing', async () => {
+    mockFetch(500, { code: 17 }, false)
+
+    expect((await refused()).message).toEndWith('- {"code":17}')
+  })
+})
+
+describe('onResponse', () => {
+  it('sees a refusal before the body is read', async () => {
+    mockFetch(401, { error: 'expired' }, false)
+
+    const seen: number[] = []
+
+    await tryCatch(async () => fetchJson('http://example.com/gated', {
+      onResponse: res => void seen.push(res.status),
+    }))
+
+    expect(seen).toEqual([401])
+  })
+
+  it('sees an answer that succeeded too', async () => {
+    mockFetch(200, { id: 1 })
+
+    const seen: number[] = []
+
+    await fetchJson('http://example.com/ok', { onResponse: res => void seen.push(res.status) })
+
+    expect(seen).toEqual([200])
+  })
+
+  it('carries through a fetcher, so one hook covers every call', async () => {
+    mockFetch(401, {}, false)
+
+    const seen: number[] = []
+    const fetcher = createFetcher({
+      baseUrl: 'http://api.example.com',
+      onResponse: res => void seen.push(res.status),
+    })
+
+    await tryCatch(async () => fetcher('/users'))
+
+    expect(seen).toEqual([401])
   })
 })
