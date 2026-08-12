@@ -26,6 +26,16 @@ describe('msDurationToString function', () => {
   it('keeps the sign for negative durations', () => {
     expect(msDurationToString(-stringToMsDuration('1h 30m'))).toBe('-1h 30m')
   })
+
+  it('writes the units it is given labels for, and leaves the rest', () => {
+    const labels = { d: 'j', m: 'min' }
+
+    expect(msDurationToString(stringToMsDuration('1d 7h 30m'), undefined, { labels })).toBe('1j 7h 30min')
+  })
+
+  it('labels the zero unit it falls back to', () => {
+    expect(msDurationToString(0, ['m'], { labels: { m: 'min' } })).toBe('0min')
+  })
 })
 
 describe('formatRelativeTime function', () => {

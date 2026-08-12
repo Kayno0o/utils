@@ -121,25 +121,37 @@ export function stringToMsDuration(duration: string | number): number {
   return total
 }
 
+export interface MsDurationOptions {
+  /**
+   * What each unit is written as, for a locale that does not read them in English:
+   * `{ d: 'j', m: 'min' }` turns `'1d 30m'` into `'1j 30min'`. Relabelled output no longer
+   * round-trips through {@link stringToMsDuration}.
+   */
+  labels?: Record<string, string>
+}
+
 /**
  * Convert a duration in milliseconds into a human-readable string.
  *
  * The inverse of {@link stringToMsDuration}: the output round-trips back to the
- * same number of milliseconds when the same `units` are used. The duration is
- * decomposed greedily from the largest unit to the smallest, skipping zeroes.
+ * same number of milliseconds when the same `units` are used and nothing is relabelled.
+ * The duration is decomposed greedily from the largest unit to the smallest, skipping zeroes.
  *
  * Units are case-sensitive: `m` is minutes while `M` is months.
  * Supported units: `s`, `m`, `h`, `d`, `w`, `M`, `y`.
  *
  * @param ms - The duration in milliseconds.
  * @param units - Which units to use, defaulting to `['d', 'h', 'm', 's']`.
+ * @param options - How the units are written, for a locale that does not read them in English.
+ * @param options.labels - What each unit is written as, per {@link MsDurationOptions}.
  * @returns A duration string such as `'1d 7h 30m'`, or `'0s'` for an empty duration.
  */
-export function msDurationToString(ms: number, units: string[] = ['d', 'h', 'm', 's']): string {
+export function msDurationToString(ms: number, units: string[] = ['d', 'h', 'm', 's'], { labels }: MsDurationOptions = {}): string {
   const ordered = units
     .filter(unit => DURATION_UNIT_MS[unit] !== undefined)
     .sort((a, b) => DURATION_UNIT_MS[b]! - DURATION_UNIT_MS[a]!)
 
+  const written = (unit: string): string => labels?.[unit] ?? unit
   const smallest = ordered.at(-1) ?? 's'
 
   let remaining = Math.floor(Math.abs(ms))
@@ -151,12 +163,12 @@ export function msDurationToString(ms: number, units: string[] = ['d', 'h', 'm',
     const value = Math.floor(remaining / factor)
 
     if (value > 0) {
-      parts.push(`${value}${unit}`)
+      parts.push(`${value}${written(unit)}`)
       remaining -= value * factor
     }
   }
 
-  return parts.length === 0 ? `0${smallest}` : sign + parts.join(' ')
+  return parts.length === 0 ? `0${written(smallest)}` : sign + parts.join(' ')
 }
 
 const RELATIVE_TIME_DIVISIONS: [number, Intl.RelativeTimeFormatUnit][] = [
