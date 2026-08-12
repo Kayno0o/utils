@@ -278,6 +278,12 @@ export function plural(singular: string, count?: number): string {
   return `${singular}s`
 }
 
+/** `1 rule`, `3 rules`: a count and the word it agrees with */
+export function counted(count: number, singular: string): string {
+  // `plural` reads zero as singular; a count written in front of the word wants `0 rules`.
+  return `${count} ${count === 1 ? singular : plural(singular, 2)}`
+}
+
 /** `base`, then `base_2`, `base_3`: the first name nothing in `taken` already holds */
 export function uniqueName(base: string, taken: ReadonlySet<string> | readonly string[], { separator = '_', start = 2 } = {}): string {
   const has = taken instanceof Set ? (name: string) => taken.has(name) : (name: string) => (taken as readonly string[]).includes(name)

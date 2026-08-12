@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { commonPrefix, commonPrefixLength, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
+import { commonPrefix, commonPrefixLength, counted, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -469,6 +469,17 @@ describe('plural function', () => {
     const result = plural('cat')
 
     expect(result).toEqual('cats')
+  })
+})
+
+describe('counted function', () => {
+  it('should keep the singular at one', () => {
+    expect(counted(1, 'rule')).toEqual('1 rule')
+  })
+
+  it('should pluralize everything else, zero included', () => {
+    expect(counted(3, 'rule')).toEqual('3 rules')
+    expect(counted(0, 'entry')).toEqual('0 entries')
   })
 })
 
