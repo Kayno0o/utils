@@ -1,5 +1,6 @@
 import { describe, expect, test as it } from 'bun:test'
 import { getPlaceholderUrl } from '../src'
+import { dataUrlToBlob } from '../src/browser/image'
 
 describe('getPlaceholderUrl function', () => {
   it('should return a default URL when no props are provided', () => {
@@ -51,5 +52,18 @@ describe('getPlaceholderUrl function', () => {
     const result = getPlaceholderUrl({ format: 'jpg', height: 200, width: 200 })
 
     expect(result).toEqual('https://placehold.co/200x200/jpg')
+  })
+})
+
+describe('dataUrlToBlob function', () => {
+  it('should decode the bytes and keep the mime type', async () => {
+    const blob = dataUrlToBlob('data:image/png;base64,aGVsbG8=')
+
+    expect(blob.type).toEqual('image/png')
+    expect(await blob.text()).toEqual('hello')
+  })
+
+  it('should fall back to a generic type when the head names none', () => {
+    expect(dataUrlToBlob('data:;base64,aGVsbG8=').type).toEqual('application/octet-stream')
   })
 })

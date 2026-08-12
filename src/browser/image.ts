@@ -150,6 +150,18 @@ export async function transformImage(src: string, transform: ImageTransform): Pr
   return { src: canvas.toDataURL('image/png'), width, height }
 }
 
+/** Decodes a base64 data URL into a Blob, for sending bytes where a long base64 string would go. */
+export function dataUrlToBlob(src: string): Blob {
+  const [head = '', data = ''] = src.split(',')
+  const binary = atob(data)
+  const bytes = new Uint8Array(binary.length)
+
+  for (let i = 0; i < binary.length; i++)
+    bytes[i] = binary.charCodeAt(i)
+
+  return new Blob([bytes], { type: head.slice(head.indexOf(':') + 1).split(';')[0] || 'application/octet-stream' })
+}
+
 /** Read a File into a base64 data URL (resolves null for a missing file). */
 export async function base64FromFile(file?: File | null): Promise<string | null> {
   return new Promise((resolve, reject) => {
