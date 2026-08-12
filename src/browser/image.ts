@@ -92,6 +92,8 @@ export interface CropImageOptions {
   width?: number
   /** Output height in pixels. Defaults to the crop's own height, or to whatever keeps `width` at the crop ratio. */
   height?: number
+  /** Off draws nearest-neighbour, which is what keeps pixel art square at another size. Defaults to on. */
+  smoothing?: boolean
 }
 
 /** Renders `crop` - in natural image pixels, as `ImageCropper` emits it - to a new data URL. */
@@ -109,6 +111,7 @@ export async function cropImage(src: string, crop: CropRect, options: CropImageO
   if (!ctx)
     throw new Error('Could not get canvas context')
 
+  ctx.imageSmoothingEnabled = options.smoothing ?? true
   ctx.imageSmoothingQuality = 'high'
   ctx.drawImage(img, crop.x, crop.y, crop.w, crop.h, 0, 0, width, height)
 
