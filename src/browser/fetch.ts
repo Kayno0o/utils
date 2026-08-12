@@ -118,6 +118,14 @@ function statedBy(data: unknown): string | undefined {
 }
 
 export class FetchError extends Error {
+  /**
+   * The api's own word for the refusal, off the body's `error`, `message` or `detail`, and
+   * undefined where it wrote none. What a toast shows, where `message` is the `HTTP 422 - url`
+   * line a log wants. A body that is not JSON says nothing here rather than handing a page of
+   * HTML to whatever renders it.
+   */
+  readonly said: string | undefined
+
   constructor(
     public readonly status: number,
     public readonly statusText: string,
@@ -130,10 +138,12 @@ export class FetchError extends Error {
      */
     public readonly data?: unknown,
   ) {
-    const said = statedBy(data) ?? body
+    const said = statedBy(data)
+    const context = said ?? body
 
-    super(`HTTP ${status} ${statusText} - ${url}${said ? ` - ${said}` : ''}`)
+    super(`HTTP ${status} ${statusText} - ${url}${context ? ` - ${context}` : ''}`)
     this.name = 'FetchError'
+    this.said = said
   }
 }
 

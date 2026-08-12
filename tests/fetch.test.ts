@@ -344,6 +344,20 @@ describe('FetchError body', () => {
 
     expect((await refused()).message).toEndWith('- {"code":17}')
   })
+
+  it('hands the api its own word back, for a toast rather than a log line', async () => {
+    mockFetch(409, { error: 'Déjà lié' }, false)
+
+    expect((await refused()).said).toBe('Déjà lié')
+  })
+
+  it('says nothing where the refusal named nothing, rather than handing over a page of html', async () => {
+    mockText(502, '<html>Bad Gateway</html>')
+    expect((await refused()).said).toBeUndefined()
+
+    mockFetch(500, { code: 17 }, false)
+    expect((await refused()).said).toBeUndefined()
+  })
 })
 
 describe('onResponse', () => {
