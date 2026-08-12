@@ -1,3 +1,5 @@
+import type { CropRect } from './canvas'
+
 export async function convertImage(imageUrl: string, options?: {
   format?: 'image/webp' | 'image/png' | 'image/jpeg'
   maxHeight?: number
@@ -66,15 +68,51 @@ export async function loadImageFromFile(file: File): Promise<LoadedImage> {
   })
 }
 
-/** Resolves natural dimensions of an image URL (data URL or remote). */
-export function loadImageDimensions(src: string): Promise<LoadedImage> {
+function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
 
-    img.onload = () => resolve({ src, width: img.naturalWidth, height: img.naturalHeight })
+    img.onload = () => resolve(img)
     img.onerror = () => reject(new Error('Could not load image'))
     img.src = src
   })
+}
+
+/** Resolves natural dimensions of an image URL (data URL or remote). */
+export async function loadImageDimensions(src: string): Promise<LoadedImage> {
+  const img = await loadImageElement(src)
+
+  return { src, width: img.naturalWidth, height: img.naturalHeight }
+}
+
+export interface CropImageOptions {
+  format?: 'image/webp' | 'image/png' | 'image/jpeg'
+  quality?: number
+  /** Output width in pixels. Defaults to the crop's own width, or to whatever keeps `height` at the crop ratio. */
+  width?: number
+  /** Output height in pixels. Defaults to the crop's own height, or to whatever keeps `width` at the crop ratio. */
+  height?: number
+}
+
+/** Renders `crop` - in natural image pixels, as `ImageCropper` emits it - to a new data URL. */
+export async function cropImage(src: string, crop: CropRect, options: CropImageOptions = {}): Promise<LoadedImage> {
+  const img = await loadImageElement(src)
+  const width = Math.round(options.width ?? (options.height ? (options.height * crop.w) / crop.h : crop.w))
+  const height = Math.round(options.height ?? (options.width ? (options.width * crop.h) / crop.w : crop.h))
+  const canvas = document.createElement('canvas')
+
+  canvas.width = width
+  canvas.height = height
+
+  const ctx = canvas.getContext('2d')
+
+  if (!ctx)
+    throw new Error('Could not get canvas context')
+
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(img, crop.x, crop.y, crop.w, crop.h, 0, 0, width, height)
+
+  return { src: canvas.toDataURL(options.format ?? 'image/png', options.quality), width, height }
 }
 
 /**
@@ -96,13 +134,7 @@ export async function transformImage(src: string, transform: ImageTransform): Pr
   if (!ctx)
     throw new Error('Could not get canvas context')
 
-  const el = await new Promise<HTMLImageElement>((res, rej) => {
-    const i = new Image()
-
-    i.onload = () => res(i)
-    i.onerror = () => rej(new Error('Could not load image'))
-    i.src = src
-  })
+  const el = await loadImageElement(src)
 
   ctx.translate(width / 2, height / 2)
 
