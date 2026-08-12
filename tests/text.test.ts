@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { commonPrefix, commonPrefixLength, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle } from '../src'
+import { commonPrefix, commonPrefixLength, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -469,6 +469,32 @@ describe('plural function', () => {
     const result = plural('cat')
 
     expect(result).toEqual('cats')
+  })
+})
+
+describe('uniqueName function', () => {
+  it('should hand back the base where nothing holds it', () => {
+    const result = uniqueName('c:new_tag', new Set(['c:other']))
+
+    expect(result).toEqual('c:new_tag')
+  })
+
+  it('should suffix the first free number', () => {
+    const result = uniqueName('c:new_tag', new Set(['c:new_tag', 'c:new_tag_2']))
+
+    expect(result).toEqual('c:new_tag_3')
+  })
+
+  it('should accept an array', () => {
+    const result = uniqueName('item', ['item'])
+
+    expect(result).toEqual('item_2')
+  })
+
+  it('should take a separator and a first number', () => {
+    const result = uniqueName('copy', ['copy', 'copy-1'], { separator: '-', start: 1 })
+
+    expect(result).toEqual('copy-2')
   })
 })
 

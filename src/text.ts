@@ -278,6 +278,21 @@ export function plural(singular: string, count?: number): string {
   return `${singular}s`
 }
 
+/** `base`, then `base_2`, `base_3`: the first name nothing in `taken` already holds */
+export function uniqueName(base: string, taken: ReadonlySet<string> | readonly string[], { separator = '_', start = 2 } = {}): string {
+  const has = taken instanceof Set ? (name: string) => taken.has(name) : (name: string) => (taken as readonly string[]).includes(name)
+
+  if (!has(base))
+    return base
+
+  for (let n = start; ; n++) {
+    const name = `${base}${separator}${n}`
+
+    if (!has(name))
+      return name
+  }
+}
+
 const MINIFIED_REGEX = /^[\w-]+$/
 
 export function minifyUUID(uuid: string): string {
