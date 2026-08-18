@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { commonPrefix, commonPrefixLength, counted, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
+import { commonPrefix, commonPrefixLength, counted, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -964,5 +964,27 @@ describe('mask', () => {
     const { result } = mask('conn postgres://localhost/db')
 
     expect(result).toBe('conn postgres://localhost/db')
+  })
+})
+
+describe('repairMojibake function', () => {
+  it('repairs utf-8 that was read as cp1252 and written back', () => {
+    expect(repairMojibake('Ã†bleflÃ¦sk')).toBe('Æbleflæsk')
+    expect(repairMojibake('cafÃ©')).toBe('café')
+  })
+
+  it('repairs the cp1252 range latin-1 has no room for', () => {
+    expect(repairMojibake('Fugu â€“ dish')).toBe('Fugu – dish')
+  })
+
+  it('repairs text that was written back twice', () => {
+    expect(repairMojibake('Ã‚Â£')).toBe('£')
+  })
+
+  it('leaves correct text alone', () => {
+    expect(repairMojibake('Æbleflæsk')).toBe('Æbleflæsk')
+    expect(repairMojibake('plain ascii')).toBe('plain ascii')
+    expect(repairMojibake('日本語')).toBe('日本語')
+    expect(repairMojibake('')).toBe('')
   })
 })

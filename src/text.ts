@@ -807,3 +807,46 @@ export function mask(str: string, {
 
   return { hits, ranges, result }
 }
+
+/** what cp1252 spells in 0x80-0x9F, the range latin-1 leaves undefined */
+const CP1252 = new Map(['€', '', '‚', 'ƒ', '„', '…', '†', '‡', 'ˆ', '‰', 'Š', '‹', 'Œ', '', 'Ž', '', '', '‘', '’', '“', '”', '•', '–', '—', '˜', '™', 'š', '›', 'œ', '', 'ž', 'Ÿ']
+  .map((char, at) => [char, 0x80 + at] as const)
+  .filter(([char]) => char))
+
+const UTF8 = new TextDecoder('utf-8', { fatal: true })
+
+/**
+ * repairs text whose utf-8 bytes were read as cp1252 and written back: `Ã†bleflÃ¦sk` -> `Æbleflæsk`.
+ * all or nothing, so a string that is not mojibake all the way through comes back untouched.
+ */
+export function repairMojibake(str: string): string {
+  // A file read wrong and written back twice is a real shape, and four passes is the ceiling.
+  for (let pass = 0; pass < 4; pass++) {
+    const bytes = new Uint8Array(str.length)
+    let at = 0
+    let high = false
+
+    for (const char of str) {
+      const code = char.codePointAt(0)!
+      const byte = code < 0x100 ? code : CP1252.get(char)
+
+      if (byte === undefined)
+        return str
+
+      high ||= byte >= 0x80
+      bytes[at++] = byte
+    }
+
+    if (!high)
+      return str
+
+    try {
+      str = UTF8.decode(bytes.subarray(0, at))
+    }
+    catch {
+      return str
+    }
+  }
+
+  return str
+}
