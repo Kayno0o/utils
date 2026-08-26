@@ -6,6 +6,8 @@ export interface GotifyMessage {
   message: string
   priority?: number
   clickUrl?: string
+  /** Drawn in the shade by the client, which fetches it itself - so it must need no session of the sender's. */
+  imageUrl?: string
   markdown?: boolean
 }
 
@@ -19,8 +21,12 @@ export async function sendGotify(url: string, token: string, message: GotifyMess
   if (message.markdown)
     extras['client::display'] = { contentType: 'text/markdown' }
 
-  if (message.clickUrl)
-    extras['client::notification'] = { click: { url: message.clickUrl } }
+  if (message.clickUrl || message.imageUrl) {
+    extras['client::notification'] = {
+      ...(message.clickUrl ? { click: { url: message.clickUrl } } : {}),
+      ...(message.imageUrl ? { bigImageUrl: message.imageUrl } : {}),
+    }
+  }
 
   await fetchJson(url, {
     ...options,

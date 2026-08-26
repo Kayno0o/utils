@@ -64,6 +64,26 @@ describe('sendGotify', () => {
     })
   })
 
+  it('carries an image url in the notification extra, beside a click', async () => {
+    const call = mockFetch()
+
+    await sendGotify(ENDPOINT, 'secret', { title: 'Hi', message: 'Body', clickUrl: 'https://x.test', imageUrl: 'https://x.test/shot.jpg' })
+
+    expect(JSON.parse(call.init.body as string).extras).toEqual({
+      'client::notification': { click: { url: 'https://x.test' }, bigImageUrl: 'https://x.test/shot.jpg' },
+    })
+  })
+
+  it('carries an image url with no click', async () => {
+    const call = mockFetch()
+
+    await sendGotify(ENDPOINT, 'secret', { title: 'Hi', message: 'Body', imageUrl: 'https://x.test/shot.jpg' })
+
+    expect(JSON.parse(call.init.body as string).extras).toEqual({
+      'client::notification': { bigImageUrl: 'https://x.test/shot.jpg' },
+    })
+  })
+
   it('omits extras when neither markdown nor clickUrl is set', async () => {
     const call = mockFetch()
 
