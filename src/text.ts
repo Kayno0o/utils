@@ -808,6 +808,76 @@ export function mask(str: string, {
   return { hits, ranges, result }
 }
 
+export interface MaskEnvOptions extends MaskOptions {
+  /** mask each value with `mask` instead of dropping it, so the file keeps its shape */
+  maskValues?: boolean
+}
+
+export interface MaskEnvResult {
+  keys: string[]
+  result: string
+}
+
+const ENV_ASSIGN_RE = /^(\s*(?:export\s+)?)([A-Za-z_][\w.-]*)[ \t]*=(.*)$/
+
+function envQuote(value: string): string {
+  const first = value[0]
+
+  return first === '"' || first === '\'' || first === '`' ? first : ''
+}
+
+/** a value `mask` recognises keeps its shape; anything else is a secret we know nothing about, so all of it goes */
+function maskEnvValue(raw: string, options: MaskOptions, char: string): string {
+  const quote = envQuote(raw)
+  const quoted = Boolean(quote) && raw.length > 1 && raw.endsWith(quote)
+  const inner = quoted ? raw.slice(1, -1) : raw
+
+  if (!inner)
+    return raw
+
+  const { ranges, result } = mask(inner, options)
+  const value = ranges.length ? result : options.mode === 'redact' ? '[REDACTED]' : char.repeat(inner.length)
+
+  return quoted ? `${quote}${value}${quote}` : value
+}
+
+/**
+ * strips a `.env` down to the keys it declares, keeping comments, blank lines and `export` prefixes.
+ * `maskValues` keeps the values instead, run through `mask`.
+ */
+export function maskEnv(str: string, { maskValues = false, ...options }: MaskEnvOptions = {}): MaskEnvResult {
+  const eol = str.includes('\r\n') ? '\r\n' : '\n'
+  const lines = str.split(/\r?\n/)
+  const char = options.replace ?? '*'
+  const keys: string[] = []
+  const out: string[] = []
+
+  for (let at = 0; at < lines.length; at++) {
+    const found = ENV_ASSIGN_RE.exec(lines[at]!)
+
+    if (!found) {
+      out.push(lines[at]!)
+
+      continue
+    }
+
+    const [, prefix, key] = found
+    let value = found[3]!.trimStart()
+    const quote = envQuote(value)
+
+    // a quoted value runs to its closing quote, which for a PEM key or a JSON blob is lines further down
+    if (quote) {
+      while (!(value.length > 1 && value.endsWith(quote)) && at + 1 < lines.length)
+        value += `\n${lines[++at]!}`
+    }
+
+    keys.push(key!)
+    out.push(`${prefix!}${key!}=${maskValues ? maskEnvValue(value, options, char) : ''}`)
+  }
+
+  return { keys, result: out.join(eol) }
+}
+
 /** what cp1252 spells in 0x80-0x9F, the range latin-1 leaves undefined */
 const CP1252 = new Map(['€', '', '‚', 'ƒ', '„', '…', '†', '‡', 'ˆ', '‰', 'Š', '‹', 'Œ', '', 'Ž', '', '', '‘', '’', '“', '”', '•', '–', '—', '˜', '™', 'š', '›', 'œ', '', 'ž', 'Ÿ']
   .map((char, at) => [char, 0x80 + at] as const)

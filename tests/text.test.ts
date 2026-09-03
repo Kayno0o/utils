@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { commonPrefix, commonPrefixLength, counted, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
+import { commonPrefix, commonPrefixLength, counted, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -986,5 +986,59 @@ describe('repairMojibake function', () => {
     expect(repairMojibake('plain ascii')).toBe('plain ascii')
     expect(repairMojibake('日本語')).toBe('日本語')
     expect(repairMojibake('')).toBe('')
+  })
+})
+
+describe('maskEnv', () => {
+  const env = '# database\nexport DATABASE_URL=postgres://user:pass@db.internal:5432/app\n\nPORT=4900\nSECRET=hunter2\nEMPTY='
+
+  it('keeps only the keys', () => {
+    expect(maskEnv(env).result).toBe('# database\nexport DATABASE_URL=\n\nPORT=\nSECRET=\nEMPTY=')
+  })
+
+  it('lists the keys it declares', () => {
+    expect(maskEnv(env).keys).toEqual(['DATABASE_URL', 'PORT', 'SECRET', 'EMPTY'])
+  })
+
+  it('drops a value that runs to a closing quote lines down', () => {
+    const pem = 'KEY="-----BEGIN PRIVATE KEY-----\nMIIBVgIBADANBgkq\n-----END PRIVATE KEY-----"\nPORT=4900'
+
+    expect(maskEnv(pem).result).toBe('KEY=\nPORT=')
+    expect(maskEnv(pem).keys).toEqual(['KEY', 'PORT'])
+  })
+
+  it('masks the values instead of dropping them', () => {
+    expect(maskEnv('DATABASE_URL=postgres://user:pass@db/app', { maskValues: true }).result).toBe('DATABASE_URL=postgres://user:***@db/app')
+    expect(maskEnv('EMAIL=john@example.com', { maskValues: true }).result).toBe('EMAIL=j***@e***.com')
+  })
+
+  it('blanks a value no detector recognises', () => {
+    expect(maskEnv('SECRET=hunter2', { maskValues: true }).result).toBe('SECRET=*******')
+    expect(maskEnv('SECRET=hunter2', { maskValues: true, replace: '#' }).result).toBe('SECRET=#######')
+  })
+
+  it('masks inside the quotes and keeps them', () => {
+    expect(maskEnv('SECRET="hunter2"', { maskValues: true }).result).toBe('SECRET="*******"')
+    expect(maskEnv('EMAIL=\'john@example.com\'', { maskValues: true }).result).toBe('EMAIL=\'j***@e***.com\'')
+  })
+
+  it('leaves an empty value empty in either mode', () => {
+    expect(maskEnv('EMPTY=\nQUOTED=""', { maskValues: true, mode: 'redact' }).result).toBe('EMPTY=\nQUOTED=""')
+  })
+
+  it('redacts every value', () => {
+    expect(maskEnv('SECRET=hunter2\nPORT=4900', { maskValues: true, mode: 'redact' }).result).toBe('SECRET=[REDACTED]\nPORT=[REDACTED]')
+  })
+
+  it('honours the per-type toggles', () => {
+    expect(maskEnv('EMAIL=john@example.com', { maskValues: true, email: false }).result).toBe('EMAIL=****************')
+  })
+
+  it('keeps crlf line endings', () => {
+    expect(maskEnv('A=1\r\nB=2').result).toBe('A=\r\nB=')
+  })
+
+  it('leaves a line that declares nothing alone', () => {
+    expect(maskEnv('# just a comment\n\nnot an assignment').result).toBe('# just a comment\n\nnot an assignment')
   })
 })
