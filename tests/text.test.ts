@@ -1038,7 +1038,35 @@ describe('maskEnv', () => {
     expect(maskEnv('A=1\r\nB=2').result).toBe('A=\r\nB=')
   })
 
-  it('leaves a line that declares nothing alone', () => {
-    expect(maskEnv('# just a comment\n\nnot an assignment').result).toBe('# just a comment\n\nnot an assignment')
+  it('keeps a comment that declares nothing', () => {
+    expect(maskEnv('# just a comment\n\n### section ###').result).toBe('# just a comment\n\n### section ###')
+  })
+
+  it('strips a commented-out assignment like a live one', () => {
+    const env = '# DATABASE_URL=postgres://user:pass@db/app\n#SECRET=hunter2'
+
+    expect(maskEnv(env).result).toBe('# DATABASE_URL=\n#SECRET=')
+    expect(maskEnv(env).keys).toEqual([])
+    expect(maskEnv(env, { maskValues: true }).result).toBe('# DATABASE_URL=postgres://user:***@db/app\n#SECRET=*******')
+  })
+
+  it('drops a line that declares nothing, rather than handing back what it holds', () => {
+    expect(maskEnv('CONFIG={"a":\n  "pass": "hunter2"}\nPORT=4900').result).toBe('CONFIG=\nPORT=')
+    expect(maskEnv('9BAD=hunter2\nOK=1').result).toBe('OK=')
+  })
+
+  it('ends an unterminated quote at its own line, keeping the keys under it', () => {
+    const env = 'OOPS="unclosed\nSECRET=hunter2\nPORT=4900'
+
+    expect(maskEnv(env).result).toBe('OOPS=\nSECRET=\nPORT=')
+    expect(maskEnv(env).keys).toEqual(['OOPS', 'SECRET', 'PORT'])
+  })
+
+  it('reads an inline comment as part of the value it follows', () => {
+    expect(maskEnv('PORT=4900 # the port').result).toBe('PORT=')
+  })
+
+  it('takes spaces around the equals and an equals inside the value', () => {
+    expect(maskEnv('A = value\nB=a=b=c').result).toBe('A=\nB=')
   })
 })

@@ -819,11 +819,26 @@ export interface MaskEnvResult {
 }
 
 const ENV_ASSIGN_RE = /^(\s*(?:export\s+)?)([A-Za-z_][\w.-]*)[ \t]*=(.*)$/
+const ENV_COMMENT_RE = /^\s*#+/
+const ENV_BLANK_RE = /^\s*$/
 
 function envQuote(value: string): string {
   const first = value[0]
 
   return first === '"' || first === '\'' || first === '`' ? first : ''
+}
+
+/** the line a quoted value closes on, or -1 when it never closes and the value is the one line after all */
+function envValueEnd(lines: string[], at: number, value: string, quote: string): number {
+  if (value.includes(quote, 1))
+    return at
+
+  for (let next = at + 1; next < lines.length; next++) {
+    if (lines[next]!.includes(quote))
+      return next
+  }
+
+  return -1
 }
 
 /** a value `mask` recognises keeps its shape; anything else is a secret we know nothing about, so all of it goes */
@@ -842,8 +857,9 @@ function maskEnvValue(raw: string, options: MaskOptions, char: string): string {
 }
 
 /**
- * strips a `.env` down to the keys it declares, keeping comments, blank lines and `export` prefixes.
- * `maskValues` keeps the values instead, run through `mask`.
+ * strips a `.env` down to the keys it declares, keeping blank lines, comments and `export` prefixes.
+ * `maskValues` keeps the values instead, run through `mask`. A commented-out assignment loses its value
+ * like a live one, and a line that declares nothing at all is dropped rather than passed through.
  */
 export function maskEnv(str: string, { maskValues = false, ...options }: MaskEnvOptions = {}): MaskEnvResult {
   const eol = str.includes('\r\n') ? '\r\n' : '\n'
@@ -852,27 +868,46 @@ export function maskEnv(str: string, { maskValues = false, ...options }: MaskEnv
   const keys: string[] = []
   const out: string[] = []
 
-  for (let at = 0; at < lines.length; at++) {
-    const found = ENV_ASSIGN_RE.exec(lines[at]!)
+  const declare = (found: RegExpExecArray, value: string) =>
+    `${found[1]!}${found[2]!}=${maskValues ? maskEnvValue(value, options, char) : ''}`
 
-    if (!found) {
-      out.push(lines[at]!)
+  for (let at = 0; at < lines.length; at++) {
+    const line = lines[at]!
+
+    if (ENV_BLANK_RE.test(line)) {
+      out.push(line)
 
       continue
     }
 
-    const [, prefix, key] = found
-    let value = found[3]!.trimStart()
-    const quote = envQuote(value)
+    const hashes = ENV_COMMENT_RE.exec(line)
 
-    // a quoted value runs to its closing quote, which for a PEM key or a JSON blob is lines further down
-    if (quote) {
-      while (!(value.length > 1 && value.endsWith(quote)) && at + 1 < lines.length)
-        value += `\n${lines[++at]!}`
+    if (hashes) {
+      const commented = ENV_ASSIGN_RE.exec(line.slice(hashes[0].length))
+
+      out.push(commented ? `${hashes[0]}${declare(commented, commented[3]!.trimStart())}` : line)
+
+      continue
     }
 
-    keys.push(key!)
-    out.push(`${prefix!}${key!}=${maskValues ? maskEnvValue(value, options, char) : ''}`)
+    const found = ENV_ASSIGN_RE.exec(line)
+
+    // a line declaring nothing is malformed env, and echoing it would hand back whatever it holds
+    if (!found)
+      continue
+
+    let value = found[3]!.trimStart()
+    const quote = envQuote(value)
+    const end = quote ? envValueEnd(lines, at, value, quote) : at
+
+    // a quoted value runs to its closing quote, which for a PEM key or a JSON blob is lines further down
+    if (end > at) {
+      value = [value, ...lines.slice(at + 1, end + 1)].join(eol)
+      at = end
+    }
+
+    keys.push(found[2]!)
+    out.push(declare(found, value))
   }
 
   return { keys, result: out.join(eol) }
