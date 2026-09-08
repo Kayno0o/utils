@@ -99,3 +99,8 @@ export function triadic(color: string): [string, string, string] {
     Color.from('hsl', [(h + 240) % 360, s, l]).to('hex'),
   ]
 }
+
+/** 0..1 alpha as the 2-char hex suffix of an 8-digit hex colour. */
+export function alphaHex(alpha: number): string {
+  return Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, '0')
+}

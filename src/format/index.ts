@@ -32,3 +32,19 @@ export function formatDuration(ms: number, { long = false, maxUnits = Infinity }
 
   return parts.join(long ? ', ' : ' ') || (long ? '0 seconds' : '0s')
 }
+
+export interface InDaysOptions {
+  /** The compact register a dense strip reads in: `in 3d` rather than `in 3 days`. */
+  short?: boolean
+}
+
+/** A day count as when it lands. */
+export function inDays(days: number, { short = false }: InDaysOptions = {}): string {
+  if (days <= 0)
+    return 'today'
+
+  if (days === 1)
+    return 'tomorrow'
+
+  return short ? `in ${days}d` : `in ${days} days`
+}
