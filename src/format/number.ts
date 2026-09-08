@@ -1,21 +1,30 @@
 /**
- * Format bytes as human-readable text.
- * @param bytes Number of bytes.
- * @param si True to use metric (SI) units, aka powers of 1000. False to use binary (IEC), aka powers of 1024.
- * @param dp Number of decimal places to display.
+ * `iec` is 1024 with KiB/MiB labels, `si` is 1000 with kB/MB labels, and `binary` is the mix
+ * interfaces usually mean by "GB": 1024 steps under the shorter labels.
+ */
+export type FileSizeUnits = 'iec' | 'si' | 'binary'
+
+/**
+ * Bytes as human-readable text. The boolean form is the original one, `si` choosing metric over
+ * binary; the options form additionally reaches `binary`.
  *
  * @author https://stackoverflow.com/users/65387/mpen
  * @see https://stackoverflow.com/a/14919494
  */
-export function formatFileSize(bytes: number, si = false, dp = 1) {
-  const thresh = si ? 1000 : 1024
+export function formatFileSize(bytes: number, si?: boolean, dp?: number): string
+export function formatFileSize(bytes: number, options: { units?: FileSizeUnits, dp?: number }): string
+
+export function formatFileSize(bytes: number, siOrOptions: boolean | { units?: FileSizeUnits, dp?: number } = false, dpArg = 1) {
+  const options = typeof siOrOptions === 'object' ? siOrOptions : { units: siOrOptions ? 'si' as const : 'iec' as const, dp: dpArg }
+  const { units: unitSystem = 'iec', dp = 1 } = options
+  const thresh = unitSystem === 'si' ? 1000 : 1024
 
   if (Math.abs(bytes) < thresh)
     return `${bytes} B`
 
-  const units = si
-    ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+  const units = unitSystem === 'iec'
+    ? ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+    : ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
   let u = -1
   const r = 10 ** dp
 

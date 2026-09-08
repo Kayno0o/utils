@@ -292,6 +292,11 @@ export function gridDays(weeks: number, today: Date = new Date()): string[] {
   return days
 }
 
+/** An hour of the day as a clock label, e.g. 7 -> "07:00". */
+export function formatHour(hour: number): string {
+  return `${String(hour).padStart(2, '0')}:00`
+}
+
 /** Localized short date-time label, e.g. "Jan 15, 03:04 PM". */
 export function formatTime(timestamp: number): string {
   return new Date(timestamp).toLocaleString(undefined, {
