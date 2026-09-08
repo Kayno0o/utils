@@ -1,5 +1,5 @@
-import { describe, expect, test as it, spyOn } from 'bun:test'
-import { mapConcurrent, retry, sleep, timeout, TimeoutError } from '../src'
+import { describe, expect, test as it, spyOn, test } from 'bun:test'
+import { mapConcurrent, retry, sleep, timeout, TimeoutError, within } from '../src'
 
 describe('retry function', () => {
   it('returns the first result without waiting', async () => {
@@ -141,5 +141,27 @@ describe('mapConcurrent', () => {
 
       return n
     })).rejects.toThrow('boom')
+  })
+})
+
+describe('within', () => {
+  test('answers with the work when it lands inside the budget', async () => {
+    expect(await within(Promise.resolve('done'), 50)).toBe('done')
+  })
+
+  test('gives up on a straggler rather than holding the caller', async () => {
+    const slow = new Promise(resolve => setTimeout(resolve, 200, 'late'))
+
+    expect(await within(slow, 10)).toBeNull()
+  })
+
+  test('a fallback other than null stands in for the answer', async () => {
+    const slow = new Promise<string>(resolve => setTimeout(resolve, 200, 'late'))
+
+    expect(await within(slow, 10, 'gave up')).toBe('gave up')
+  })
+
+  test('a rejection still rejects - only the wait is bounded', async () => {
+    expect(within(Promise.reject(new Error('boom')), 50)).rejects.toThrow('boom')
   })
 })

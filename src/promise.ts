@@ -60,3 +60,24 @@ export async function mapConcurrent<T, R>(items: T[], limit: number, fn: (item: 
 
   return results
 }
+
+/**
+ * The work's answer if it lands inside `ms`, else `fallback`. Only the wait is bounded - the work
+ * keeps running and its answer is dropped, which is what makes this the right shape for a budget
+ * (a render, a page's seeds) rather than for cancelling the work itself.
+ */
+export async function within<T, F = null>(work: Promise<T>, ms: number, fallback: F = null as F): Promise<T | F> {
+  let pid: ReturnType<typeof setTimeout> | undefined
+
+  try {
+    return await Promise.race([
+      work,
+      new Promise<F>((resolve) => {
+        pid = setTimeout(resolve, ms, fallback)
+      }),
+    ])
+  }
+  finally {
+    clearTimeout(pid)
+  }
+}
