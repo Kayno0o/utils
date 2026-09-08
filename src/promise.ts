@@ -40,3 +40,23 @@ export async function timeout<T>(fn: () => Promise<T>, maxTime = 5000): Promise<
     clearTimeout(pid)
   }
 }
+
+/**
+ * Maps over `items` with at most `limit` calls in flight, keeping the results in input order.
+ *
+ * Unlike a chunked `Promise.all`, a worker takes the next item as soon as it is free, so one slow
+ * item does not hold up the rest of its batch.
+ */
+export async function mapConcurrent<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+  const results = Array.from({ length: items.length }) as R[]
+  let next = 0
+
+  const worker = async (): Promise<void> => {
+    for (let i = next++; i < items.length; i = next++)
+      results[i] = await fn(items[i] as T, i)
+  }
+
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, worker))
+
+  return results
+}

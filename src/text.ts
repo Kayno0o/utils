@@ -955,3 +955,75 @@ export function repairMojibake(str: string): string {
 
   return str
 }
+
+export interface TextSpan {
+  text: string
+  offset: number
+}
+
+const WORD_RE = /\S+/g
+
+/** Every run of non-whitespace, with where it starts in `text`. */
+export function tokenizeWords(text: string): TextSpan[] {
+  return [...text.matchAll(WORD_RE)].map(match => ({ text: match[0], offset: match.index }))
+}
+
+/** Sentences with where each starts, split by the locale's own rules rather than by punctuation. */
+export function splitSentences(text: string, locale = 'en'): TextSpan[] {
+  const segmenter = new Intl.Segmenter(locale, { granularity: 'sentence' })
+
+  return [...segmenter.segment(text)].map(segment => ({ text: segment.segment, offset: segment.index }))
+}
+
+/**
+ * Joins adjacent spans until each carries at least `minLength` non-whitespace characters.
+ *
+ * Spans must be contiguous, the way [splitSentences] returns them: merging concatenates their text
+ * and keeps the first offset, so a gap between two spans would be lost.
+ */
+export function mergeSpans(spans: TextSpan[], minLength: number): TextSpan[] {
+  const merged: TextSpan[] = []
+
+  for (const span of spans) {
+    const last = merged.at(-1)
+
+    if (last && last.text.trim().length < minLength)
+      last.text += span.text
+    else
+      merged.push({ ...span })
+  }
+
+  return merged
+}
+
+/** A span's bounds with its surrounding whitespace excluded, or null when it holds none. */
+export function trimSpan(span: TextSpan): [number, number] | null {
+  const from = span.offset + (span.text.length - span.text.trimStart().length)
+  const to = span.offset + span.text.trimEnd().length
+
+  return to > from ? [from, to] : null
+}
+
+export interface Excerpt {
+  text: string
+  offset: number
+  length: number
+}
+
+/**
+ * A window of `text` around one span, for showing an error in context.
+ *
+ * `offset` indexes the excerpt rather than the source, and counts the ellipsis when one was added,
+ * so `excerpt.text.slice(offset, offset + length)` is always the span itself.
+ */
+export function excerptAround(text: string, offset: number, length: number, { radius = 40, ellipsis = '...' } = {}): Excerpt {
+  const start = Math.max(0, offset - radius)
+  const end = Math.min(text.length, offset + length + radius)
+  const prefix = start > 0 ? ellipsis : ''
+
+  return {
+    text: `${prefix}${text.slice(start, end)}${end < text.length ? ellipsis : ''}`,
+    offset: prefix.length + (offset - start),
+    length,
+  }
+}

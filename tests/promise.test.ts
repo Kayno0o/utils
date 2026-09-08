@@ -1,5 +1,5 @@
 import { describe, expect, test as it, spyOn } from 'bun:test'
-import { retry, sleep, timeout, TimeoutError } from '../src'
+import { mapConcurrent, retry, sleep, timeout, TimeoutError } from '../src'
 
 describe('retry function', () => {
   it('returns the first result without waiting', async () => {
@@ -98,5 +98,48 @@ describe('timeout function', () => {
 
     expect(cleared).toHaveBeenCalled()
     cleared.mockRestore()
+  })
+})
+
+describe('mapConcurrent', () => {
+  it('keeps results in input order', async () => {
+    const out = await mapConcurrent([30, 10, 20, 5], 2, async (ms) => {
+      await sleep(ms)
+
+      return ms
+    })
+
+    expect(out).toEqual([30, 10, 20, 5])
+  })
+
+  it('never exceeds the limit', async () => {
+    let inFlight = 0
+    let peak = 0
+
+    await mapConcurrent(Array.from({ length: 12 }, (_, i) => i), 3, async () => {
+      inFlight++
+      peak = Math.max(peak, inFlight)
+      await sleep(5)
+      inFlight--
+    })
+
+    expect(peak).toBe(3)
+  })
+
+  it('hands the index to the callback', async () => {
+    expect(await mapConcurrent(['a', 'b', 'c'], 2, async (item, i) => `${i}${item}`)).toEqual(['0a', '1b', '2c'])
+  })
+
+  it('handles an empty list without hanging', async () => {
+    expect(await mapConcurrent([], 4, async () => 1)).toEqual([])
+  })
+
+  it('rejects when a call rejects', async () => {
+    expect(mapConcurrent([1, 2], 2, async (n) => {
+      if (n === 2)
+        throw new Error('boom')
+
+      return n
+    })).rejects.toThrow('boom')
   })
 })
