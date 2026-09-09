@@ -134,6 +134,34 @@ export function searchAll(query: string, ...values: string[]): boolean {
   return values.every(value => normalizeAccents(value).toLowerCase().includes(query))
 }
 
+/** whether the needle's characters appear in the value in order, contiguous or not */
+function isSubsequence(needle: string, value: string): boolean {
+  const wanted = [...needle]
+  let at = 0
+
+  for (const char of value) {
+    if (char === wanted[at])
+      at++
+
+    if (at === wanted.length)
+      return true
+  }
+
+  return at === wanted.length
+}
+
+/** whether every whitespace-separated term of the query is spread through one of the values, in order */
+export function searchFuzzy(query: string, ...values: string[]): boolean {
+  const terms = normalizeAccents(query).toLowerCase().split(/\s+/).filter(Boolean)
+
+  if (!terms.length)
+    return true
+
+  const haystacks = values.map(value => normalizeAccents(value).toLowerCase())
+
+  return terms.every(term => haystacks.some(value => isSubsequence(term, value)))
+}
+
 /**
  * remove JavaScript/TypeScript/JSONC comments from code
  * handles single-line (//) and multi-line (/* *\/) comments while preserving string literals

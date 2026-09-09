@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { commonPrefix, commonPrefixLength, counted, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
+import { commonPrefix, commonPrefixLength, counted, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -285,6 +285,33 @@ describe('searchAll function', () => {
     const result = searchAll('café', 'Café au lait', 'Café noir')
 
     expect(result).toEqual(true)
+  })
+})
+
+describe('searchFuzzy function', () => {
+  it('should require every term of the query, across all the values', () => {
+    expect(searchFuzzy('extra juice', 'Extra Delight', 'cactus_juice')).toEqual(true)
+    expect(searchFuzzy('extra juice', 'Extra Delight', 'vinegar_pot')).toEqual(false)
+  })
+
+  it('should match a term spread through a value, in order', () => {
+    expect(searchFuzzy('edjuice', 'extradelight:cactus_juice')).toEqual(true)
+    expect(searchFuzzy('juicecactus', 'extradelight:cactus_juice')).toEqual(false)
+    expect(searchFuzzy('juice cactus', 'extradelight:cactus_juice')).toEqual(true)
+  })
+
+  it('should handle accents and case in the query and values', () => {
+    expect(searchFuzzy('café', 'Café au lait')).toEqual(true)
+    expect(searchFuzzy('CAFE', 'Café au lait')).toEqual(true)
+  })
+
+  it('should answer every value when the query holds no term', () => {
+    expect(searchFuzzy('', 'anything')).toEqual(true)
+    expect(searchFuzzy('   ', 'anything')).toEqual(true)
+  })
+
+  it('should return false when there is nothing to search', () => {
+    expect(searchFuzzy('juice')).toEqual(false)
   })
 })
 
