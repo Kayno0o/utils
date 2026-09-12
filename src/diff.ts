@@ -1,5 +1,5 @@
 import type { TextSpan } from './text'
-import { tokenizeWords } from './text'
+import { tokenizeLines, tokenizeWords } from './text'
 
 export interface DiffHunk {
   aStart: number
@@ -124,4 +124,9 @@ export function diffWords(source: string, corrected: string): TextEdit[] {
   }
 
   return edits
+}
+
+/** Runs of lines that differ, as index ranges over each side's [tokenizeLines] spans. */
+export function diffLines(before: string, after: string): DiffHunk[] {
+  return diffTokens(tokenizeLines(before), tokenizeLines(after))
 }

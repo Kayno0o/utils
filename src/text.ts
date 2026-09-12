@@ -996,6 +996,25 @@ export function tokenizeWords(text: string): TextSpan[] {
   return [...text.matchAll(WORD_RE)].map(match => ({ text: match[0], offset: match.index }))
 }
 
+/** Every line, blank ones included, with where it starts in `text`. A trailing newline ends the last line rather than starting an empty one. */
+export function tokenizeLines(text: string): TextSpan[] {
+  if (text === '')
+    return []
+
+  const spans: TextSpan[] = []
+  let offset = 0
+
+  for (const line of text.split('\n')) {
+    spans.push({ text: line, offset })
+    offset += line.length + 1
+  }
+
+  if (spans.length > 1 && spans.at(-1)!.text === '')
+    spans.pop()
+
+  return spans
+}
+
 /** Sentences with where each starts, split by the locale's own rules rather than by punctuation. */
 export function splitSentences(text: string, locale = 'en'): TextSpan[] {
   const segmenter = new Intl.Segmenter(locale, { granularity: 'sentence' })

@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { diffTokens, diffWords, tokenizeWords } from '../src'
+import { diffLines, diffTokens, diffWords, tokenizeLines, tokenizeWords } from '../src'
 
 function apply(source: string, edits: { offset: number, length: number, replacement: string }[]): string {
   let out = source
@@ -21,6 +21,45 @@ describe('tokenizeWords', () => {
 
   it('returns nothing for whitespace', () => {
     expect(tokenizeWords('   ')).toEqual([])
+  })
+})
+
+describe('tokenizeLines', () => {
+  it('records where every line starts, blank ones included', () => {
+    expect(tokenizeLines('a\n\nbc')).toEqual([
+      { text: 'a', offset: 0 },
+      { text: '', offset: 2 },
+      { text: 'bc', offset: 3 },
+    ])
+  })
+
+  it('reads a trailing newline as the end of the last line', () => {
+    expect(tokenizeLines('a\nb\n')).toEqual([
+      { text: 'a', offset: 0 },
+      { text: 'b', offset: 2 },
+    ])
+  })
+
+  it('returns nothing for an empty string', () => {
+    expect(tokenizeLines('')).toEqual([])
+  })
+})
+
+describe('diffLines', () => {
+  it('finds nothing in identical text', () => {
+    expect(diffLines('one\ntwo', 'one\ntwo')).toEqual([])
+  })
+
+  it('reports the changed lines only', () => {
+    expect(diffLines('a\nx\nd', 'a\np\nd')).toEqual([{ aStart: 1, aEnd: 2, bStart: 1, bEnd: 2 }])
+  })
+
+  it('reports an appended line', () => {
+    expect(diffLines('a\nb', 'a\nb\nc')).toEqual([{ aStart: 2, aEnd: 2, bStart: 2, bEnd: 3 }])
+  })
+
+  it('reads writing into an empty body as a pure insert', () => {
+    expect(diffLines('', 'first\nsecond')).toEqual([{ aStart: 0, aEnd: 0, bStart: 0, bEnd: 2 }])
   })
 })
 
