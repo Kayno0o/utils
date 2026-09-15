@@ -72,4 +72,21 @@ describe('gridDays', () => {
     for (let i = 1; i < days.length; i++)
       expect(days[i]! > days[i - 1]!).toBe(true)
   })
+
+  it('steps one calendar day at a time across DST changes', () => {
+    const timezone = process.env.TZ
+
+    // Paris leaves summer time on 2025-10-26 and enters it again on 2026-03-29.
+    process.env.TZ = 'Europe/Paris'
+
+    try {
+      const days = gridDays(53, new Date(2026, 8, 15))
+
+      expect(new Set(days).size).toBe(days.length)
+      expect(days).toContain('2026-03-29')
+    }
+    finally {
+      process.env.TZ = timezone
+    }
+  })
 })

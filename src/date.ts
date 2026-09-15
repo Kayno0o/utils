@@ -286,8 +286,9 @@ export function gridDays(weeks: number, today: Date = new Date()): string[] {
 
   const days: string[] = []
 
-  for (let t = start.getTime(); t <= end.getTime(); t += DAY_MS)
-    days.push(toISODate(new Date(t)))
+  // Step by calendar day: adding DAY_MS drifts an hour at each DST change, repeating one day and skipping another.
+  for (const day = new Date(start); day.getTime() <= end.getTime(); day.setDate(day.getDate() + 1))
+    days.push(toISODate(day))
 
   return days
 }
