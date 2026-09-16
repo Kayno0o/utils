@@ -1,11 +1,13 @@
 import TurndownService from 'turndown'
 
-export async function copy(text: string) {
-  const type = 'text/plain'
-  const blob = new Blob([text], { type })
-  const data = [new ClipboardItem({ [type]: blob })]
+/** Copies `text`, with an `html` version alongside for apps that paste rich text, such as documents and mail. */
+export async function copy(text: string, options: { html?: string } = {}) {
+  const formats: Record<string, Blob> = { 'text/plain': new Blob([text], { type: 'text/plain' }) }
 
-  await navigator.clipboard.write(data)
+  if (options.html)
+    formats['text/html'] = new Blob([options.html], { type: 'text/html' })
+
+  await navigator.clipboard.write([new ClipboardItem(formats)])
 }
 
 const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' })
