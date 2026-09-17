@@ -1,4 +1,4 @@
-import { describe, expect, test as it } from 'bun:test'
+import { describe, expect, test as it, spyOn } from 'bun:test'
 import { base64Decode, base64Encode, commonPrefix, commonPrefixLength, counted, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
 
 describe('randomString function', () => {
@@ -12,6 +12,21 @@ describe('randomString function', () => {
     const length = 10
 
     expect(randomString(length, undefined, true)).toHaveLength(length)
+  })
+
+  it('draws again for bytes past the last whole run over the charset, so no character is favoured', () => {
+    // 255 is the biased tail of a 3-symbol charset (limit 255), so it is dropped and the next draw fills the gap.
+    const draws = [[255, 4], [5]]
+    const spy = spyOn(crypto, 'getRandomValues').mockImplementation(<T extends ArrayBufferView | null>(array: T): T => {
+      (array as unknown as Uint8Array).set(draws.shift() ?? [])
+
+      return array
+    })
+
+    expect(randomString(2, 'abc', true)).toBe('bc')
+    expect(spy).toHaveBeenCalledTimes(2)
+
+    spy.mockRestore()
   })
 
   it('should generate a random string from default charset', () => {
