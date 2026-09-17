@@ -339,6 +339,54 @@ export function diffInDays(a: Date, b: Date): number {
   return Math.round((startOfDay(b).getTime() - startOfDay(a).getTime()) / DAY_MS)
 }
 
+export interface DateDifference {
+  days: number
+  weeks: number
+  workingDays: number
+  hours: number
+  /** Whole years, months and days, counted on the calendar. */
+  calendar: { years: number, months: number, days: number }
+}
+
+/** The span between two `YYYY-MM-DD` dates, in whichever order, counted on UTC days so a daylight saving change never shifts it by an hour; `null` when either does not parse. */
+export function dateDifference(from: string, to: string): DateDifference | null {
+  const a = Date.parse(`${from}T00:00:00Z`)
+  const b = Date.parse(`${to}T00:00:00Z`)
+
+  if (Number.isNaN(a) || Number.isNaN(b))
+    return null
+
+  const [start, end] = a <= b ? [a, b] : [b, a]
+  const days = Math.round((end - start) / DAY_MS)
+  let workingDays = 0
+
+  for (let day = 0; day < days; day++) {
+    const weekday = new Date(start + day * DAY_MS).getUTCDay()
+
+    if (weekday !== 0 && weekday !== 6)
+      workingDays++
+  }
+
+  const first = new Date(start)
+  const last = new Date(end)
+  let months = (last.getUTCFullYear() - first.getUTCFullYear()) * 12 + last.getUTCMonth() - first.getUTCMonth()
+
+  if (last.getUTCDate() < first.getUTCDate())
+    months--
+
+  // A start on the 31st anchors to the last day of a shorter month, rather than overflowing into the next one.
+  const monthDays = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + months + 1, 0)).getUTCDate()
+  const anchor = Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + months, Math.min(first.getUTCDate(), monthDays))
+
+  return {
+    days,
+    weeks: Math.floor(days / 7),
+    workingDays,
+    hours: days * 24,
+    calendar: { years: Math.floor(months / 12), months: months % 12, days: Math.round((end - anchor) / DAY_MS) },
+  }
+}
+
 /** Whole hours from `a` to `b` (positive when `b` is later). */
 export function diffInHours(a: Date, b: Date): number {
   return Math.trunc((b.getTime() - a.getTime()) / HOUR_MS)

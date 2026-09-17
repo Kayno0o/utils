@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { degToRad, formatNumber, gcd, isPrime, lcm, mapRange, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, round } from '../src'
+import { convertBase, degToRad, entropyBits, formatNumber, gcd, isPrime, lcm, mapRange, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, reduceRatio, round } from '../src'
 
 describe('randomInt function', () => {
   it('within the specified range', () => {
@@ -213,5 +213,34 @@ describe('degToRad / radToDeg functions', () => {
 
   it('converts radians to degrees', () => {
     expect(radToDeg(Math.PI)).toBeCloseTo(180)
+  })
+})
+
+describe('reduceRatio', () => {
+  it('reduces ratios of positive whole numbers', () => {
+    expect(reduceRatio(1920, 1080)).toEqual({ w: 16, h: 9 })
+    expect(reduceRatio(0, 10)).toBeNull()
+    expect(reduceRatio(1.5, 10)).toBeNull()
+  })
+})
+
+describe('convertBase', () => {
+  it('converts exactly past the safe integer range, stripping a prefix only in its own base', () => {
+    expect(convertBase('18446744073709551615', 10)).toEqual({ bin: '1'.repeat(64), oct: '1777777777777777777777', dec: '18446744073709551615', hex: 'FFFFFFFFFFFFFFFF' })
+    expect(convertBase('0xff', 16)?.dec).toBe('255')
+    expect(convertBase('0b1', 16)?.dec).toBe('177')
+    expect(convertBase('-1_010', 2)?.dec).toBe('-10')
+    expect(convertBase('12', 2)).toBeNull()
+  })
+
+  it('keeps zero unsigned', () => {
+    expect(convertBase('-0', 10)?.dec).toBe('0')
+  })
+})
+
+describe('entropyBits', () => {
+  it('rates entropy by bits', () => {
+    expect(entropyBits(16, 94)).toBe(104)
+    expect(entropyBits(10, 1)).toBe(0)
   })
 })

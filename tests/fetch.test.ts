@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { createFetcher, FetchError, fetchJson, FetchParseError, mergeHeaders } from '../src/browser/fetch'
+import { combineSignals, fetchWithTimeout } from '../src/fetch'
 import { tryCatch } from '../src/function'
 
 interface MockCall {
@@ -395,5 +396,65 @@ describe('onResponse', () => {
     await tryCatch(async () => fetcher('/users'))
 
     expect(seen).toEqual([401])
+  })
+})
+
+describe('combineSignals', () => {
+  it('gives back what it was handed when there is nothing to combine', () => {
+    const controller = new AbortController()
+
+    expect(combineSignals(undefined, undefined)).toBeUndefined()
+    expect(combineSignals(controller.signal, undefined)).toBe(controller.signal)
+  })
+
+  it('aborts on whichever of the two fires first', () => {
+    const controller = new AbortController()
+    const combined = combineSignals(controller.signal, 10_000)
+
+    controller.abort(new Error('caller went away'))
+
+    expect(combined?.aborted).toBe(true)
+  })
+})
+
+describe('fetchWithTimeout', () => {
+  /** Answers nothing, so only an abort ever settles the call. */
+  function mockHangingFetch(): { signal: () => AbortSignal | null | undefined } {
+    let seen: AbortSignal | null | undefined
+
+    globalThis.fetch = Object.assign(
+      async (_url: RequestInfo | URL, init: RequestInit = {}) => {
+        seen = init.signal
+
+        return await new Promise<Response>((_, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new Error('aborted')))
+        })
+      },
+      // eslint-disable-next-line ts/no-empty-function
+      { preconnect: () => {} },
+    ) as unknown as typeof fetch
+
+    return { signal: () => seen }
+  }
+
+  it('aborts on its own deadline', async () => {
+    mockHangingFetch()
+
+    const [error] = await tryCatch(async () => fetchWithTimeout('/slow', { timeoutMs: 5 }))
+
+    expect(error).toBeInstanceOf(Error)
+  })
+
+  it('still aborts on the caller signal', async () => {
+    const mock = mockHangingFetch()
+    const controller = new AbortController()
+    const call = tryCatch(async () => fetchWithTimeout('/slow', { signal: controller.signal, timeoutMs: 10_000 }))
+
+    controller.abort(new Error('caller went away'))
+
+    const [error] = await call
+
+    expect(error).toBeInstanceOf(Error)
+    expect(mock.signal()?.aborted).toBe(true)
   })
 })

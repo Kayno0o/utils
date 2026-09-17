@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { commonPrefix, commonPrefixLength, counted, escapeCSV, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
+import { base64Decode, base64Encode, commonPrefix, commonPrefixLength, counted, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -1095,5 +1095,35 @@ describe('maskEnv', () => {
 
   it('takes spaces around the equals and an equals inside the value', () => {
     expect(maskEnv('A = value\nB=a=b=c').result).toBe('A=\nB=')
+  })
+})
+
+describe('escapeHtml', () => {
+  it('escapes the characters HTML treats specially, the backtick included', () => {
+    expect(escapeHtml('<a href="x">it\'s & `y`</a>')).toBe('&lt;a href=&quot;x&quot;&gt;it&#39;s &amp; &#96;y&#96;&lt;/a&gt;')
+  })
+
+  it('spells the apostrophe as XML does not', () => {
+    expect(escapeXml('it\'s')).toBe('it&apos;s')
+  })
+})
+
+describe('base64', () => {
+  it('round-trips UTF-8, in both alphabets', () => {
+    const text = 'héllo 👋 ~~~?'
+
+    expect(base64Encode('héllo')).toBe('aMOpbGxv')
+    expect(base64Decode(base64Encode(text))).toBe(text)
+    expect(base64Encode(text, true)).not.toMatch(/[+/=]/)
+    expect(base64Decode(base64Encode(text, true))).toBe(text)
+  })
+
+  it('takes whitespace and missing padding', () => {
+    expect(base64Decode(' aMOp bGxv ')).toBe('héllo')
+    expect(base64Decode('aGk')).toBe('hi')
+  })
+
+  it('throws on base64 that is not UTF-8', () => {
+    expect(() => base64Decode('/w==')).toThrow()
   })
 })

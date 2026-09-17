@@ -135,3 +135,48 @@ export function isPrime(n: number): boolean {
 
 export const degToRad = (degrees: number): number => degrees * Math.PI / 180
 export const radToDeg = (radians: number): number => radians * 180 / Math.PI
+
+/** `width:height` reduced, or `null` unless both are positive whole numbers. */
+export function reduceRatio(width: number, height: number): { w: number, h: number } | null {
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0)
+    return null
+
+  const divisor = gcd(width, height)
+
+  return { w: width / divisor, h: height / divisor }
+}
+
+export type NumberBase = 2 | 8 | 10 | 16
+
+const BASE_DIGITS: Record<NumberBase, RegExp> = { 2: /^[01]+$/, 8: /^[0-7]+$/, 10: /^\d+$/, 16: /^[\da-f]+$/ }
+const UNDERSCORES_AND_SPACES = /[_\s]/g
+
+/** The prefix a base is written with in code, stripped only for that base: `0b1` is binary, while in hex it is the digits 0, b and 1. */
+const BASE_PREFIXES: Partial<Record<NumberBase, string>> = { 2: '0b', 8: '0o', 16: '0x' }
+
+/** A number written in `base` in all four bases, exactly at any size since it goes through `BigInt`; `null` when it is not a number in that base. */
+export function convertBase(input: string, base: NumberBase): Record<'bin' | 'oct' | 'dec' | 'hex', string> | null {
+  const trimmed = input.trim().toLowerCase()
+  const negative = trimmed.startsWith('-')
+  const unsigned = (negative ? trimmed.slice(1) : trimmed).replace(UNDERSCORES_AND_SPACES, '')
+  const prefix = BASE_PREFIXES[base]
+  const digits = prefix && unsigned.startsWith(prefix) ? unsigned.slice(prefix.length) : unsigned
+
+  if (!BASE_DIGITS[base].test(digits))
+    return null
+
+  let value = 0n
+
+  for (const digit of digits)
+    value = value * BigInt(base) + BigInt(Number.parseInt(digit, base))
+
+  const sign = negative && value !== 0n ? '-' : ''
+  const show = (radix: number) => `${sign}${value.toString(radix)}`
+
+  return { bin: show(2), oct: show(8), dec: show(10), hex: show(16).toUpperCase() }
+}
+
+/** Bits of entropy in a random string of `length` drawn from `size` characters. */
+export function entropyBits(length: number, size: number): number {
+  return size > 1 ? Math.floor(length * Math.log2(size)) : 0
+}

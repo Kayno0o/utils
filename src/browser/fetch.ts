@@ -1,3 +1,5 @@
+import { combineSignals } from '../fetch'
+
 type HeaderValue = string | undefined
 export type HeadersInput = [string, HeaderValue][] | Record<string, HeaderValue> | Headers
 
@@ -80,15 +82,6 @@ function applyQuery(url: string, query: QueryInput | undefined): string {
   const path = `${parsed.pathname}${parsed.search}${parsed.hash}`
 
   return parsed.origin === RELATIVE_BASE ? path : `//${parsed.host}${path}`
-}
-
-function combineSignals(signal: AbortSignal | null | undefined, timeout: number | undefined): AbortSignal | undefined {
-  if (timeout === undefined)
-    return signal ?? undefined
-
-  const timeoutSignal = AbortSignal.timeout(timeout)
-
-  return signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal
 }
 
 /** A refusal's body as JSON, where an api puts a 422's problems or a 409's roster. */

@@ -1,5 +1,5 @@
 import { describe, expect, test as it, spyOn } from 'bun:test'
-import { comparePasswords, hashPassword, hmac, nanoid, PASSWORD_HASH_PARAMS, passwordNeedsRehash } from '../src'
+import { comparePasswords, digestHex, hashPassword, hmac, nanoid, PASSWORD_HASH_PARAMS, passwordNeedsRehash } from '../src'
 
 describe('nanoid', () => {
   it('returns default length of 21', () => {
@@ -117,5 +117,17 @@ describe('hmac', () => {
     const result = await hmac('key', 'message', 'SHA-512')
 
     expect(result).toHaveLength(128)
+  })
+})
+
+describe('digestHex', () => {
+  it('hashes to lowercase hex', async () => {
+    expect(await digestHex('SHA-256', 'abc')).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
+  })
+
+  it('gives each algorithm its own digest length', async () => {
+    expect(await digestHex('SHA-1', '')).toHaveLength(40)
+    expect(await digestHex('SHA-384', '')).toHaveLength(96)
+    expect(await digestHex('SHA-512', '')).toHaveLength(128)
   })
 })

@@ -1,5 +1,6 @@
 export * from './canvas'
 export * from './clipboard'
+export * from './color'
 export * from './cookie'
 export * from './download'
 export * from './fetch'

@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { addDays, addMonths, addYears, age, businessDaysBetween, calculateEaster, DAY_MS, diffInDays, diffInHours, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, getFrenchHolidays, getQuarter, getWeekNumber, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, msDurationToString, parseDateLabel, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, stringToMsDuration, WEEK_MS } from '../src'
+import { addDays, addMonths, addYears, age, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, diffInDays, diffInHours, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, getFrenchHolidays, getQuarter, getWeekNumber, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, msDurationToString, parseDateLabel, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, stringToMsDuration, WEEK_MS } from '../src'
 
 describe('msDurationToString function', () => {
   it('decomposes a duration into the largest units first', () => {
@@ -360,5 +360,20 @@ describe('businessDaysBetween function', () => {
 
   it('is order-insensitive', () => {
     expect(businessDaysBetween(new Date(2024, 0, 5), new Date(2024, 0, 1))).toBe(5)
+  })
+})
+
+describe('dateDifference', () => {
+  it('counts days, working days and the calendar span in either order', () => {
+    expect(dateDifference('2024-03-01', '2024-01-01')).toMatchObject({ days: 60, weeks: 8, hours: 1440, workingDays: 44, calendar: { years: 0, months: 2, days: 0 } })
+  })
+
+  it('anchors a start past the end of a shorter month to its last day', () => {
+    expect(dateDifference('2023-01-31', '2023-03-01')?.calendar).toEqual({ years: 0, months: 1, days: 1 })
+    expect(dateDifference('2020-02-29', '2023-03-01')?.calendar).toEqual({ years: 3, months: 0, days: 1 })
+  })
+
+  it('returns null for a date that does not parse', () => {
+    expect(dateDifference('nope', '2024-01-01')).toBeNull()
   })
 })

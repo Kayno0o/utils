@@ -229,6 +229,40 @@ export function escapeXml(unsafe: string): string {
   })
 }
 
+const HTML_CHARS = /[&<>"'`]/g
+const HTML_ENTITIES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;', '`': '&#96;' }
+
+/** Escapes what HTML treats specially, the backtick included since IE once read one as an attribute delimiter. Use `escapeXml` for XML, which spells the apostrophe `&apos;`. */
+export function escapeHtml(text: string): string {
+  return text.replace(HTML_CHARS, char => HTML_ENTITIES[char] ?? char)
+}
+
+const BASE64URL_CHARS = /[-_]/g
+const WHITESPACE = /\s+/g
+const TRAILING_PADDING = /=+$/
+const PLUS = /\+/g
+const SLASH = /\//g
+
+/** Base64 of the text's UTF-8 bytes, so any character encodes where `btoa` throws past Latin-1; `url` gives the url-safe alphabet without padding. */
+export function base64Encode(text: string, url = false): string {
+  let binary = ''
+
+  for (const byte of new TextEncoder().encode(text))
+    binary += String.fromCharCode(byte)
+
+  const encoded = btoa(binary)
+
+  return url ? encoded.replace(PLUS, '-').replace(SLASH, '_').replace(TRAILING_PADDING, '') : encoded
+}
+
+/** The UTF-8 text behind base64, in either alphabet, with or without padding; throws when it is not base64 or not UTF-8. */
+export function base64Decode(encoded: string): string {
+  const normal = encoded.replace(WHITESPACE, '').replace(BASE64URL_CHARS, char => (char === '-' ? '+' : '/'))
+  const binary = atob(normal.padEnd(Math.ceil(normal.length / 4) * 4, '='))
+
+  return new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(binary, char => char.charCodeAt(0)))
+}
+
 export function escapeCSV(value: string | number): string {
   let stringValue = String(value)
 
