@@ -4,48 +4,89 @@ import { colors } from './tools/colors'
 
 export interface SpawnResult { stdout: string, stderr: string, exitCode: number }
 
+export interface SpawnOptions {
+  /** Written to the process and closed; without it the process reads nothing. */
+  stdin?: ArrayBuffer | Uint8Array | string
+  /** Kills the process past this deadline, which then counts as a failed exit. */
+  timeoutMs?: number
+}
+
 class SpawnError extends Error {
-  constructor(cmd: string, code: number, stderr: string) {
-    super(`Command failed (exit ${code}): ${cmd}\n${stderr.trim()}`)
+  constructor(argv: string[], code: number, stderr: string) {
+    super(`Command failed (exit ${code}): ${argv.join(' ')}\n${stderr.trim()}`)
     this.name = 'SpawnError'
   }
 }
 
-/** Runs `cmd` (with optional `args`) and resolves with trimmed stdout. Throws on non-zero exit. */
-export async function spawnText(cmd: string, args: string[] = []): Promise<string> {
-  const proc = Bun.spawn([cmd, ...args], { stdout: 'pipe', stderr: 'pipe' })
-  const [out, err, code] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ])
+/** The `(cmd, args)` form predates the argv array, so both resolve to one argv and its options. */
+function resolveArgs(argvOrCmd: string[] | string, optsOrArgs?: SpawnOptions | string[]): [string[], SpawnOptions] {
+  if (typeof argvOrCmd === 'string')
+    return [[argvOrCmd, ...(optsOrArgs as string[] | undefined ?? [])], {}]
+
+  return [argvOrCmd, optsOrArgs as SpawnOptions | undefined ?? {}]
+}
+
+async function feed(sink: Bun.FileSink | number | undefined, input: SpawnOptions['stdin']): Promise<void> {
+  if (input === undefined || typeof sink !== 'object')
+    return
+
+  sink.write(input)
+  await sink.end()
+}
+
+// stdin feeds while stdout and stderr drain: a process filling a pipe nobody reads would block forever.
+async function run<T>(argv: string[], opts: SpawnOptions, read: (stdout: ReadableStream<Uint8Array>) => Promise<T>): Promise<{ out: T, err: string, code: number }> {
+  const proc = Bun.spawn(argv, { stdout: 'pipe', stderr: 'pipe', stdin: opts.stdin === undefined ? 'ignore' : 'pipe' })
+
+  const timer = opts.timeoutMs === undefined ? undefined : setTimeout(() => proc.kill(), opts.timeoutMs)
+
+  try {
+    const [out, err, code] = await Promise.all([read(proc.stdout), new Response(proc.stderr).text(), proc.exited, feed(proc.stdin, opts.stdin)])
+
+    return { out, err, code }
+  }
+  finally {
+    clearTimeout(timer)
+  }
+}
+
+/** Runs `argv` and resolves with trimmed stdout. Throws on non-zero exit, stderr in the message. */
+export async function spawnText(argv: string[], opts?: SpawnOptions): Promise<string>
+/** @deprecated pass the command and its args as one array: `spawnText([cmd, ...args])` */
+export async function spawnText(cmd: string, args?: string[]): Promise<string>
+export async function spawnText(argvOrCmd: string[] | string, optsOrArgs?: SpawnOptions | string[]): Promise<string> {
+  const [argv, opts] = resolveArgs(argvOrCmd, optsOrArgs)
+  const { out, err, code } = await run(argv, opts, async stdout => new Response(stdout).text())
 
   if (code !== 0)
-    throw new SpawnError([cmd, ...args].join(' '), code, err)
+    throw new SpawnError(argv, code, err)
 
   return out.trim()
 }
 
-/** Runs `cmd` (with optional `args`) and resolves with raw stdout bytes. Throws on non-zero exit. */
-export async function spawnBytes(cmd: string, args: string[] = []): Promise<Uint8Array> {
-  const proc = Bun.spawn([cmd, ...args], { stdout: 'pipe', stderr: 'pipe' })
-  const [bytes, err, code] = await Promise.all([
-    new Response(proc.stdout).arrayBuffer(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ])
+/** Runs `argv` and resolves with raw stdout bytes. Throws on non-zero exit, stderr in the message. */
+export async function spawnBytes(argv: string[], opts?: SpawnOptions): Promise<Uint8Array>
+/** @deprecated pass the command and its args as one array: `spawnBytes([cmd, ...args])` */
+export async function spawnBytes(cmd: string, args?: string[]): Promise<Uint8Array>
+export async function spawnBytes(argvOrCmd: string[] | string, optsOrArgs?: SpawnOptions | string[]): Promise<Uint8Array> {
+  const [argv, opts] = resolveArgs(argvOrCmd, optsOrArgs)
+  const { out, err, code } = await run(argv, opts, async stdout => new Response(stdout).arrayBuffer())
 
   if (code !== 0)
-    throw new SpawnError([cmd, ...args].join(' '), code, err)
+    throw new SpawnError(argv, code, err)
 
-  return new Uint8Array(bytes)
+  return new Uint8Array(out)
 }
 
-/** Runs `cmd` (with optional `args`) and resolves with the exit code, never throws. */
-export async function spawnExit(cmd: string, args: string[] = []): Promise<number> {
-  const proc = Bun.spawn([cmd, ...args], { stdout: 'pipe', stderr: 'pipe' })
+/** Runs `argv` and resolves with the exit code, never throws. */
+export async function spawnExit(argv: string[], opts?: SpawnOptions): Promise<number>
+/** @deprecated pass the command and its args as one array: `spawnExit([cmd, ...args])` */
+export async function spawnExit(cmd: string, args?: string[]): Promise<number>
+export async function spawnExit(argvOrCmd: string[] | string, optsOrArgs?: SpawnOptions | string[]): Promise<number> {
+  const [argv, opts] = resolveArgs(argvOrCmd, optsOrArgs)
+  const { code } = await run(argv, opts, async stdout => new Response(stdout).arrayBuffer())
 
-  return proc.exited
+  return code
 }
 
 type NumberOptionType = 'number' | 'int' | 'float'
