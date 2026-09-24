@@ -26,6 +26,44 @@ export function debounce<T extends (...args: any[]) => any>(func: T, delay: numb
   }
 }
 
+/** Runs an async task at most once at a time: a burst of triggers within `delay` runs it once, triggers during a run queue one more, a failure goes to `onError`. */
+export function coalesce(task: () => Promise<void>, delay: number, onError: (error: unknown) => void): () => void {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let running = false
+  let again = false
+
+  async function start(): Promise<void> {
+    timer = undefined
+    running = true
+
+    try {
+      await task()
+    }
+    catch (error) {
+      onError(error)
+    }
+
+    running = false
+
+    if (again) {
+      again = false
+      trigger()
+    }
+  }
+
+  function trigger(): void {
+    if (running) {
+      again = true
+
+      return
+    }
+
+    timer ??= setTimeout(() => void start(), delay)
+  }
+
+  return trigger
+}
+
 export function throttle<T extends (...args: any[]) => any>(func: T, delay: number): ((...args: Parameters<T>) => void) {
   let timeoutId: ReturnType<typeof setTimeout> | undefined
   let canRun = true

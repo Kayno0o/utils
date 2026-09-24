@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { compose, curry, identity, negate, noop, partial, pipe, tap, tryCatch } from '../src'
+import { coalesce, compose, curry, identity, negate, noop, partial, pipe, tap, tryCatch } from '../src'
 
 describe('identity / noop', () => {
   it('identity returns its argument', () => {
@@ -116,5 +116,61 @@ describe('tryCatch function', () => {
 
     expect(error?.message).toBe('nope')
     expect(value).toBeUndefined()
+  })
+})
+
+describe('coalesce', () => {
+  it('runs a burst of triggers once', async () => {
+    let runs = 0
+    const trigger = coalesce(async () => {
+      runs++
+    }, 5, noop)
+
+    trigger()
+    trigger()
+    trigger()
+    await Bun.sleep(20)
+
+    expect(runs).toBe(1)
+  })
+
+  it('never overlaps a run, and runs once more for whatever came in during it', async () => {
+    let running = 0
+    let overlapped = false
+    let runs = 0
+    const trigger = coalesce(async () => {
+      overlapped ||= running > 0
+      running++
+      runs++
+      await Bun.sleep(20)
+      running--
+    }, 1, noop)
+
+    trigger()
+    await Bun.sleep(5)
+    trigger()
+    trigger()
+    await Bun.sleep(60)
+
+    expect(overlapped).toBe(false)
+    expect(runs).toBe(2)
+  })
+
+  it('hands a failure over and runs again on the next trigger', async () => {
+    const errors: unknown[] = []
+    let runs = 0
+    const trigger = coalesce(async () => {
+      runs++
+
+      throw new Error('boom')
+    }, 1, error => errors.push(error))
+
+    trigger()
+    await Bun.sleep(10)
+    trigger()
+    await Bun.sleep(10)
+
+    expect(runs).toBe(2)
+    expect(errors).toHaveLength(2)
   })
 })
