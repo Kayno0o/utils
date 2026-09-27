@@ -1,5 +1,5 @@
 import { describe, expect, test as it, spyOn } from 'bun:test'
-import { base64Decode, base64Encode, commonPrefix, commonPrefixLength, counted, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
+import { base64Decode, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -427,6 +427,40 @@ describe('commonPrefix function', () => {
     const result = commonPrefix('hello', 'world')
 
     expect(result).toEqual('')
+  })
+})
+
+describe('editDistance function', () => {
+  it('should count insertions, deletions and substitutions', () => {
+    expect(editDistance('kitten', 'sitting')).toEqual(3)
+    expect(editDistance('', 'abc')).toEqual(3)
+    expect(editDistance('abc', '')).toEqual(3)
+    expect(editDistance('same', 'same')).toEqual(0)
+  })
+
+  it('should count a swap of neighbours as one edit', () => {
+    expect(editDistance('isntall', 'install')).toEqual(1)
+    expect(editDistance('ab', 'ba')).toEqual(1)
+  })
+
+  it('should count an astral character as one', () => {
+    expect(editDistance('a😀', 'a😁')).toEqual(1)
+  })
+})
+
+describe('closestMatch function', () => {
+  it('should return the nearest candidate', () => {
+    expect(closestMatch('isntall', ['build', 'install', 'instal-dev'])).toEqual('install')
+  })
+
+  it('should keep the first of equally near candidates', () => {
+    expect(closestMatch('cat', ['bat', 'hat'])).toEqual('bat')
+  })
+
+  it('should return undefined when nothing is close enough', () => {
+    expect(closestMatch('deploy', ['build', 'test'])).toBeUndefined()
+    expect(closestMatch('tset', ['test'], 0)).toBeUndefined()
+    expect(closestMatch('x', [])).toBeUndefined()
   })
 })
 

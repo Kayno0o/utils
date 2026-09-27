@@ -298,6 +298,50 @@ export function commonPrefix(str1: string, str2: string): string {
   return str1.substring(0, length)
 }
 
+/** edits turning one string into the other, a swap of two neighbours counting as one edit like an insertion, deletion or substitution */
+export function editDistance(str1: string, str2: string): number {
+  // Spread so an astral character counts as one edit, not two halves.
+  const a = [...str1]
+  const b = [...str2]
+  let beforePrevious: number[] = []
+  let previous = Array.from({ length: b.length + 1 }, (_, j) => j)
+
+  for (let i = 1; i <= a.length; i++) {
+    const current = [i]
+
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1
+
+      current[j] = Math.min(previous[j]! + 1, current[j - 1]! + 1, previous[j - 1]! + cost)
+
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1])
+        current[j] = Math.min(current[j]!, beforePrevious[j - 2]! + 1)
+    }
+
+    beforePrevious = previous
+    previous = current
+  }
+
+  return previous[b.length]!
+}
+
+/** the candidate nearest the query, for a "did you mean", or undefined when none is within `maxDistance` edits (a third of the query by default) */
+export function closestMatch(query: string, candidates: Iterable<string>, maxDistance = Math.max(1, Math.floor([...query].length / 3))): string | undefined {
+  let best: string | undefined
+  let bestDistance = maxDistance + 1
+
+  for (const candidate of candidates) {
+    const distance = editDistance(query, candidate)
+
+    if (distance < bestDistance) {
+      best = candidate
+      bestDistance = distance
+    }
+  }
+
+  return best
+}
+
 export function getUuidFromIri(iri: string): string | null {
   const match = UUID_REGEX.exec(iri)
 
