@@ -64,6 +64,27 @@ export function coalesce(task: () => Promise<void>, delay: number, onError: (err
   return trigger
 }
 
+/** Returns a runner starting each task it is given once the ones given before have settled, in call order; a failure rejects only its own call. */
+export function createMutex(): <T>(task: () => Promise<T>) => Promise<T> {
+  let last: Promise<void> = Promise.resolve()
+
+  return async <T>(task: () => Promise<T>): Promise<T> => {
+    const before = last
+    let release!: () => void
+
+    last = new Promise<void>(resolve => (release = resolve))
+
+    try {
+      await before
+
+      return await task()
+    }
+    finally {
+      release()
+    }
+  }
+}
+
 export function throttle<T extends (...args: any[]) => any>(func: T, delay: number): ((...args: Parameters<T>) => void) {
   let timeoutId: ReturnType<typeof setTimeout> | undefined
   let canRun = true

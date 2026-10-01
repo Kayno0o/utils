@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { coalesce, compose, curry, identity, negate, noop, partial, pipe, tap, tryCatch } from '../src'
+import { coalesce, compose, createMutex, curry, identity, negate, noop, partial, pipe, tap, tryCatch } from '../src'
 
 describe('identity / noop', () => {
   it('identity returns its argument', () => {
@@ -172,5 +172,41 @@ describe('coalesce', () => {
 
     expect(runs).toBe(2)
     expect(errors).toHaveLength(2)
+  })
+})
+
+describe('createMutex', () => {
+  it('runs the tasks one after another, in call order, each answering its own call', async () => {
+    const run = createMutex()
+    const order: string[] = []
+    let running = 0
+    let overlapped = false
+    const task = (name: string, ms: number) => async () => {
+      overlapped ||= running > 0
+      running++
+      order.push(`${name} start`)
+      await Bun.sleep(ms)
+      order.push(`${name} end`)
+      running--
+
+      return name
+    }
+
+    const answers = await Promise.all([run(task('slow', 20)), run(task('fast', 1)), run(task('last', 1))])
+
+    expect(answers).toEqual(['slow', 'fast', 'last'])
+    expect(overlapped).toBe(false)
+    expect(order).toEqual(['slow start', 'slow end', 'fast start', 'fast end', 'last start', 'last end'])
+  })
+
+  it('rejects only the call that failed and goes on with the next', async () => {
+    const run = createMutex()
+    const failed = run(async () => {
+      throw new Error('boom')
+    })
+    const next = run(async () => 'next')
+
+    await expect(failed).rejects.toThrow('boom')
+    expect(await next).toBe('next')
   })
 })
