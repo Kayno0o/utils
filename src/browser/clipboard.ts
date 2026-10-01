@@ -1,3 +1,4 @@
+import { gfm } from '@joplin/turndown-plugin-gfm'
 import TurndownService from 'turndown'
 
 /** Copies `text`, with an `html` version alongside for apps that paste rich text, such as documents and mail. */
@@ -10,8 +11,9 @@ export async function copy(text: string, options: { html?: string } = {}) {
   await navigator.clipboard.write([new ClipboardItem(formats)])
 }
 
-const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' })
+const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' }).use(gfm)
 
+/** `html` as GitHub flavored markdown: tables, strikethrough and task lists included. */
 export function htmlToMarkdown(html: string): string {
   return html ? turndown.turndown(html) : ''
 }

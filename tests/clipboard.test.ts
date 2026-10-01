@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import { copy } from '../src/browser/clipboard'
+import { copy, htmlToMarkdown } from '../src/browser/clipboard'
 
 const globals = globalThis as Record<string, unknown>
 const original = { navigator: globals.navigator, ClipboardItem: globals.ClipboardItem }
@@ -47,5 +47,21 @@ describe('copy', () => {
     await copy('**hi**', { html: '<strong>hi</strong>' })
 
     expect(writes).toEqual([{ 'text/plain': '**hi**', 'text/html': '<strong>hi</strong>' }])
+  })
+})
+
+describe('htmlToMarkdown', () => {
+  it('turns a table into a markdown one', () => {
+    const html = '<table><thead><tr><th>Domain</th><th>Type</th></tr></thead><tbody><tr><td>example.com.</td><td>NS</td></tr></tbody></table>'
+
+    expect(htmlToMarkdown(html)).toBe('| Domain | Type |\n| --- | --- |\n| example.com. | NS  |')
+  })
+
+  it('gives a table with no heading row an empty one', () => {
+    expect(htmlToMarkdown('<table><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></table>')).toBe('|     |     |\n| --- | --- |\n| a   | b   |\n| c   | d   |')
+  })
+
+  it('keeps strikethrough and headings', () => {
+    expect(htmlToMarkdown('<h2>Title</h2><p><del>old</del> new</p>')).toBe('## Title\n\n~~old~~ new')
   })
 })

@@ -72,10 +72,14 @@
     "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null"
   },
   "peerDependencies": {
+    "@joplin/turndown-plugin-gfm": "^1.0.68",
     "turndown": "^7.2.4",
     "typescript": "^6.0.3"
   },
   "peerDependenciesMeta": {
+    "@joplin/turndown-plugin-gfm": {
+      "optional": true
+    },
     "turndown": {
       "optional": true
     }
@@ -84,6 +88,7 @@
     "uqr": "^0.1.3"
   },
   "devDependencies": {
+    "@joplin/turndown-plugin-gfm": "^1.0.68",
     "@kaynooo/changelogitea": "^1.6.2",
     "@kaynooo/eslint": "^3.0.1",
     "@paulmillr/qr": "^0.3.0",
