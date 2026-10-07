@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { countBy, getRandomElement, keyBy, mean, median, notNullish, range, sum, unique } from '../src'
+import { countBy, getRandomElement, keyBy, mean, median, notNullish, percentile, range, sum, unique } from '../src'
 
 describe('keyBy function', () => {
   it('indexes items by a key', () => {
@@ -21,7 +21,17 @@ describe('countBy function', () => {
   })
 })
 
-describe('sum / mean / median functions', () => {
+describe('sum / mean / median / percentile functions', () => {
+  it('interpolates percentiles between ranks', () => {
+    expect(percentile([4, 1, 3, 2], 50)).toBe(2.5)
+    expect(percentile([1, 2, 3, 4, 5], 0)).toBe(1)
+    expect(percentile([1, 2, 3, 4, 5], 100)).toBe(5)
+    expect(percentile([0, 10], 95)).toBe(9.5)
+    expect(percentile([7], 99)).toBe(7)
+    expect(percentile([1, 2], 150)).toBe(2)
+    expect(percentile([], 50)).toBe(0)
+  })
+
   it('sums values', () => {
     expect(sum([1, 2, 3, 4])).toBe(10)
     expect(sum([])).toBe(0)

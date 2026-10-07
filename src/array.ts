@@ -1,4 +1,4 @@
-import { randomInt } from './number'
+import { clamp, randomInt } from './number'
 
 export function getRandomElement<T>(values: T[], isCrypto = false): T {
   const index = randomInt(0, values.length, isCrypto)
@@ -152,6 +152,19 @@ export function median(values: number[]): number {
   const mid = Math.floor(sorted.length / 2)
 
   return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!
+}
+
+// p from 0 to 100, interpolating linearly between the two closest ranks like NumPy: percentile([1, 2, 3, 4], 50) is 2.5.
+export function percentile(values: number[], p: number): number {
+  if (values.length === 0)
+    return 0
+
+  const sorted = [...values].sort((a, b) => a - b)
+  const rank = clamp(p, 0, 100) / 100 * (sorted.length - 1)
+  const low = Math.floor(rank)
+  const high = Math.ceil(rank)
+
+  return sorted[low]! + (sorted[high]! - sorted[low]!) * (rank - low)
 }
 
 export function partition<T>(items: T[], getGroup: (item: T) => boolean): [T[], T[]] {
