@@ -11,6 +11,13 @@ type ColorsType
 
 type Appearance = 'fg' | 'bg'
 
+interface ColorStream { isTTY?: boolean }
+
+export interface ColorsOptions {
+  /** Stream whose TTY state decides whether escapes are written, `process.stdout` by default. */
+  stream?: ColorStream
+}
+
 const FG = 39
 const BG = 49
 const ANSI = '\u001B['
@@ -73,7 +80,25 @@ const styleMap = {
   ansi256: (code: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};5;${code}`, type === 'fg' ? FG : BG],
 } satisfies Record<string, ColorStyle | ((...args: any) => ColorStyle)>
 
-function applyStyles(styles: ColorStyle[], value: string): string {
+const FORCE_COLOR_ON = new Set(['', '1', '2', '3', 'true'])
+
+// Same rules as node:util styleText: FORCE_COLOR wins, then NO_COLOR, NODE_DISABLE_COLORS and TERM=dumb, then the stream's TTY state.
+function shouldColorize(stream: ColorStream | undefined): boolean {
+  const env = globalThis.process?.env ?? {}
+
+  if (env.FORCE_COLOR !== undefined)
+    return FORCE_COLOR_ON.has(env.FORCE_COLOR)
+
+  if (env.NO_COLOR !== undefined || env.NODE_DISABLE_COLORS !== undefined || env.TERM === 'dumb')
+    return false
+
+  return stream?.isTTY === true
+}
+
+function applyStyles(styles: ColorStyle[], value: string, options: ColorsOptions): string {
+  if (!shouldColorize(options.stream ?? globalThis.process?.stdout))
+    return value
+
   let open = ''
   let close = ''
 
@@ -87,22 +112,27 @@ function applyStyles(styles: ColorStyle[], value: string): string {
   return open + value + close
 }
 
-function makeProxy(styles: ColorStyle[] = []): ColorsType {
-  const fn = (val: string) => applyStyles(styles, val)
+function makeProxy(options: ColorsOptions, styles: ColorStyle[] = []): ColorsType {
+  const fn = (val: string) => applyStyles(styles, val, options)
 
   return new Proxy(fn, {
     get(_, prop: keyof ColorsType) {
       const val = styleMap[prop as keyof typeof styleMap]
 
       if (Array.isArray(val))
-        return makeProxy([...styles, val as ColorStyle])
+        return makeProxy(options, [...styles, val as ColorStyle])
 
       if (typeof val === 'function')
-        return (...args: any) => makeProxy([...styles, (val as any)(...args) as ColorStyle])
+        return (...args: any) => makeProxy(options, [...styles, (val as any)(...args) as ColorStyle])
 
       throw new Error(`Unknown style: ${String(prop)}`)
     },
   }) as ColorsType
 }
 
-export const colors = makeProxy()
+// Styles that write escapes only when `stream` is a TTY, e.g. `createColors({ stream: process.stderr }).red('failed')`.
+export function createColors(options: ColorsOptions = {}): ColorsType {
+  return makeProxy(options)
+}
+
+export const colors = createColors()
