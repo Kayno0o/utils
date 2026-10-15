@@ -25,10 +25,7 @@ class Calculator {
     console.log(`Computing fibonacci(${n})`)
     this.computationCount++
 
-    if (n <= 1)
-      return n
-
-    return this.fibonacci(n - 1) + this.fibonacci(n - 2)
+    return n <= 1 ? n : this.fibonacci(n - 1) + this.fibonacci(n - 2)
   }
 
   // Memoized method with TTL

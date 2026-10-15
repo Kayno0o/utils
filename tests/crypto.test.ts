@@ -11,7 +11,7 @@ describe('nanoid', () => {
   })
 
   it('uses only characters from the default alphabet', () => {
-    expect(nanoid(100)).toMatch(/^[\w\-]+$/)
+    expect(nanoid(100)).toMatch(/^[\w-]+$/)
   })
 
   it('uses custom alphabet', () => {
@@ -27,11 +27,8 @@ describe('nanoid', () => {
     expect(() => nanoid(8, 'a'.repeat(257))).toThrow(RangeError)
   })
 
-  /*
-   * 31 symbols means 256 % 31 leaves 8, so bytes 248-255 are the partial run: modulo would
-   * fold them onto `2`-`9` and make those ~12.5% likelier. Fed a sequence that is mostly
-   * those bytes, the result must skip them rather than emit an early symbol for each.
-   */
+  // 31 symbols means 256 % 31 leaves 8, so bytes 248-255 are the partial run: modulo would fold them onto `2`-`9` and make those ~12.5% likelier.
+  // Fed a sequence that is mostly those bytes, the result must skip them rather than emit an early symbol for each.
   it('draws again rather than folding out-of-range bytes onto the first symbols', () => {
     const alphabet = '23456789abcdefghjkmnpqrstuvwxyz'
     const feed = [0, 248, 250, 255, 1, 30]
@@ -50,34 +47,37 @@ describe('nanoid', () => {
   })
 })
 
+// Argon2id at its pinned cost takes a second or more per hash on a busy machine.
+const HASHING_TIMEOUT = 30_000
+
 describe('password hashing', () => {
   it('produces an argon2id hash at the pinned parameters', async () => {
     const hash = await hashPassword('correct horse battery staple')
 
     expect(hash.startsWith('$argon2id$v=19$m=65536,t=2,p=1$')).toBe(true)
     expect(PASSWORD_HASH_PARAMS.memoryCost).toBe(65536)
-  })
+  }, HASHING_TIMEOUT)
 
   it('salts every hash', async () => {
     expect(await hashPassword('same input')).not.toBe(await hashPassword('same input'))
-  })
+  }, HASHING_TIMEOUT)
 
   it('verifies the right password and refuses the wrong one', async () => {
     const hash = await hashPassword('correct horse battery staple')
 
     expect(await comparePasswords('correct horse battery staple', hash)).toBe(true)
     expect(await comparePasswords('Correct horse battery staple', hash)).toBe(false)
-  })
+  }, HASHING_TIMEOUT)
 
   it('reads a malformed stored hash as a mismatch', async () => {
     expect(await comparePasswords('anything', '')).toBe(false)
     expect(await comparePasswords('anything', 'not-a-hash')).toBe(false)
     expect(await comparePasswords('anything', '$argon2id$garbage')).toBe(false)
-  })
+  }, HASHING_TIMEOUT)
 
   it('leaves a hash at the current parameters alone', async () => {
     expect(passwordNeedsRehash(await hashPassword('whatever'))).toBe(false)
-  })
+  }, HASHING_TIMEOUT)
 
   it('flags weaker parameters, another algorithm and unreadable hashes', () => {
     expect(passwordNeedsRehash('$argon2id$v=19$m=19456,t=2,p=1$c2FsdA$aGFzaA')).toBe(true)
@@ -85,11 +85,11 @@ describe('password hashing', () => {
     expect(passwordNeedsRehash('$argon2i$v=19$m=65536,t=2,p=1$c2FsdA$aGFzaA')).toBe(true)
     expect(passwordNeedsRehash('$2b$10$abcdefghijklmnopqrstuv')).toBe(true)
     expect(passwordNeedsRehash('')).toBe(true)
-  })
+  }, HASHING_TIMEOUT)
 
   it('accepts parameters stronger than the current ones', () => {
     expect(passwordNeedsRehash('$argon2id$v=19$m=131072,t=4,p=1$c2FsdA$aGFzaA')).toBe(false)
-  })
+  }, HASHING_TIMEOUT)
 })
 
 describe('hmac', () => {

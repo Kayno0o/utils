@@ -22,10 +22,7 @@ export function getSvgDimension(svg: string, attr: 'width' | 'height'): number |
 export function setViewBox(svg: string, x: number, y: number, w: number, h: number): string {
   const vb = `viewBox="${round(x)} ${round(y)} ${round(w)} ${round(h)}"`
 
-  if (VIEWBOX_VALUE_RE.test(svg))
-    return svg.replace(VIEWBOX_VALUE_RE, vb)
-
-  return svg.replace('<svg', `<svg ${vb}`)
+  return VIEWBOX_VALUE_RE.test(svg) ? svg.replace(VIEWBOX_VALUE_RE, vb) : svg.replace('<svg', `<svg ${vb}`)
 }
 
 /**

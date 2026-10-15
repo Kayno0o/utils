@@ -30,10 +30,7 @@ export function isEmpty(value: any): boolean {
     if (value instanceof Date)
       return false
 
-    if (value instanceof Map || value instanceof Set)
-      return value.size === 0
-
-    return Object.keys(value).length === 0
+    return value instanceof Map || value instanceof Set ? value.size === 0 : Object.keys(value).length === 0
   }
 
   return false

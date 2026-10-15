@@ -258,10 +258,7 @@ function parsePathOption(option: TypedOptionDefinition<StringOptionType, string>
 
 function parseOption(option: OptionDefinition & { name: string }, value: string | undefined): any {
   if (option.format) {
-    if (value === undefined)
-      return undefined
-
-    return option.format(value)
+    return value === undefined ? undefined : option.format(value)
   }
 
   if (!option.type)

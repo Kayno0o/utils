@@ -5,10 +5,7 @@ export function getObjectValue(object: any, key: Key): any {
   if (typeof object !== 'object')
     return object
 
-  if (object[key])
-    return object[key]
-
-  return String(key).split('.').reduce((acc, key) => acc?.[key], object)
+  return object[key] ? object[key] : String(key).split('.').reduce((acc, key) => acc?.[key], object)
 }
 
 export function mergeObjects<T extends object>(obj1: T | RecursivePartial<T>, obj2: T | RecursivePartial<T>): T {
@@ -135,10 +132,7 @@ export function omit<T extends object, K extends keyof T>(object: T, keys: K[]):
 /** @deprecated use `resolveValue` */
 export const unfunction = resolveValue
 export function resolveValue<T>(c: T | (() => T)): T {
-  if (typeof c === 'function')
-    return (c as () => T)()
-
-  return c
+  return typeof c === 'function' ? (c as () => T)() : c
 }
 
 // `Object.keys/values/entries` only enumerate own string-keyed properties:

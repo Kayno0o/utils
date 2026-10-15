@@ -155,8 +155,5 @@ export function buildDate(dateOrOptions?: string | Date | FormatDateOption | For
   if (options?.build)
     return formatDate(date, options.build as DateBuilderFunction)
 
-  if (options?.format)
-    return formatDate(date, options.format as FormatType)
-
-  return formatDate(date, 'iso')
+  return options?.format ? formatDate(date, options.format as FormatType) : formatDate(date, 'iso')
 }

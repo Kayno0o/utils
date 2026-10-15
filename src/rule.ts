@@ -142,17 +142,11 @@ export class Rules {
     }
 
   static nonEmptyString = (value?: string | null): boolean | string => {
-    if (!value)
-      return 'Required'
-
-    return value.trim().length > 0 || 'Required'
+    return !value ? 'Required' : value.trim().length > 0 || 'Required'
   }
 
   static nonZero = (value?: number | null): boolean | string => {
-    if (typeof value === 'number')
-      return (value !== 0) || 'Required'
-
-    return Boolean(value) || 'Required'
+    return typeof value === 'number' ? (value !== 0) || 'Required' : Boolean(value) || 'Required'
   }
 
   static phone = (value?: string | number | null): boolean | string => {
@@ -175,10 +169,7 @@ export class Rules {
     if (typeof value === 'string')
       return value.trim().length > 0 || 'Required'
 
-    if (typeof value === 'object')
-      return Object.keys(value).length > 0 || 'Required'
-
-    return Boolean(value) || 'Required'
+    return typeof value === 'object' ? Object.keys(value).length > 0 || 'Required' : Boolean(value) || 'Required'
   }
 
   static isAfterDay = (date: Date, include = true) => (value?: Date | null) => {

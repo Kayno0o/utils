@@ -227,10 +227,7 @@ function humanizeList(field: CronField, name?: (value: number) => string, aliase
   if (stepMatch) {
     const [, range, step] = stepMatch
 
-    if (range === '*')
-      return `every ${step}`
-
-    return `every ${step} from ${range!.replace('-', ' through ')}`
+    return range === '*' ? `every ${step}` : `every ${step} from ${range!.replace('-', ' through ')}`
   }
 
   const parts = field.raw.split(',').map((part) => {
@@ -243,10 +240,7 @@ function humanizeList(field: CronField, name?: (value: number) => string, aliase
     return resolve(part)
   })
 
-  if (parts.length === 1)
-    return parts[0]!
-
-  return `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`
+  return parts.length === 1 ? parts[0]! : `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`
 }
 
 function describe(fields: ReturnType<typeof parseExpression>): string {

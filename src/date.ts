@@ -242,10 +242,7 @@ export function parseDateLabel(label: string): Date | null {
 
   m = label.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/)
 
-  if (m)
-    return new Date(m[3]!.length === 2 ? 2000 + Number(m[3]) : Number(m[3]), Number(m[2]) - 1, Number(m[1]))
-
-  return null
+  return m ? new Date(m[3]!.length === 2 ? 2000 + Number(m[3]) : Number(m[3]), Number(m[2]) - 1, Number(m[1])) : null
 }
 
 /** Local-date ISO string `YYYY-MM-DD` without UTC shift (unlike `toISOString`). */

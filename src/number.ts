@@ -108,10 +108,7 @@ export function gcd(a: number, b: number): number {
 
 /** Lowest common multiple of two integers (always non-negative). Returns `0` when either is `0`. */
 export function lcm(a: number, b: number): number {
-  if (a === 0 || b === 0)
-    return 0
-
-  return Math.abs(a / gcd(a, b) * b)
+  return a === 0 || b === 0 ? 0 : Math.abs(a / gcd(a, b) * b)
 }
 
 /** Whether `n` is a prime number. */

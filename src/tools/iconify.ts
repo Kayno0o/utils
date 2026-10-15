@@ -65,10 +65,7 @@ export function createIconify<const T extends Record<string, IconifyJSON>>(libs:
   function inlineIconUrl(name: Name): string {
     const doc = renderSvg(name)
 
-    if (!doc)
-      return ''
-
-    return `data:image/svg+xml;utf8,${encodeURIComponent(doc)}`
+    return !doc ? '' : `data:image/svg+xml;utf8,${encodeURIComponent(doc)}`
   }
 
   return { getIconData, has, renderSvg, inlineIconUrl }

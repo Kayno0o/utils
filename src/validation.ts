@@ -35,8 +35,5 @@ export function isUUID(val: string): boolean {
 }
 
 export function isIP(val: string, v: 4 | 6 = 4): boolean {
-  if (v === 4)
-    return STRICT_IPV4_REGEX.test(val)
-
-  return STRICT_IPV6_REGEX.test(val)
+  return v === 4 ? STRICT_IPV4_REGEX.test(val) : STRICT_IPV6_REGEX.test(val)
 }

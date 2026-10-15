@@ -154,10 +154,7 @@ export async function promptOllamaSafe(url: string, ...args: PromptArgs): Promis
     return await promptOllama(url, request, options)
   }
   catch (e) {
-    if (e instanceof Error)
-      return e
-
-    return new Error(typeof e === 'string' ? e : `Unknown error: ${e}`)
+    return e instanceof Error ? e : new Error(typeof e === 'string' ? e : `Unknown error: ${e}`)
   }
 }
 

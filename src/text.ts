@@ -378,10 +378,7 @@ export function plural(singular: string, count?: number): string {
   if (singular.endsWith('f'))
     return `${singular.slice(0, -1)}ves`
 
-  if (singular.endsWith('fe'))
-    return `${singular.slice(0, -2)}ves`
-
-  return `${singular}s`
+  return singular.endsWith('fe') ? `${singular.slice(0, -2)}ves` : `${singular}s`
 }
 
 /** `1 rule`, `3 rules`: a count and the word it agrees with */
@@ -481,17 +478,11 @@ export function frRankLabel(rank: string) {
   if (rank === '1')
     return 'er'
 
-  if (rank === '2')
-    return 'nd'
-
-  return 'ème'
+  return rank === '2' ? 'nd' : 'ème'
 }
 
 export function truncate(str: string, len: number, suffix = '...'): string {
-  if (str.length > len)
-    return str.substring(0, len) + suffix
-
-  return str
+  return str.length > len ? str.substring(0, len) + suffix : str
 }
 
 export function stripHtml(str: string): string {
@@ -656,10 +647,7 @@ function maskPem(m: string, char: string): string {
   const lines = m.split('\n')
 
   return lines.map((line, i) => {
-    if (i === 0 || i === lines.length - 1 || line.trim() === '')
-      return line
-
-    return char.repeat(line.length)
+    return i === 0 || i === lines.length - 1 || line.trim() === '' ? line : char.repeat(line.length)
   }).join('\n')
 }
 
@@ -672,10 +660,7 @@ function maskDbUrl(m: string, char: string): string {
   const prefix = m.slice(0, at)
   const colon = prefix.lastIndexOf(':')
 
-  if (colon === -1)
-    return m
-
-  return `${prefix.slice(0, colon + 1)}${char.repeat(3)}${m.slice(at)}`
+  return colon === -1 ? m : `${prefix.slice(0, colon + 1)}${char.repeat(3)}${m.slice(at)}`
 }
 
 /** Luhn checksum for 13-19 digit identifiers (credit cards, etc.) */

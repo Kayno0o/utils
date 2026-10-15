@@ -74,7 +74,7 @@ export function streamOllamaJson(opts: StreamOllamaJsonOptions): Response {
 
         const data = opts.finalize(content)
         const meta = buildOllamaMeta({
-          ...(last ?? {}),
+          ...last,
           model: last?.model ?? opts.model,
           message: { role: 'assistant', content, thinking },
         } as OllamaOutputChatResponse, opts.rawInput)

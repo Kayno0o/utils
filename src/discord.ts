@@ -36,8 +36,5 @@ export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPay
     throw new Error(`Webhook failed with status ${response.status}: ${response.statusText}`)
 
   // Discord answers 204 with no body unless the url carries `?wait=true`.
-  if (response.status === 204)
-    return null
-
-  return await response.json()
+  return response.status === 204 ? null : await response.json()
 }

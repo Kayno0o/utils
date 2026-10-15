@@ -116,7 +116,7 @@ export function createTtlCache<K, V>(ttlMs = Infinity, options?: TtlCacheOptions
       return promise
     },
     * [Symbol.iterator]() {
-      for (const key of [...map.keys()]) {
+      for (const key of map.keys()) {
         const hit = read(key)
 
         if (hit)
