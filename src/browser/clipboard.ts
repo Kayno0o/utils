@@ -1,5 +1,5 @@
-import { gfm } from '@joplin/turndown-plugin-gfm'
-import TurndownService from 'turndown'
+// Kept apart, so a bundle copying text carries no HTML to Markdown converter.
+export { htmlToMarkdown } from './markdown'
 
 /** Copies `text`, with an `html` version alongside for apps that paste rich text, such as documents and mail. */
 export async function copy(text: string, options: { html?: string } = {}) {
@@ -9,13 +9,6 @@ export async function copy(text: string, options: { html?: string } = {}) {
     formats['text/html'] = new Blob([options.html], { type: 'text/html' })
 
   await navigator.clipboard.write([new ClipboardItem(formats)])
-}
-
-const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' }).use(gfm)
-
-/** `html` as GitHub flavored markdown: tables, strikethrough and task lists included. */
-export function htmlToMarkdown(html: string): string {
-  return html ? turndown.turndown(html) : ''
 }
 
 export interface ClipboardEntry {

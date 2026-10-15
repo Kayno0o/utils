@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'bun:test'
 import { copy, htmlToMarkdown } from '../src/browser/clipboard'
 
@@ -47,6 +50,23 @@ describe('copy', () => {
     await copy('**hi**', { html: '<strong>hi</strong>' })
 
     expect(writes).toEqual([{ 'text/plain': '**hi**', 'text/html': '<strong>hi</strong>' }])
+  })
+
+  it('bundles without the HTML to Markdown converter', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'clipboard-'))
+    const entry = join(dir, 'entry.ts')
+
+    try {
+      writeFileSync(entry, `import { copy } from '${join(import.meta.dir, '../src/browser/clipboard')}'\ncopy('x')\n`)
+      const { outputs } = await Bun.build({ entrypoints: [entry], target: 'browser', minify: true })
+      const code = await outputs[0]!.text()
+
+      expect(code).not.toContain('turndown')
+      expect(code.length).toBeLessThan(1024)
+    }
+    finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
 
