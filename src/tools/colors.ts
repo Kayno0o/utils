@@ -16,6 +16,8 @@ interface ColorStream { isTTY?: boolean }
 export interface ColorsOptions {
   /** Stream whose TTY state decides whether escapes are written, `process.stdout` by default. */
   stream?: ColorStream
+  /** Environment read for FORCE_COLOR, NO_COLOR, NODE_DISABLE_COLORS and TERM, `process.env` at call time by default. */
+  env?: Record<string, string | undefined>
 }
 
 const FG = 39
@@ -83,9 +85,7 @@ const styleMap = {
 const FORCE_COLOR_ON = new Set(['', '1', '2', '3', 'true'])
 
 // Same rules as node:util styleText: FORCE_COLOR wins, then NO_COLOR, NODE_DISABLE_COLORS and TERM=dumb, then the stream's TTY state.
-function shouldColorize(stream: ColorStream | undefined): boolean {
-  const env = globalThis.process?.env ?? {}
-
+function shouldColorize(stream: ColorStream | undefined, env: Record<string, string | undefined> = globalThis.process?.env ?? {}): boolean {
   if (env.FORCE_COLOR !== undefined)
     return FORCE_COLOR_ON.has(env.FORCE_COLOR)
 
@@ -96,7 +96,7 @@ function shouldColorize(stream: ColorStream | undefined): boolean {
 }
 
 function applyStyles(styles: ColorStyle[], value: string, options: ColorsOptions): string {
-  if (!shouldColorize(options.stream ?? globalThis.process?.stdout))
+  if (!shouldColorize(options.stream ?? globalThis.process?.stdout, options.env))
     return value
 
   let open = ''

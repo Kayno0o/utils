@@ -76,6 +76,15 @@ describe('colors', () => {
     expect(red('x')).toBe('\u001B[31mx\u001B[39m')
   })
 
+  it('reads the environment it was given instead of process.env', () => {
+    setEnv({ NO_COLOR: '1' })
+    expect(createColors({ stream: tty, env: {} }).red('x')).toBe('\u001B[31mx\u001B[39m')
+
+    setEnv({})
+    expect(createColors({ stream: tty, env: { NO_COLOR: '1' } }).red('x')).toBe('x')
+    expect(createColors({ stream: pipe, env: { FORCE_COLOR: '1' } }).red('x')).toBe('\u001B[31mx\u001B[39m')
+  })
+
   it('throws on an unknown style', () => {
     expect(() => (colors as any).nope).toThrow('Unknown style: nope')
   })
