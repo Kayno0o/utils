@@ -35,6 +35,16 @@ jobs:
         env:
           PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
 
+      # The same package goes to npmjs, where @kaynooo/cli-kit's users resolve it; the scope flag beats the repo .npmrc mapping @kaynooo to Forgejo.
+      - name: Publish to npmjs
+        run: |
+          trap 'rm -f ~/.npmrc' EXIT
+          test -n "${NPM_TOKEN}" || { echo "the NPM_TOKEN secret is empty"; exit 1; }
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          bunx npm@12.2.1 publish --access public --ignore-scripts --@kaynooo:registry=https://registry.npmjs.org/
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Generate changelog
         run: bun x @kaynooo/changelogitea@latest
         env:
