@@ -3,7 +3,7 @@
   "type": "module",
   "version": "2.31.1",
   "description": "A bunch of small utils functions that I use in my TS based projects",
-  "author": "Kaynooo <https://git.kaynooo.fr/kaynooo>",
+  "author": "Kaynooo <contact@kaynooo.fr> (https://git.kaynooo.fr/kaynooo)",
   "license": "MIT",
   "homepage": "https://pages.kaynooo.fr/kaynooo/utils/docs/",
   "repository": {
