@@ -80,6 +80,22 @@ export function getFrenchHolidays(year: number): string[] {
   return Object.values(holidays)
 }
 
+const holidaySets = new Map<number, Set<string>>()
+
+function getHolidaySet(year: number): Set<string> {
+  let set = holidaySets.get(year)
+
+  if (!set) {
+    if (holidaySets.size >= 64)
+      holidaySets.clear()
+
+    set = new Set(getFrenchHolidays(year))
+    holidaySets.set(year, set)
+  }
+
+  return set
+}
+
 export function isHoliday(date: Date | string): boolean {
   // a bare `YYYY-MM-DD` already names the local day; `new Date()` would read it as UTC midnight
   const parsed = typeof date === 'string' && ISO_DATE_REGEX.test(date) ? null : new Date(date)
@@ -89,7 +105,7 @@ export function isHoliday(date: Date | string): boolean {
 
   const formattedDate = parsed ? toISODate(parsed) : date as string
 
-  return getFrenchHolidays(Number(formattedDate.slice(0, 4))).includes(formattedDate)
+  return getHolidaySet(Number(formattedDate.slice(0, 4))).has(formattedDate)
 }
 
 const DURATION_UNIT_MS: Record<string, number> = {

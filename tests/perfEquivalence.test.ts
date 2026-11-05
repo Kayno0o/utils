@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { base64Decode, base64Encode, closestMatch, editDistance, mergeSpans, parseCsv, removeComments, stringifyCsv } from '../src'
+import { alphabetOf, base64Decode, base64Encode, closestMatch, decodeCipher, editDistance, encodeCipher, isHoliday, mask, median, mergeSpans, parseCsv, percentile, percentiles, removeComments, stringifyCsv } from '../src'
 
 describe('mergeSpans trimmed length bookkeeping', () => {
   const naive = (spans: { text: string, offset: number }[], min: number) => {
@@ -63,5 +63,48 @@ describe('csv quoting and separators', () => {
     const rows = [{ a: 'x,1', b: 'say "hi"' }, { a: 'plain', b: 'two\nlines' }]
 
     expect(parseCsv(stringifyCsv(rows))).toEqual(rows)
+  })
+})
+
+describe('closestMatch astral and length cutoff', () => {
+  it('compares code points and skips candidates too far in length', () => {
+    expect(closestMatch('😀a', ['😀b', 'zzzzzz', '😀a😀😀😀'])).toBe('😀b')
+    expect(closestMatch('abc', ['abcdefghij', 'xyz'])).toBeUndefined()
+    expect(closestMatch('kitten', ['sitting', 'kitchen', 'mitten'])).toBe('mitten')
+  })
+})
+
+describe('cipher round trip', () => {
+  it('survives emoji and hex alphabets and multi-byte text', () => {
+    const text = 'héllo ✓ 😀'
+
+    for (const chars of ['0123456789abcdef', '😀😁😂🤣😃😄😅😆😉😊😋😎😍😘🥰😗', 'ab']) {
+      const alphabet = alphabetOf(chars)
+
+      expect(decodeCipher(encodeCipher(text, alphabet), alphabet)).toBe(text)
+    }
+
+    expect(() => decodeCipher('zz', alphabetOf('0123456789abcdef'))).toThrow('"z" is not in this dictionary.')
+    expect(() => decodeCipher('abc', alphabetOf('0123456789abcdef'))).toThrow('multiple of 2')
+  })
+})
+
+describe('holidays and percentiles', () => {
+  it('flags the same days and keeps the same ranks', () => {
+    expect(isHoliday('2024-04-01')).toBe(true)
+    expect(isHoliday('2024-04-02')).toBe(false)
+    expect(isHoliday(new Date(2025, 11, 25))).toBe(true)
+    expect(median([5, 1, 3, 2])).toBe(2.5)
+    expect(percentile([4, 1, 3, 2], 50)).toBe(2.5)
+    expect(percentiles([10, -2, 7], [0, 100])).toEqual([-2, 10])
+  })
+})
+
+describe('mask overlap resolution', () => {
+  it('keeps the higher priority match over an overlapping one', () => {
+    const result = mask('mail jean@example.com and https://x.io/?token=abcdef1234567890 end')
+
+    expect(result.result).not.toContain('jean@')
+    expect(result.result).not.toContain('abcdef1234567890')
   })
 })

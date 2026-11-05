@@ -345,7 +345,7 @@ export function editDistance(str1: string, str2: string): number {
   return distanceBetween([...str1], [...str2])
 }
 
-function distanceBetween(a: string[], b: string[]): number {
+function distanceBetween(a: ArrayLike<string>, b: ArrayLike<string>): number {
   let beforePrevious = new Int32Array(b.length + 1)
   let previous = new Int32Array(b.length + 1)
   let current = new Int32Array(b.length + 1)
@@ -375,15 +375,26 @@ function distanceBetween(a: string[], b: string[]): number {
   return previous[b.length]!
 }
 
+const SURROGATE_RE = /[\uD800-\uDFFF]/
+
+/** the string itself when each UTF-16 unit is one character, else its code points */
+function toComparable(str: string): ArrayLike<string> {
+  return SURROGATE_RE.test(str) ? [...str] : str
+}
+
 /** the candidate nearest the query, for a "did you mean", or undefined when none is within `maxDistance` edits (a third of the query by default) */
 export function closestMatch(query: string, candidates: Iterable<string>, maxDistance = Math.max(1, Math.floor([...query].length / 3))): string | undefined {
-  const queryChars = [...query]
+  const queryChars = toComparable(query)
 
   let best: string | undefined
   let bestDistance = maxDistance + 1
 
   for (const candidate of candidates) {
-    const distance = distanceBetween(queryChars, [...candidate])
+    // the distance is at least the length difference, so a candidate that far off cannot win
+    if (Math.abs(queryChars.length - candidate.length) >= bestDistance && !SURROGATE_RE.test(candidate))
+      continue
+
+    const distance = distanceBetween(queryChars, toComparable(candidate))
 
     if (distance < bestDistance) {
       best = candidate
@@ -801,27 +812,25 @@ interface MaskMatch {
 }
 
 /**
- * collect all matches for a detector against the original string.
+ * push all matches for a detector against the original string onto `out`.
  * returning `null` from the replacer drops the match (used for checksum validation).
  */
-function collect(str: string, re: RegExp, replacer: (match: string) => string | null, key: MaskKey, priority: number): MaskMatch[] {
-  return [...str.matchAll(re)]
-    .map((m) => {
-      const replacement = replacer(m[0])
+function collect(out: MaskMatch[], str: string, re: RegExp, replacer: (match: string) => string | null, key: MaskKey, priority: number): void {
+  for (const m of str.matchAll(re)) {
+    const replacement = replacer(m[0])
 
-      if (replacement === null)
-        return null
+    if (replacement === null)
+      continue
 
-      return {
-        start: m.index!,
-        end: m.index! + m[0].length,
-        key,
-        original: m[0],
-        priority,
-        replacement,
-      }
+    out.push({
+      start: m.index!,
+      end: m.index! + m[0].length,
+      key,
+      original: m[0],
+      priority,
+      replacement,
     })
-    .filter((m): m is MaskMatch => m !== null)
+  }
 }
 
 /** drop overlapping matches; higher priority wins, first wins on ties */
@@ -837,16 +846,32 @@ function resolveOverlaps(matches: MaskMatch[]): MaskMatch[] {
     while (tailStart > 0 && kept[tailStart - 1]!.end > m.start)
       tailStart--
 
-    const tail = kept.splice(tailStart)
-    const overlaps = tail.filter(k => k.start < m.end)
+    let blocked = false
 
-    if (overlaps.some(k => k.priority >= m.priority)) {
-      kept.push(...tail)
+    for (let i = tailStart; i < kept.length; i++) {
+      const k = kept[i]!
 
-      continue
+      if (k.start < m.end && k.priority >= m.priority) {
+        blocked = true
+
+        break
+      }
     }
 
-    kept.push(...tail.filter(k => !overlaps.includes(k)), m)
+    if (blocked)
+      continue
+
+    let write = tailStart
+
+    for (let i = tailStart; i < kept.length; i++) {
+      const k = kept[i]!
+
+      if (k.start >= m.end)
+        kept[write++] = k
+    }
+
+    kept.length = write
+    kept.push(m)
   }
 
   return kept
@@ -887,51 +912,51 @@ export function mask(str: string, {
   const matches: MaskMatch[] = []
 
   if (email)
-    matches.push(...collect(str, EMAIL_RE, applyMode(m => maskEmail(m, char)), 'email', 10))
+    collect(matches, str, EMAIL_RE, applyMode(m => maskEmail(m, char)), 'email', 10)
 
   if (phone)
-    matches.push(...collect(str, PHONE_RE, applyMode(m => maskPhone(m, char)), 'phone', 20))
+    collect(matches, str, PHONE_RE, applyMode(m => maskPhone(m, char)), 'phone', 20)
 
   if (ip) {
-    matches.push(...collect(str, IPV4_RE, applyMode(m => maskIp(m, char)), 'ip', 30))
-    matches.push(...collect(str, IPV6_RE, applyMode(m => isValidIpv6(m) ? maskIp(m, char) : null), 'ip', 31))
+    collect(matches, str, IPV4_RE, applyMode(m => maskIp(m, char)), 'ip', 30)
+    collect(matches, str, IPV6_RE, applyMode(m => isValidIpv6(m) ? maskIp(m, char) : null), 'ip', 31)
   }
 
   if (mac)
-    matches.push(...collect(str, MAC_RE, applyMode(m => maskMac(m, char)), 'mac', 35))
+    collect(matches, str, MAC_RE, applyMode(m => maskMac(m, char)), 'mac', 35)
 
   if (iban) {
-    matches.push(...collect(str, IBAN_RE, applyMode((m) => {
+    collect(matches, str, IBAN_RE, applyMode((m) => {
       return ibanCheck(m.replace(/\s/g, '')) ? maskIban(m, char) : null
-    }), 'iban', 40))
+    }), 'iban', 40)
   }
 
   if (creditCard) {
-    matches.push(...collect(str, CREDIT_CARD_RE, applyMode((m) => {
+    collect(matches, str, CREDIT_CARD_RE, applyMode((m) => {
       return luhnCheck(m.replace(/\D/g, '')) ? maskCreditCard(m, char) : null
-    }), 'creditCard', 50))
+    }), 'creditCard', 50)
   }
 
   if (gitToken)
-    matches.push(...collect(str, GIT_TOKEN_RE, applyMode(m => maskGitToken(m, char)), 'gitToken', 55))
+    collect(matches, str, GIT_TOKEN_RE, applyMode(m => maskGitToken(m, char)), 'gitToken', 55)
 
   if (token) {
-    matches.push(...collect(str, JWT_RE, applyMode(m => maskJwt(m, char)), 'token', 60))
-    matches.push(...collect(str, BEARER_RE, applyMode(m => maskBearer(m, char)), 'token', 70))
+    collect(matches, str, JWT_RE, applyMode(m => maskJwt(m, char)), 'token', 60)
+    collect(matches, str, BEARER_RE, applyMode(m => maskBearer(m, char)), 'token', 70)
   }
 
   if (url)
-    matches.push(...collect(str, URL_QUERY_RE, applyMode(m => maskUrlParam(m, char)), 'url', 80))
+    collect(matches, str, URL_QUERY_RE, applyMode(m => maskUrlParam(m, char)), 'url', 80)
 
   if (dbUrl)
-    matches.push(...collect(str, DB_URL_RE, applyMode(m => maskDbUrl(m, char)), 'dbUrl', 82))
+    collect(matches, str, DB_URL_RE, applyMode(m => maskDbUrl(m, char)), 'dbUrl', 82)
 
   if (pem)
-    matches.push(...collect(str, PEM_RE, applyMode(m => maskPem(m, char)), 'pem', 85))
+    collect(matches, str, PEM_RE, applyMode(m => maskPem(m, char)), 'pem', 85)
 
   if (custom) {
     for (const { pattern, replacer } of custom) {
-      matches.push(...collect(str, pattern, applyMode(m => replacer(m)), 'custom', 90))
+      collect(matches, str, pattern, applyMode(m => replacer(m)), 'custom', 90)
     }
   }
 
