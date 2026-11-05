@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test as it, spyOn } from 'bun:test'
 import { getPlaceholderUrl } from '../src'
-import { dataUrlToBlob, resolveImageFromUrl } from '../src/browser/image'
+import { dataUrlToBlob, resolveImageFromUrl, transformImage } from '../src/browser/image'
 
 describe('getPlaceholderUrl function', () => {
   it('should return a default URL when no props are provided', () => {
@@ -102,5 +102,45 @@ describe('resolveImageFromUrl function', () => {
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('Not found', { status: 404 }))
 
     expect(await resolveImageFromUrl('https://example.com/missing.png')).toBeNull()
+  })
+})
+
+describe('transformImage function', () => {
+  const originals = { Image: globalThis.Image, document: globalThis.document }
+  const noop = () => undefined
+  const ctx = { translate: noop, scale: noop, rotate: noop, drawImage: noop }
+
+  beforeAll(() => {
+    globalThis.Image = class {
+      naturalWidth = 40
+      naturalHeight = 20
+      onload: (() => void) | null = null
+      #src = ''
+
+      get src() {
+        return this.#src
+      }
+
+      set src(value: string) {
+        this.#src = value
+        queueMicrotask(() => this.onload?.())
+      }
+    } as unknown as typeof Image
+    globalThis.document = {
+      createElement: () => ({ getContext: () => ctx, toDataURL: (format: string, quality?: number) => `${format}|${quality}` }),
+    } as unknown as Document
+  })
+
+  afterAll(() => {
+    globalThis.Image = originals.Image
+    globalThis.document = originals.document
+  })
+
+  it('outputs a png by default', async () => {
+    expect(await transformImage('a.png', { rotate: 90, flipH: false, flipV: false })).toEqual({ src: 'image/png|undefined', width: 20, height: 40 })
+  })
+
+  it('outputs the given format and quality', async () => {
+    expect((await transformImage('a.png', { rotate: 0, flipH: false, flipV: false }, { format: 'image/webp', quality: 0.7 })).src).toBe('image/webp|0.7')
   })
 })

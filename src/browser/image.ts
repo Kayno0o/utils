@@ -122,7 +122,7 @@ export async function cropImage(src: string, crop: CropRect, options: CropImageO
  * Applies rotate / flip transforms to an image and returns a new data URL.
  * Uses an intermediate canvas; rotation is in clockwise degrees.
  */
-export async function transformImage(src: string, transform: ImageTransform): Promise<LoadedImage> {
+export async function transformImage(src: string, transform: ImageTransform, options: Pick<CropImageOptions, 'format' | 'quality'> = {}): Promise<LoadedImage> {
   const img = await loadImageDimensions(src)
   const isSideways = transform.rotate === 90 || transform.rotate === 270
   const width = isSideways ? img.height : img.width
@@ -150,7 +150,7 @@ export async function transformImage(src: string, transform: ImageTransform): Pr
   ctx.rotate((transform.rotate * Math.PI) / 180)
   ctx.drawImage(el, -img.width / 2, -img.height / 2)
 
-  return { src: canvas.toDataURL('image/png'), width, height }
+  return { src: canvas.toDataURL(options.format ?? 'image/png', options.quality), width, height }
 }
 
 /** Decodes a base64 data URL into a Blob, for sending bytes where a long base64 string would go. */
