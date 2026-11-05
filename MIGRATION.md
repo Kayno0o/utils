@@ -77,7 +77,19 @@ No alias is kept: the type checker flags each call site.
 
 `formatDayMonth`, `formatMonthYear`, `formatMonthShort`, `formatTime`, `formatRelativeTime` and `formatSessionTime` take `locale | { locale, ...Intl options }` as their second parameter, so a bare locale keeps working; `formatTime` also takes a Date, and `formatFileSize` and `formatUnit` gain `locale`.
 
+### Stricter types
+
+`any` is gone from the public types (`AnyFunction` is the one function constraint left), and the package builds with `exactOptionalPropertyTypes`, so options that accept an explicit `undefined` say `?: T | undefined`. What a caller may notice:
+
+- `getObjectValue` and `toJSONWithGetters` return `unknown` and `Record<string, unknown>`; `queryToNestedObject` returns `NestedQuery`, so a nested read needs narrowing.
+- `sendDiscordWebhook<T = unknown>` resolves `Promise<T>`; pass `T` to read the reply.
+- `isArray` narrows to `unknown[]`, `isPromise` to `Promise<unknown>`; every `is*` guard and `isEmpty` takes `unknown`.
+- `partial` types its preset arguments, `delay` resolves `ReturnType<T>`, and a logger's `log` takes `...unknown[]`, so a handler with narrower parameters no longer type-checks.
+- `DiscordWebhookPayload` types `allowed_mentions` and `poll` (`DiscordAllowedMentions`, `DiscordPoll`).
+
 ### Changed defaults
+
+- `Color.from('hex', number)` reads the number as a hex value instead of throwing on `.startsWith`.
 
 - `buildUrlQuery` and `declareGetEndpoint` URL-encode keys and values; pass `{ encode: false }` for the old output.
 - `formatSessionTime` counts calendar days, so 23:00 yesterday reads "Yesterday" at 01:00, and a future date reads as a short date.
