@@ -57,10 +57,12 @@ export function formatUnit(num: number): string {
   return `${scaledNum.toFixed(1)}${units[unitIndex]}`
 }
 
-export function formatEuro(amount: number) {
-  return getNumberFormat('fr-FR', {
+/** Euros in French notation by default; `locale` and `options` work like `formatNumber`'s, so `currency` can be overridden too. */
+export function formatEuro(amount: number, locale: string | string[] = 'fr-FR', options: Intl.NumberFormatOptions = {}) {
+  return getNumberFormat(locale, {
     currency: 'EUR',
     style: 'currency',
+    ...options,
   }).format(amount)
 }
 

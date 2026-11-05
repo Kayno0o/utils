@@ -132,6 +132,8 @@ export interface MsDurationOptions {
    * round-trips through {@link stringToMsDuration}.
    */
   labels?: Record<string, string>
+  /** Keep only the N largest non-zero units, like `formatDuration`'s. Truncated output no longer round-trips. */
+  maxUnits?: number
 }
 
 /**
@@ -150,7 +152,7 @@ export interface MsDurationOptions {
  * @param options.labels - What each unit is written as, per {@link MsDurationOptions}.
  * @returns A duration string such as `'1d 7h 30m'`, or `'0s'` for an empty duration.
  */
-export function msDurationToString(ms: number, units: string[] = ['d', 'h', 'm', 's'], { labels }: MsDurationOptions = {}): string {
+export function msDurationToString(ms: number, units: string[] = ['d', 'h', 'm', 's'], { labels, maxUnits = Infinity }: MsDurationOptions = {}): string {
   const ordered = units
     .filter(unit => DURATION_UNIT_MS[unit] !== undefined)
     .sort((a, b) => DURATION_UNIT_MS[b]! - DURATION_UNIT_MS[a]!)
@@ -170,6 +172,9 @@ export function msDurationToString(ms: number, units: string[] = ['d', 'h', 'm',
       parts.push(`${value}${written(unit)}`)
       remaining -= value * factor
     }
+
+    if (parts.length >= maxUnits)
+      break
   }
 
   return parts.length === 0 ? `0${written(smallest)}` : sign + parts.join(' ')
@@ -217,19 +222,19 @@ export function formatRelativeTime(date: Date | string | number, options: Format
   return formatter.format(0, 'second')
 }
 
-/** Short day-month label in day-before-month order, e.g. "15 Jan" (never the US month-first order). */
-export function formatDayMonth(d: Date): string {
-  return formatDateTime(d, 'en-GB', { day: 'numeric', month: 'short' })
+/** Short day-month label in `locale`'s order, e.g. "15 Jan" with the default `en-GB` (never the US month-first order). */
+export function formatDayMonth(d: Date, locale: string | string[] = 'en-GB'): string {
+  return formatDateTime(d, locale, { day: 'numeric', month: 'short' })
 }
 
 /** Short month-year label, e.g. "Jan 2026". */
-export function formatMonthYear(d: Date): string {
-  return formatDateTime(d, 'en-GB', { month: 'short', year: 'numeric' })
+export function formatMonthYear(d: Date, locale: string | string[] = 'en-GB'): string {
+  return formatDateTime(d, locale, { month: 'short', year: 'numeric' })
 }
 
 /** Short month label, e.g. "Jan". */
-export function formatMonthShort(d: Date): string {
-  return formatDateTime(d, 'en-GB', { month: 'short' })
+export function formatMonthShort(d: Date, locale: string | string[] = 'en-GB'): string {
+  return formatDateTime(d, locale, { month: 'short' })
 }
 
 /** Parse a date label in `YYYY-MM-DD` (a time may follow), `YYYYMMDD` or `D/M/Y` form into a local-midnight Date, or `null` when it names no real day. */

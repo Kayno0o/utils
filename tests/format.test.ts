@@ -32,6 +32,19 @@ describe('formatDuration', () => {
   it('skips zero units while counting towards the cap', () => {
     expect(formatDuration(86_405_000, { maxUnits: 2 })).toBe('1d 5s')
   })
+
+  it('writes only the given units', () => {
+    expect(formatDuration(90_061_000, { units: ['h', 'm'] })).toBe('25h 1m')
+    expect(formatDuration(30_000, { units: ['h', 'm'] })).toBe('0m')
+  })
+
+  it('relabels units in both registers', () => {
+    const labels = { d: { short: 'j', one: 'jour', other: 'jours' }, h: { one: 'heure', other: 'heures' } }
+
+    expect(formatDuration(90_000_000, { labels })).toBe('1j 1h')
+    expect(formatDuration(176_400_000, { long: true, labels })).toBe('2 jours, 1 heure')
+    expect(formatDuration(0, { long: true, labels: { s: { other: 'secondes' } } })).toBe('0 secondes')
+  })
 })
 
 describe('formatFileSize', () => {

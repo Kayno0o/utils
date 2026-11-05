@@ -96,3 +96,11 @@ describe('formatUnit function', () => {
     expect(formatUnit(1000000000000)).toEqual('1.0T')
   })
 })
+
+describe('formatEuro locale and options', () => {
+  it('follows the given locale and options', () => {
+    expect(formatEuro(1234.5, 'en-US')).toEqual('€1,234.50')
+    expect(formatEuro(1234.5, 'fr-FR', { currency: 'USD' })).toEqual(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD' }).format(1234.5))
+    expect(formatEuro(1234.5, 'fr-FR', { maximumFractionDigits: 0 })).toEqual(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(1234.5))
+  })
+})

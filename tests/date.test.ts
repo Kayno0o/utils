@@ -7,6 +7,11 @@ describe('msDurationToString function', () => {
     expect(msDurationToString(90061000)).toBe('1d 1h 1m 1s')
   })
 
+  it('keeps only the largest units with maxUnits', () => {
+    expect(msDurationToString(90061000, undefined, { maxUnits: 2 })).toBe('1d 1h')
+    expect(msDurationToString(-86_405_000, undefined, { maxUnits: 2 })).toBe('-1d 5s')
+  })
+
   it('skips zero units', () => {
     expect(msDurationToString(stringToMsDuration('2h'))).toBe('2h')
   })
@@ -216,12 +221,18 @@ describe('formatDayMonth function', () => {
     expect(formatDayMonth(new Date(2026, 0, 15))).toBe('15 Jan')
     expect(formatDayMonth(new Date(2026, 11, 3))).toBe('3 Dec')
   })
+
+  it('follows the given locale', () => {
+    expect(formatDayMonth(new Date(2026, 0, 15), 'fr-FR')).toBe('15 janv.')
+    expect(formatDayMonth(new Date(2026, 0, 15), 'en-US')).toBe('Jan 15')
+  })
 })
 
 describe('formatMonthYear function', () => {
   it('formats short month and full year', () => {
     expect(formatMonthYear(new Date(2026, 0, 15))).toBe('Jan 2026')
     expect(formatMonthYear(new Date(2024, 6, 1))).toBe('Jul 2024')
+    expect(formatMonthYear(new Date(2026, 0, 15), 'fr-FR')).toBe('janv. 2026')
   })
 })
 
@@ -229,6 +240,7 @@ describe('formatMonthShort function', () => {
   it('formats short month', () => {
     expect(formatMonthShort(new Date(2026, 0, 15))).toBe('Jan')
     expect(formatMonthShort(new Date(2026, 5, 1))).toBe('Jun')
+    expect(formatMonthShort(new Date(2026, 0, 15), 'fr-FR')).toBe('janv.')
   })
 })
 
