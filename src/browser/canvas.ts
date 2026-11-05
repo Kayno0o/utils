@@ -195,14 +195,20 @@ export interface LowQualityOptions {
   noise?: number
 }
 
-/** Applies posterization + noise for a retro/low-quality aesthetic. */
+/** Applies posterization + noise for a retro/low-quality aesthetic; throws a RangeError for `levels` below 2 or non-finite (one level has no step), clamps `contrast` to [0, 1], and treats a non-finite `noise` as 0. */
 export function applyLowQuality(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   options: LowQualityOptions = {},
 ): void {
-  const { contrast = 0.35, levels = 6, noise = 28 } = options
+  const { levels = 6 } = options
+
+  if (!Number.isFinite(levels) || levels < 2)
+    throw new RangeError('applyLowQuality levels must be a finite number of at least 2')
+
+  const contrast = clamp(Number.isFinite(options.contrast) ? options.contrast! : 0.35, 0, 1)
+  const noise = Number.isFinite(options.noise ?? 28) ? options.noise ?? 28 : 0
   const factor = (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255))
   const step = 255 / (levels - 1)
   const imageData = ctx.getImageData(0, 0, width, height)

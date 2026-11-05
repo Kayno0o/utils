@@ -469,7 +469,14 @@ export function getUUIDFromIri(iri: string): string | null {
   return match ? match[0] : null
 }
 
+/** A text progress bar; throws a RangeError for a NaN value, a non-finite bound or a `totalChars` that is not a non-negative integer, and clamps an infinite `value` into the range. */
 export function renderProgressBar(value: number, min: number, max: number, { emptyChar = ' ', endChar = ']', fillChar = '=', startChar = '[', tipChar = '', totalChars = 40 } = {}) {
+  if (Number.isNaN(value) || !Number.isFinite(min) || !Number.isFinite(max))
+    throw new RangeError('renderProgressBar needs a numeric value and finite min and max')
+
+  if (!Number.isInteger(totalChars) || totalChars < 0)
+    throw new RangeError('renderProgressBar totalChars must be a non-negative integer')
+
   if (min === max)
     return value >= max ? startChar + fillChar.repeat(totalChars) + endChar : startChar + emptyChar.repeat(totalChars) + endChar
 
@@ -1237,7 +1244,7 @@ export function tokenizeWords(text: string): TextSpan[] {
   return [...text.matchAll(WORD_RE)].map(match => ({ text: match[0], offset: match.index }))
 }
 
-/** Every line, blank ones included, with where it starts in `text`. A trailing newline ends the last line rather than starting an empty one. */
+/** Every line, blank ones included, with where it starts in `text`; the `\r` of a `\r\n` ending is left out of the line. A trailing newline ends the last line rather than starting an empty one. */
 export function tokenizeLines(text: string): TextSpan[] {
   if (text === '')
     return []
@@ -1245,8 +1252,11 @@ export function tokenizeLines(text: string): TextSpan[] {
   const spans: TextSpan[] = []
   let offset = 0
 
-  for (const line of text.split('\n')) {
-    spans.push({ text: line, offset })
+  const lines = text.split('\n')
+
+  for (const [index, line] of lines.entries()) {
+    // a \r right before a \n belongs to the line ending, so mixed endings compare equal
+    spans.push({ text: index < lines.length - 1 && line.endsWith('\r') ? line.slice(0, -1) : line, offset })
     offset += line.length + 1
   }
 

@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { addDays, addMonths, addYears, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, formatTime, fromISODate, getAge, getDaysBetween, getFrenchHolidays, getHoursBetween, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, parseDateLabel, parseDuration, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, WEEK_MS } from '../src'
+import { addDays, addMonths, addYears, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, endOfDay, endOfMonth, formatDayMonth, formatHour, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, formatTime, fromISODate, getAge, getDaysBetween, getDaysInMonth, getFrenchHolidays, getHoursBetween, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, parseDateLabel, parseDuration, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, WEEK_MS } from '../src'
 
 describe('formatRelativeTime function', () => {
   it('takes a bare locale', () => {
@@ -502,5 +502,28 @@ describe('parseDuration sign', () => {
   it('reads a leading minus', () => {
     expect(parseDuration('-1h 30m')).toBe(-5_400_000)
     expect(parseDuration('-nothing')).toBe(0)
+  })
+})
+
+describe('getDaysInMonth function', () => {
+  it('counts the days of a 1-based month', () => {
+    expect(getDaysInMonth(1, 2025)).toBe(31)
+    expect(getDaysInMonth(4, 2025)).toBe(30)
+    expect(getDaysInMonth(12, 2025)).toBe(31)
+  })
+
+  it('knows leap years', () => {
+    expect(getDaysInMonth(2, 2024)).toBe(29)
+    expect(getDaysInMonth(2, 2025)).toBe(28)
+    expect(getDaysInMonth(2, 1900)).toBe(28)
+    expect(getDaysInMonth(2, 2000)).toBe(29)
+  })
+})
+
+describe('formatHour function', () => {
+  it('pads an hour into a clock label', () => {
+    expect(formatHour(7)).toBe('07:00')
+    expect(formatHour(0)).toBe('00:00')
+    expect(formatHour(23)).toBe('23:00')
   })
 })

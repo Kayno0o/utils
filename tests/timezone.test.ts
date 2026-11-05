@@ -1,7 +1,7 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, setSystemTime, test } from 'bun:test'
 import { alphaHex } from '../src/colors'
 import { inDays } from '../src/format'
-import { formatLocalDate, getWallClock, localDayRange, localDayStart, localInstant, resolveTimeZone } from '../src/timezone'
+import { formatLocalDate, getLocalDayHour, getWallClock, getZoneOffsetMs, localDayRange, localDayStart, localInstant, resolveTimeZone } from '../src/timezone'
 
 const PARIS = 'Europe/Paris'
 
@@ -95,5 +95,32 @@ describe('inDays', () => {
 describe('localDayRange input', () => {
   test('throws on a date that names no real day', () => {
     expect(() => localDayRange('2024-02-30', PARIS)).toThrow(RangeError)
+  })
+})
+
+describe('getZoneOffsetMs', () => {
+  test('reads the offset ahead of UTC, with daylight saving', () => {
+    expect(getZoneOffsetMs(new Date('2026-01-15T12:00:00Z'), PARIS)).toBe(3_600_000)
+    expect(getZoneOffsetMs(new Date('2026-07-15T12:00:00Z'), PARIS)).toBe(7_200_000)
+    expect(getZoneOffsetMs(new Date('2026-07-15T12:00:00Z'), 'UTC')).toBe(0)
+    expect(getZoneOffsetMs(new Date('2026-01-15T12:00:00Z'), 'America/New_York')).toBe(-5 * 3_600_000)
+  })
+
+  test('ignores the milliseconds of the instant', () => {
+    expect(getZoneOffsetMs(new Date('2026-01-15T12:00:00.789Z'), 'Asia/Kolkata')).toBe(5.5 * 3_600_000)
+  })
+})
+
+describe('getLocalDayHour', () => {
+  afterEach(() => {
+    setSystemTime()
+  })
+
+  test('gives the local date and hour of now', () => {
+    setSystemTime(new Date('2026-03-10T23:30:00Z'))
+
+    expect(getLocalDayHour(PARIS)).toEqual({ date: '2026-03-11', hour: 0 })
+    expect(getLocalDayHour('UTC')).toEqual({ date: '2026-03-10', hour: 23 })
+    expect(getLocalDayHour('America/New_York')).toEqual({ date: '2026-03-10', hour: 19 })
   })
 })

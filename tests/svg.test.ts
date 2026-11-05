@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'bun:test'
-import { getSvgDimension, getViewBox, setViewBox } from '../src/browser/svg'
+import { afterEach, describe, expect, it } from 'bun:test'
+import { cropSvg, getSvgDimension, getViewBox, setViewBox } from '../src/browser/svg'
 
 const SVG_WITH_VIEWBOX = '<svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg"><rect/></svg>'
 const SVG_WITHOUT_VIEWBOX = '<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>'
@@ -56,5 +56,58 @@ describe('setViewBox', () => {
     const result = setViewBox(SVG_WITHOUT_VIEWBOX, 0, 0, 100, 100)
 
     expect(result).toContain('viewBox="0 0 100 100"')
+  })
+})
+
+describe('cropSvg', () => {
+  const globals = globalThis as Record<string, unknown>
+  const original = { DOMParser: globals.DOMParser, document: globals.document }
+
+  afterEach(() => {
+    globals.DOMParser = original.DOMParser
+    globals.document = original.document
+  })
+
+  /** A DOM stub whose parsed svg measures `bbox`, recording its attributes and whether it was attached. */
+  function stubDom(bbox: { x: number, y: number, width: number, height: number }, { parseError = false, hasSvg = true } = {}) {
+    const attributes = new Map<string, string>()
+    const log: string[] = []
+    const svg = {
+      setAttribute: (name: string, value: string) => attributes.set(name, value),
+      removeAttribute: (name: string) => attributes.delete(name),
+      getBBox: () => bbox,
+      get outerHTML() {
+        return `<svg viewBox="${attributes.get('viewBox')}" style="${attributes.get('style') ?? ''}"/>`
+      },
+    }
+
+    globals.DOMParser = class {
+      parseFromString() {
+        return { querySelector: (selector: string) => (selector === 'parsererror' ? (parseError ? {} : null) : (hasSvg ? svg : null)) }
+      }
+    }
+    globals.document = { body: { appendChild: () => log.push('attach'), removeChild: () => log.push('detach') } }
+
+    return log
+  }
+
+  it('sets the viewBox to the content box plus padding and detaches the element', async () => {
+    const log = stubDom({ x: 10, y: 20, width: 30, height: 40 })
+
+    expect(await cropSvg('<svg/>', 5)).toBe('<svg viewBox="5 15 40 50" style=""/>')
+    expect(log).toEqual(['attach', 'detach'])
+  })
+
+  it('throws for an invalid svg, a missing svg element or empty content', async () => {
+    stubDom({ x: 0, y: 0, width: 1, height: 1 }, { parseError: true })
+    await expect(cropSvg('x')).rejects.toThrow('Invalid SVG')
+
+    stubDom({ x: 0, y: 0, width: 1, height: 1 }, { hasSvg: false })
+    await expect(cropSvg('x')).rejects.toThrow('No <svg> element found')
+
+    const log = stubDom({ x: 0, y: 0, width: 0, height: 5 })
+
+    await expect(cropSvg('<svg/>')).rejects.toThrow('SVG has no renderable content')
+    expect(log).toEqual(['attach', 'detach'])
   })
 })

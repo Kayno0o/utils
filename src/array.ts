@@ -1,10 +1,9 @@
 import type { RandomSource } from './number'
 import { clamp, randomInt } from './number'
 
-export function getRandomElement<T>(values: T[], random: RandomSource = Math.random): T {
-  const index = randomInt(0, values.length, random)
-
-  return values[index]!
+/** A random element of `values`, or `undefined` when it is empty. */
+export function getRandomElement<T>(values: T[], random: RandomSource = Math.random): T | undefined {
+  return values.length === 0 ? undefined : values[randomInt(0, values.length, random)]
 }
 
 export function unique<T extends string | number | symbol | boolean | null | undefined>(arr: T[]): T[] {
@@ -109,46 +108,61 @@ export function splitIntoParts<T>(array: T[], parts: number): T[][] {
   return result
 }
 
+function setOwn<V>(target: Record<string | number, V>, key: string | number, value: V): void {
+  Object.defineProperty(target, key, { value, enumerable: true, writable: true, configurable: true })
+}
+
+/** Items grouped under their key; a `__proto__` key lands as an own key like any other. */
 export function groupBy<T>(items: T[], getKey: (item: T) => string | number): Record<string | number, T[]> {
-  return items.reduce((acc, item) => {
+  const result: Record<string | number, T[]> = {}
+
+  for (const item of items) {
     const key = getKey(item)
 
-    acc[key] ??= []
-    acc[key].push(item)
+    if (Object.hasOwn(result, key))
+      result[key]!.push(item)
+    else setOwn(result, key, [item])
+  }
 
-    return acc
-  }, {} as Record<string | number, T[]>)
+  return result
 }
 
+/** The last item of each key; a `__proto__` key lands as an own key like any other. */
 export function keyBy<T>(items: T[], getKey: (item: T) => string | number): Record<string | number, T> {
-  return items.reduce((acc, item) => {
-    acc[getKey(item)] = item
+  const result: Record<string | number, T> = {}
 
-    return acc
-  }, {} as Record<string | number, T>)
+  for (const item of items)
+    setOwn(result, getKey(item), item)
+
+  return result
 }
 
+/** How many items fall under each key; a `__proto__` key lands as an own key like any other. */
 export function countBy<T>(items: T[], getKey: (item: T) => string | number): Record<string | number, number> {
-  return items.reduce((acc, item) => {
+  const result: Record<string | number, number> = {}
+
+  for (const item of items) {
     const key = getKey(item)
 
-    acc[key] = (acc[key] ?? 0) + 1
+    setOwn(result, key, Object.hasOwn(result, key) ? result[key]! + 1 : 1)
+  }
 
-    return acc
-  }, {} as Record<string | number, number>)
+  return result
 }
 
 export function sum(values: number[]): number {
   return values.reduce((total, value) => total + value, 0)
 }
 
+/** The average of `values`, `NaN` when it is empty (an average of nothing is undefined, not 0). */
 export function mean(values: number[]): number {
-  return values.length === 0 ? 0 : sum(values) / values.length
+  return values.length === 0 ? Number.NaN : sum(values) / values.length
 }
 
+/** The middle value of `values`, `NaN` when it is empty. */
 export function median(values: number[]): number {
   if (values.length === 0)
-    return 0
+    return Number.NaN
 
   const sorted = Float64Array.from(values).sort()
   const mid = Math.floor(sorted.length / 2)
@@ -156,15 +170,15 @@ export function median(values: number[]): number {
   return sorted.length % 2 === 0 ? (sorted[mid - 1]! + sorted[mid]!) / 2 : sorted[mid]!
 }
 
-// p from 0 to 100, interpolating linearly between the two closest ranks like NumPy: percentile([1, 2, 3, 4], 50) is 2.5.
+/** The `p`th percentile (0 to 100), interpolating linearly between the two closest ranks like NumPy, `NaN` when `values` is empty. */
 export function percentile(values: number[], p: number): number {
   return percentiles(values, [p])[0]!
 }
 
-/** Several percentiles of `values`, sorting once. */
+/** Several percentiles of `values`, sorting once; all `NaN` when `values` is empty. */
 export function percentiles(values: number[], ps: number[]): number[] {
   if (values.length === 0)
-    return ps.map(() => 0)
+    return ps.map(() => Number.NaN)
 
   const sorted = Float64Array.from(values).sort()
 

@@ -63,6 +63,49 @@ describe('diffLines', () => {
   })
 })
 
+describe('tokenizeLines with mixed endings', () => {
+  it('leaves the \\r of a \\r\\n ending out of the line and keeps offsets over the raw text', () => {
+    expect(tokenizeLines('a\r\nb\nc\r\n')).toEqual([
+      { text: 'a', offset: 0 },
+      { text: 'b', offset: 3 },
+      { text: 'c', offset: 5 },
+    ])
+  })
+
+  it('keeps a lone \\r that is not part of a \\r\\n ending', () => {
+    expect(tokenizeLines('a\rb\nc\r').map(span => span.text)).toEqual(['a\rb', 'c\r'])
+  })
+
+  it('diffLines finds no change between CRLF and LF text', () => {
+    expect(diffLines('a\r\nb\r\nc', 'a\nb\nc')).toEqual([])
+    expect(diffLines('a\r\nb\nc\r\n', 'a\nB\nc\n')).toEqual([{ aStart: 1, aEnd: 2, bStart: 1, bEnd: 2 }])
+  })
+})
+
+describe('diffTokens size guard', () => {
+  it('throws a RangeError past maxCells, counting the table including its border row and column', () => {
+    const a = tokenizeWords('a b c')
+    const b = tokenizeWords('a b d')
+
+    expect(() => diffTokens(a, b, { maxCells: 15 })).toThrow(RangeError)
+    expect(diffTokens(a, b, { maxCells: 16 })).toEqual([{ aStart: 2, aEnd: 3, bStart: 2, bEnd: 3 }])
+  })
+
+  it('guards diffLines too, and allows ordinary text under the default limit', () => {
+    expect(() => diffLines('a\nb', 'a\nc', { maxCells: 1 })).toThrow(RangeError)
+
+    const text = Array.from({ length: 1000 }, (_, i) => `line ${i}`).join('\n')
+
+    expect(diffLines(text, text)).toEqual([])
+  })
+
+  it('refuses a table over the default limit before allocating it', () => {
+    const big = Array.from({ length: 6000 }, (_, i) => ({ text: String(i), offset: i }))
+
+    expect(() => diffTokens(big, big)).toThrow(RangeError)
+  })
+})
+
 describe('diffTokens', () => {
   it('finds nothing in identical sequences', () => {
     expect(diffTokens(tokenizeWords('one two three'), tokenizeWords('one two three'))).toEqual([])

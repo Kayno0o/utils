@@ -14,13 +14,24 @@ export interface TextEdit {
   replacement: string
 }
 
+/** Default table size limit of [diffTokens]: 25 million cells (100 MB), about 5000 tokens per side. */
+export const MAX_DIFF_CELLS = 25_000_000
+
+export interface DiffTokensOptions {
+  /** Most `(a.length + 1) * (b.length + 1)` table cells to allocate before throwing a RangeError. Defaults to [MAX_DIFF_CELLS]. */
+  maxCells?: number
+}
+
 /**
- * Runs of tokens that differ between two sequences.
+ * Runs of tokens that differ between two sequences; throws a RangeError when the table would pass `maxCells`.
  *
  * The table holds the longest common subsequence of each pair of suffixes, filled bottom-up and
  * kept flat, so the walk that follows can pick which side to advance in constant time.
  */
-export function diffTokens(a: TextSpan[], b: TextSpan[]): DiffHunk[] {
+export function diffTokens(a: TextSpan[], b: TextSpan[], { maxCells = MAX_DIFF_CELLS }: DiffTokensOptions = {}): DiffHunk[] {
+  if ((a.length + 1) * (b.length + 1) > maxCells)
+    throw new RangeError(`diffTokens would need ${(a.length + 1) * (b.length + 1)} table cells, past the limit of ${maxCells}`)
+
   const left = a.map(token => token.text)
   const right = b.map(token => token.text)
   const n = left.length
@@ -127,6 +138,6 @@ export function diffWords(source: string, corrected: string): TextEdit[] {
 }
 
 /** Runs of lines that differ, as index ranges over each side's [tokenizeLines] spans (hunks, unlike `diffWords`' ready-to-apply edits, because a line diff is read against both sides, not applied). */
-export function diffLines(before: string, after: string): DiffHunk[] {
-  return diffTokens(tokenizeLines(before), tokenizeLines(after))
+export function diffLines(before: string, after: string, options?: DiffTokensOptions): DiffHunk[] {
+  return diffTokens(tokenizeLines(before), tokenizeLines(after), options)
 }

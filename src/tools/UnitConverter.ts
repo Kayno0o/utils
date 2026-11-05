@@ -1,5 +1,5 @@
 export interface UnitType {
-  byte: 'B' | 'kB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB'
+  byte: 'B' | 'kB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB' | 'KiB' | 'MiB' | 'GiB' | 'TiB' | 'PiB' | 'EiB' | 'ZiB' | 'YiB'
   distance: 'm' | 'km' | 'cm' | 'mm' | 'mi' | 'yd' | 'ft' | 'in' | 'nmi'
   weight: 'g' | 'kg' | 'mg' | 't' | 'lb' | 'oz' | 'st' | 'gr'
   temperature: 'C' | 'F' | 'K'
@@ -17,14 +17,22 @@ function getUnitFactors() {
   unitFactors ??= {
     byte: {
       B: 1, // base (byte)
-      kB: 1024, // kilobyte
-      MB: 1024 ** 2, // megabyte
-      GB: 1024 ** 3, // gigabyte
-      TB: 1024 ** 4, // terabyte
-      PB: 1024 ** 5, // petabyte
-      EB: 1024 ** 6, // exabyte
-      ZB: 1024 ** 7, // zettabyte
-      YB: 1024 ** 8, // yottabyte
+      kB: 1000, // kilobyte (SI, like formatFileSize with `units: 'si'`)
+      MB: 1000 ** 2, // megabyte
+      GB: 1000 ** 3, // gigabyte
+      TB: 1000 ** 4, // terabyte
+      PB: 1000 ** 5, // petabyte
+      EB: 1000 ** 6, // exabyte
+      ZB: 1000 ** 7, // zettabyte
+      YB: 1000 ** 8, // yottabyte
+      KiB: 1024, // kibibyte (IEC, like formatFileSize's default)
+      MiB: 1024 ** 2, // mebibyte
+      GiB: 1024 ** 3, // gibibyte
+      TiB: 1024 ** 4, // tebibyte
+      PiB: 1024 ** 5, // pebibyte
+      EiB: 1024 ** 6, // exbibyte
+      ZiB: 1024 ** 7, // zebibyte
+      YiB: 1024 ** 8, // yobibyte
     },
     distance: {
       mm: 0.001, // millimeter
@@ -42,7 +50,7 @@ function getUnitFactors() {
       g: 1, // base (gram)
       kg: 1000, // kilogram
       t: 1000000, // metric ton
-      oz: 28.34952, // ounce
+      oz: 28.349523125, // ounce
       lb: 453.59237, // pound
       st: 6350.29318, // stone
       gr: 0.06479891, // grain
@@ -55,7 +63,7 @@ function getUnitFactors() {
       kcal: 4184, // kilocalorie
       Wh: 3600, // watt-hour
       kWh: 3600000, // kilowatt-hour
-      BTU: 1055.06, // British thermal unit
+      BTU: 1055.05585262, // British thermal unit
       eV: 1.602176634e-19, // electronvolt
     },
     pressure: {
@@ -64,13 +72,13 @@ function getUnitFactors() {
       hPa: 100, // hectopascal
       bar: 100000, // bar
       atm: 101325, // standard atmosphere
-      psi: 6894.76, // pounds per square inch
-      mmHg: 133.322, // millimeters of mercury
+      psi: 6894.757293168, // pounds per square inch
+      mmHg: 133.322387415, // millimeters of mercury
       inHg: 3386.39, // inches of mercury
     },
     speed: {
       'm/s': 1, // base (meters per second)
-      'km/h': 0.277778, // kilometers per hour
+      'km/h': 1000 / 3600, // kilometers per hour
       'mph': 0.44704, // miles per hour
       'kn': 0.514444, // knots
       'ft/s': 0.3048, // feet per second
@@ -111,9 +119,9 @@ function getUnitFactors() {
       ha: 10000, // hectare
       km2: 1000000, // square kilometer
       in2: 0.00064516, // square inch
-      ft2: 0.092903, // square foot
-      yd2: 0.836127, // square yard
-      ac: 4046.86, // acre
+      ft2: 0.09290304, // square foot
+      yd2: 0.83612736, // square yard
+      ac: 4046.8564224, // acre
       mi2: 2589988.11, // square mile
     },
   }
@@ -179,13 +187,17 @@ function createBaseUnitConverters<Unit extends keyof UnitType>(unit: Unit) {
 
 export class UnitConverter<Unit extends keyof UnitType> {
   type: Unit
+  /** The unit `value` is expressed in. */
   unit: UnitType[Unit]
+  /** The input, in `unit`. */
   value: number
+  private readonly baseValue: number
 
   constructor(type: Unit, unit: UnitType[Unit], value: number) {
     this.type = type
     this.unit = unit
-    this.value = getUnitConverterFn()[type][unit].from(value)
+    this.value = value
+    this.baseValue = getUnitConverterFn()[type][unit].from(value)
   }
 
   static from<Unit extends keyof UnitType>(type: Unit, unit: UnitType[Unit], value: number): UnitConverter<Unit> {
@@ -193,6 +205,6 @@ export class UnitConverter<Unit extends keyof UnitType> {
   }
 
   to(unit: UnitType[Unit]): number {
-    return getUnitConverterFn()[this.type][unit].to(this.value)
+    return getUnitConverterFn()[this.type][unit].to(this.baseValue)
   }
 }

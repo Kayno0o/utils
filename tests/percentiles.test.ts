@@ -9,8 +9,8 @@ describe('percentiles function', () => {
     expect(values).toEqual([9, 1, 5, 3, 7, 2])
   })
 
-  it('returns zeros for no values', () => {
-    expect(percentiles([], [50, 90])).toEqual([0, 0])
+  it('returns NaN for no values', () => {
+    expect(percentiles([], [50, 90])).toEqual([Number.NaN, Number.NaN])
   })
 })
 

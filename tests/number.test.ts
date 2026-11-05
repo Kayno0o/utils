@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { convertBase, cryptoRandom, degToRad, entropyBits, formatNumber, gcd, isPrime, lcm, mapRange, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, reduceRatio, round, sfc32 } from '../src'
+import { clamp, convertBase, cryptoRandom, degToRad, entropyBits, formatNumber, gcd, isPrime, lcm, mapRange, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, reduceRatio, round, sfc32 } from '../src'
 
 describe('randomInt function', () => {
   it('within the specified range', () => {
@@ -274,5 +274,21 @@ describe('entropyBits', () => {
   it('rates entropy by bits', () => {
     expect(entropyBits(16, 94)).toBe(104)
     expect(entropyBits(10, 1)).toBe(0)
+  })
+})
+
+describe('clamp function', () => {
+  it('limits a value to the range', () => {
+    expect(clamp(5, 0, 10)).toBe(5)
+    expect(clamp(-3, 0, 10)).toBe(0)
+    expect(clamp(15, 0, 10)).toBe(10)
+  })
+
+  it('wraps around the range with modulo', () => {
+    expect(clamp(12, 0, 10, true)).toBe(2)
+    expect(clamp(-1, 0, 10, true)).toBe(9)
+    expect(clamp(10, 0, 10, true)).toBe(0)
+    expect(clamp(7, 5, 10, true)).toBe(7)
+    expect(clamp(4, 5, 10, true)).toBe(9)
   })
 })

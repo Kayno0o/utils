@@ -481,6 +481,20 @@ describe('getUUIDFromIri function', () => {
 })
 
 describe('renderProgressBar function', () => {
+  it('clamps an infinite value into the range', () => {
+    expect(renderProgressBar(Infinity, 0, 100, { totalChars: 4 })).toBe('[====]')
+    expect(renderProgressBar(-Infinity, 0, 100, { totalChars: 4 })).toBe('[    ]')
+  })
+
+  it('throws a RangeError for input that cannot be drawn', () => {
+    expect(() => renderProgressBar(Number.NaN, 0, 100)).toThrow(RangeError)
+    expect(() => renderProgressBar(1, 0, Infinity)).toThrow(RangeError)
+    expect(() => renderProgressBar(1, Number.NaN, 5)).toThrow(RangeError)
+    expect(() => renderProgressBar(1, 0, 5, { totalChars: Number.NaN })).toThrow(RangeError)
+    expect(() => renderProgressBar(1, 0, 5, { totalChars: -1 })).toThrow(RangeError)
+    expect(() => renderProgressBar(1, 0, 5, { totalChars: 2.5 })).toThrow(RangeError)
+  })
+
   it('should return a full bar if value is equal to max and min equals max', () => {
     const result = renderProgressBar(100, 100, 100)
 

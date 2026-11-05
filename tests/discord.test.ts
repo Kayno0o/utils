@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { afterEach, describe, expect, test as it, spyOn } from 'bun:test'
 import { FetchError } from '../src/browser/fetch'
-import { sendDiscordWebhook } from '../src/discord'
+import { getDiscordAvatarUrl, getDiscordBannerUrl, sendDiscordWebhook } from '../src/discord'
 
 const URL = 'https://discord.test/api/webhooks/1/abc'
 
@@ -84,5 +84,17 @@ describe('sendDiscordWebhook', () => {
 
     await expect(request).rejects.toBeInstanceOf(FetchError)
     await expect(request).rejects.toMatchObject({ status: 401, said: 'Invalid Webhook Token' })
+  })
+})
+
+describe('Discord CDN urls', () => {
+  it('builds a png avatar url, a gif one for an animated hash', () => {
+    expect(getDiscordAvatarUrl('1', 'abc')).toBe('https://cdn.discordapp.com/avatars/1/abc.png')
+    expect(getDiscordAvatarUrl('1', 'a_abc')).toBe('https://cdn.discordapp.com/avatars/1/a_abc.gif')
+  })
+
+  it('builds a png banner url, a gif one for an animated hash', () => {
+    expect(getDiscordBannerUrl('2', 'def')).toBe('https://cdn.discordapp.com/banners/2/def.png')
+    expect(getDiscordBannerUrl('2', 'a_def')).toBe('https://cdn.discordapp.com/banners/2/a_def.gif')
   })
 })

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import {
+  applyLowQuality,
   canvasExtension,
   canvasMimeType,
   createCenteredCrop,
@@ -150,5 +151,37 @@ describe('canvasMimeType / canvasExtension', () => {
     expect(canvasExtension('jpeg')).toBe('jpg')
     expect(canvasExtension('png')).toBe('png')
     expect(canvasExtension('webp')).toBe('webp')
+  })
+})
+
+describe('applyLowQuality', () => {
+  function pixelCtx(values: number[]) {
+    const data = new Uint8ClampedArray(values.flatMap(v => [v, v, v, 255]))
+    const ctx = { getImageData: () => ({ data }), putImageData: () => undefined } as unknown as CanvasRenderingContext2D
+
+    return { ctx, data }
+  }
+
+  it('posterizes to the given levels', () => {
+    const { ctx, data } = pixelCtx([0, 100, 200, 255])
+
+    applyLowQuality(ctx, 4, 1, { levels: 2, contrast: 0, noise: 0 })
+
+    expect([data[0], data[4], data[8], data[12]]).toEqual([0, 0, 255, 255])
+  })
+
+  it('throws a RangeError for levels below 2 or non-finite instead of dividing by zero', () => {
+    const { ctx } = pixelCtx([10])
+
+    for (const levels of [1, 0, -2, Number.NaN, Infinity])
+      expect(() => applyLowQuality(ctx, 1, 1, { levels })).toThrow(RangeError)
+  })
+
+  it('clamps contrast and ignores a non-finite noise', () => {
+    const { ctx, data } = pixelCtx([128])
+
+    applyLowQuality(ctx, 1, 1, { levels: 2, contrast: 50, noise: Number.NaN })
+
+    expect(Number.isFinite(data[0])).toBe(true)
   })
 })
