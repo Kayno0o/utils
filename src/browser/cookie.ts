@@ -78,6 +78,13 @@ export class CookieBuilder {
   }
 }
 
+function splitCookie(cookie: string): [string, string] {
+  const pair = cookie.trim()
+  const index = pair.indexOf('=')
+
+  return index === -1 ? [pair, ''] : [pair.slice(0, index), pair.slice(index + 1)]
+}
+
 export class CookieManager {
   static set(name: string, value: string): CookieBuilder {
     return new CookieBuilder(name, value)
@@ -87,7 +94,7 @@ export class CookieManager {
     const cookies = document.cookie.split(';')
 
     for (const cookie of cookies) {
-      const [cookieName, cookieValue] = cookie.trim().split('=')
+      const [cookieName, cookieValue] = splitCookie(cookie)
 
       if (decodeURIComponent(cookieName!) === name) {
         return decodeURIComponent(cookieValue || '')
@@ -102,7 +109,7 @@ export class CookieManager {
     const cookieArray = document.cookie.split(';')
 
     for (const cookie of cookieArray) {
-      const [name, value] = cookie.trim().split('=')
+      const [name, value] = splitCookie(cookie)
 
       if (name) {
         cookies[decodeURIComponent(name)] = decodeURIComponent(value || '')

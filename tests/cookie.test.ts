@@ -100,6 +100,20 @@ describe('CookieManager', () => {
     expect(value).toBe('abc-123')
   })
 
+  it('should keep "=" inside a raw cookie value', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'document')!
+
+    Object.defineProperty(globalThis, 'document', { value: { cookie: 'jwt=a.b=; other=x=y' }, writable: true })
+
+    try {
+      expect(CookieManager.get('jwt')).toBe('a.b=')
+      expect(CookieManager.getAll()).toEqual({ jwt: 'a.b=', other: 'x=y' })
+    }
+    finally {
+      Object.defineProperty(globalThis, 'document', descriptor)
+    }
+  })
+
   it('should return null if cookie does not exist', () => {
     const value = CookieManager.get('nonexistent')
 
