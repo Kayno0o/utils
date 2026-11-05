@@ -78,6 +78,11 @@ export function interpolate<T extends object | number>(start: RecursivePartial<T
         }
       }
 
+      for (const key in start) {
+        if (Object.hasOwn(start, key) && !Object.hasOwn(end, key))
+          interpolatedFrame[key] = start[key] as any
+      }
+
       frames.push(interpolatedFrame)
     }
 

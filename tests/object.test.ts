@@ -1,5 +1,11 @@
 import { describe, expect, test as it } from 'bun:test'
-import { omit, pick } from '../src'
+import { interpolate, omit, pick } from '../src'
+
+describe('interpolate function', () => {
+  it('keeps keys only present in start', () => {
+    expect(interpolate<{ a: number, b: number }>({ a: 0, b: 5 }, { a: 10 }, 2)).toEqual([{ a: 0, b: 5 }, { a: 5, b: 5 }, { a: 10, b: 5 }])
+  })
+})
 
 describe('pick function', () => {
   it('keeps only the requested keys', () => {
