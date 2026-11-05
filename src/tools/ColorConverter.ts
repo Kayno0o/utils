@@ -116,7 +116,7 @@ function rgbToHsl(rgb: RgbArrayType): HslArrayType {
     h /= 6
   }
 
-  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)]
+  return [h * 360, s * 100, l * 100]
 }
 
 function hsvToRgb(h: number, s: number, v: number): RgbArrayType {
@@ -158,7 +158,7 @@ function rgbToHsv(rgb: RgbArrayType): HsvArrayType {
     h /= 6
   }
 
-  return [Math.round(h * 360), Math.round(s * 100), Math.round(v * 100)]
+  return [h * 360, s * 100, v * 100]
 }
 
 function rgbToCmyk(rgb: RgbArrayType): CmykArrayType {
@@ -175,7 +175,7 @@ function rgbToCmyk(rgb: RgbArrayType): CmykArrayType {
   const m = (1 - g - k) / (1 - k)
   const y = (1 - b - k) / (1 - k)
 
-  return [Math.round(c * 100), Math.round(m * 100), Math.round(y * 100), Math.round(k * 100)]
+  return [c * 100, m * 100, y * 100, k * 100]
 }
 
 function cmykToRgb(c: number, m: number, y: number, k: number): RgbArrayType {
@@ -213,9 +213,9 @@ function rgbToOklab(rgb: RgbArrayType): OklabArrayType {
   const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
 
   return [
-    roundTo(0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s, 4),
-    roundTo(1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, 4),
-    roundTo(0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s, 4),
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
   ]
 }
 
@@ -233,12 +233,15 @@ function oklabToRgb(L: number, a: number, b: number): RgbArrayType {
   return [clamp(r), clamp(g), clamp(bb)]
 }
 
+// Below this a grey's float noise in a and b would hand it an arbitrary hue.
+const ACHROMATIC_CHROMA = 5e-5
+
 function rgbToOklch(rgb: RgbArrayType): OklchArrayType {
   const [l, a, b] = rgbToOklab(rgb)
   const c = Math.sqrt(a * a + b * b)
-  const h = (Math.atan2(b, a) * 180 / Math.PI + 360) % 360
+  const h = c < ACHROMATIC_CHROMA ? 0 : (Math.atan2(b, a) * 180 / Math.PI + 360) % 360
 
-  return [roundTo(l, 4), roundTo(c, 4), roundTo(h, 2)]
+  return [l, c, h]
 }
 
 function oklchToRgb(l: number, c: number, h: number): RgbArrayType {
@@ -258,7 +261,21 @@ function linearize(channel: number): number {
     : ((c + 0.055) / 1.055) ** 2.4
 }
 
-export type ColorType = 'hsl' | 'rgb' | 'hex' | 'hsl' | 'hsla' | 'rgba' | 'hexa' | 'hsv' | 'hsva' | 'cmyk' | 'cmyka' | 'oklch' | 'oklcha' | 'oklab' | 'oklaba'
+export type ColorType = 'hsl' | 'rgb' | 'hex' | 'hsla' | 'rgba' | 'hexa' | 'hsv' | 'hsva' | 'cmyk' | 'cmyka' | 'oklch' | 'oklcha' | 'oklab' | 'oklaba'
+
+export interface ColorToOptions {
+  /** Decimals kept on each channel, `false` for none dropped. Defaults to whole numbers for hsl, hsv and cmyk, 4 decimals for oklab, and 4, 4, 2 for oklch. */
+  precision?: number | false
+}
+
+/** Rounds each channel to `precision` decimals, or to `defaults` per channel; alpha is left alone. */
+function roundChannels<T extends number[]>(values: T, defaults: number[], precision: number | false | undefined): T {
+  return precision === false ? values : values.map((value, i) => roundTo(value, precision ?? defaults[i]!)) as T
+}
+
+const WHOLE = [0, 0, 0, 0]
+const OKLAB_DECIMALS = [4, 4, 4]
+const OKLCH_DECIMALS = [4, 4, 2]
 
 export class Color {
   private r: number
@@ -372,23 +389,25 @@ export class Color {
     throw new Error('Invalid input')
   }
 
-  to(type: 'hsl'): HslArrayType
-  to(type: 'rgb'): RgbArrayType
-  to(type: 'hsla'): HslaArrayType
-  to(type: 'hsv'): HsvArrayType
-  to(type: 'hsva'): HsvaArrayType
-  to(type: 'cmyk'): CmykArrayType
-  to(type: 'cmyka'): CmykaArrayType
-  to(type: 'oklch'): OklchArrayType
-  to(type: 'oklcha'): OklchaArrayType
-  to(type: 'oklab'): OklabArrayType
-  to(type: 'oklaba'): OklabaArrayType
-  to(type: 'rgba'): RgbaArrayType
+  to(type: 'hsl', options?: ColorToOptions): HslArrayType
+  to(type: 'rgb', options?: ColorToOptions): RgbArrayType
+  to(type: 'hsla', options?: ColorToOptions): HslaArrayType
+  to(type: 'hsv', options?: ColorToOptions): HsvArrayType
+  to(type: 'hsva', options?: ColorToOptions): HsvaArrayType
+  to(type: 'cmyk', options?: ColorToOptions): CmykArrayType
+  to(type: 'cmyka', options?: ColorToOptions): CmykaArrayType
+  to(type: 'oklch', options?: ColorToOptions): OklchArrayType
+  to(type: 'oklcha', options?: ColorToOptions): OklchaArrayType
+  to(type: 'oklab', options?: ColorToOptions): OklabArrayType
+  to(type: 'oklaba', options?: ColorToOptions): OklabaArrayType
+  to(type: 'rgba', options?: ColorToOptions): RgbaArrayType
   /** @return hex without # */
-  to(type: 'hex'): string
+  to(type: 'hex', options?: ColorToOptions): string
   /** @return hex(a) without # */
-  to(type: 'hexa'): string
-  to(type: ColorType): RgbArrayType | RgbaArrayType | HslArrayType | HslaArrayType | HsvArrayType | HsvaArrayType | CmykArrayType | CmykaArrayType | OklchArrayType | OklchaArrayType | OklabArrayType | OklabaArrayType | string {
+  to(type: 'hexa', options?: ColorToOptions): string
+  to(type: ColorType, { precision }: ColorToOptions = {}): RgbArrayType | RgbaArrayType | HslArrayType | HslaArrayType | HsvArrayType | HsvaArrayType | CmykArrayType | CmykaArrayType | OklchArrayType | OklchaArrayType | OklabArrayType | OklabaArrayType | string {
+    const rgb: RgbArrayType = [this.r, this.g, this.b]
+
     switch (type) {
       case 'rgb':
         return [this.r, this.g, this.b]
@@ -403,34 +422,34 @@ export class Color {
         return rgbToHex([this.r, this.g, this.b, this.a])
 
       case 'hsl':
-        return rgbToHsl([this.r, this.g, this.b])
+        return roundChannels(rgbToHsl(rgb), WHOLE, precision)
 
       case 'hsla':
-        return [...rgbToHsl([this.r, this.g, this.b]), this.a]
+        return [...roundChannels(rgbToHsl(rgb), WHOLE, precision), this.a]
 
       case 'hsv':
-        return rgbToHsv([this.r, this.g, this.b])
+        return roundChannels(rgbToHsv(rgb), WHOLE, precision)
 
       case 'hsva':
-        return [...rgbToHsv([this.r, this.g, this.b]), this.a]
+        return [...roundChannels(rgbToHsv(rgb), WHOLE, precision), this.a]
 
       case 'cmyk':
-        return rgbToCmyk([this.r, this.g, this.b])
+        return roundChannels(rgbToCmyk(rgb), WHOLE, precision)
 
       case 'cmyka':
-        return [...rgbToCmyk([this.r, this.g, this.b]), this.a]
+        return [...roundChannels(rgbToCmyk(rgb), WHOLE, precision), this.a]
 
       case 'oklch':
-        return rgbToOklch([this.r, this.g, this.b])
+        return roundChannels(rgbToOklch(rgb), OKLCH_DECIMALS, precision)
 
       case 'oklcha':
-        return [...rgbToOklch([this.r, this.g, this.b]), this.a]
+        return [...roundChannels(rgbToOklch(rgb), OKLCH_DECIMALS, precision), this.a]
 
       case 'oklab':
-        return rgbToOklab([this.r, this.g, this.b])
+        return roundChannels(rgbToOklab(rgb), OKLAB_DECIMALS, precision)
 
       case 'oklaba':
-        return [...rgbToOklab([this.r, this.g, this.b]), this.a]
+        return [...roundChannels(rgbToOklab(rgb), OKLAB_DECIMALS, precision), this.a]
       default:
         return [this.r, this.g, this.b]
     }
@@ -460,17 +479,24 @@ export class Color {
     return (bright + 0.05) / (dark + 0.05)
   }
 
-  /**
-   * Pick black or white as the ideal foreground based on WCAG contrast ratio.
-   */
-  public bestContrastForeground(): Color {
-    const white = new Color(255, 255, 255, 1)
-    const black = new Color(0, 0, 0, 1)
+  /** The candidate with the highest WCAG contrast against this color, white then black by default; a tie goes to the earlier one. */
+  public bestContrastForeground(candidates: Color[] = [new Color(255, 255, 255, 1), new Color(0, 0, 0, 1)]): Color {
+    let best = candidates[0]
 
-    // compare contrast against white vs. black
-    const contrastWithWhite = this.contrastRatio(white)
-    const contrastWithBlack = this.contrastRatio(black)
+    if (!best)
+      throw new Error('bestContrastForeground needs at least one candidate')
 
-    return contrastWithWhite >= contrastWithBlack ? white : black
+    let bestRatio = this.contrastRatio(best)
+
+    for (const candidate of candidates.slice(1)) {
+      const ratio = this.contrastRatio(candidate)
+
+      if (ratio > bestRatio) {
+        best = candidate
+        bestRatio = ratio
+      }
+    }
+
+    return best
   }
 }

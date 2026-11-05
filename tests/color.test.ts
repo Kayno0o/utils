@@ -267,7 +267,7 @@ describe('cmyk conversions', () => {
 
 describe('oklch conversions', () => {
   it('should convert rgb to oklch correctly', () => {
-    expect(Color.from('rgb', [255, 0, 0]).to('oklch')).toStrictEqual([0.628, 0.2577, 29.22]) // Red
+    expect(Color.from('rgb', [255, 0, 0]).to('oklch')).toStrictEqual([0.628, 0.2577, 29.23]) // Red
     expect(Color.from('rgb', [255, 255, 255]).to('oklch')).toStrictEqual([1, 0, 0]) // White
   })
 
@@ -283,7 +283,7 @@ describe('oklch conversions', () => {
   })
 
   it('should carry alpha through oklcha', () => {
-    expect(Color.from('oklch', [0.628, 0.2577, 29.22, 0.5]).to('oklcha')).toStrictEqual([0.628, 0.2577, 29.22, 0.5])
+    expect(Color.from('oklch', [0.628, 0.2577, 29.22, 0.5]).to('oklcha')).toStrictEqual([0.628, 0.2577, 29.23, 0.5])
   })
 })
 
@@ -372,5 +372,67 @@ describe('complementary function', () => {
 describe('triadic function', () => {
   it('returns three hues 120deg apart', () => {
     expect(triadic('#FF0000')).toEqual(['#FF0000', '#00FF00', '#0000FF'])
+  })
+})
+
+describe('mix color spaces', () => {
+  it('keeps the RGB blend by default', () => {
+    expect(mix('#ff0000', '#0000ff')).toBe(mix('#ff0000', '#0000ff', 0.5, 'rgb'))
+  })
+
+  it('blends hues the short way in hsl and oklch, and takes a grey\'s partner hue', () => {
+    const [hue] = Color.from('hex', mix('#ff0000', '#ff00ff', 0.5, 'hsl')).to('hsl')
+
+    expect(hue).toBeGreaterThan(290)
+    expect(Color.from('hex', mix('#ff0000', '#808080', 0.5, 'hsl')).to('hsl')[0]).toBe(0)
+    expect(Color.from('hex', mix('#0000ff', '#ffffff', 0.5, 'oklch')).to('oklch')[2]).toBeCloseTo(Color.from('hex', '#0000ff').to('oklch')[2], -1)
+  })
+
+  it('lands on the ends at weights 0 and 1 in every space', () => {
+    for (const space of ['rgb', 'hsl', 'oklab', 'oklch'] as const) {
+      expect(mix('#336699', '#cc9933', 0, space)).toBe(Color.from('hex', '#336699').to('hex'))
+      expect(mix('#336699', '#cc9933', 1, space)).toBe(Color.from('hex', '#cc9933').to('hex'))
+    }
+  })
+})
+
+describe('Color.to precision', () => {
+  it('rounds to the given decimals, or not at all, so hsl round-trips exactly', () => {
+    const color = Color.from('hex', '#336699')
+
+    expect(color.to('hsl')).toEqual([210, 50, 40])
+    expect(color.to('hsl', { precision: 2 })).toEqual([210, 50, 40])
+    expect(Color.from('hex', '#123456').to('hsl', { precision: 1 })).toEqual([210, 65.4, 20.4])
+
+    const exact = Color.from('hex', '#123457').to('hsl', { precision: false })
+
+    expect(Color.from('hsl', exact).to('hex')).toBe(Color.from('hex', '#123457').to('hex'))
+  })
+})
+
+describe('stringToHexColor ranges', () => {
+  it('keeps the hue and lightness inside the given ranges', () => {
+    for (const name of ['ana', 'bob', 'chloé', 'dmitri', 'eve']) {
+      const [h, , l] = Color.from('hex', stringToHexColor(name, { hueRange: [180, 240], lRange: [30, 40] })).to('hsl')
+
+      expect(h).toBeGreaterThanOrEqual(178)
+      expect(h).toBeLessThanOrEqual(242)
+      expect(l).toBeGreaterThanOrEqual(29)
+      expect(l).toBeLessThanOrEqual(41)
+    }
+  })
+
+  it('is unchanged without options', () => {
+    expect(stringToHexColor('ana')).toBe(stringToHexColor('ana', { hueRange: [0, 360], l: 65 }))
+  })
+})
+
+describe('bestContrastForeground candidates', () => {
+  it('picks the most readable of the given colors', () => {
+    const navy = Color.from('hex', '#000080')
+    const picked = navy.bestContrastForeground([Color.from('hex', '#333333'), Color.from('hex', '#ffff00')])
+
+    expect(picked.to('hex')).toBe(Color.from('hex', '#ffff00').to('hex'))
+    expect(navy.bestContrastForeground().to('rgb')).toEqual([255, 255, 255])
   })
 })
