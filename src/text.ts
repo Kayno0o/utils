@@ -138,16 +138,49 @@ export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-export function searchOne(query: string, ...values: string[]): boolean {
-  query = normalizeAccents(query).toLowerCase()
-
-  return values.some(value => normalizeAccents(value).toLowerCase().includes(query))
+export interface SearchOptions {
+  /** Tells `A` from `a`. Defaults to false. */
+  caseSensitive?: boolean
+  /** Tells `é` from `e`. Defaults to false. */
+  accentSensitive?: boolean
 }
 
-export function searchAll(query: string, ...values: string[]): boolean {
-  query = normalizeAccents(query).toLowerCase()
+type SearchArgs = string[] | [values: string[], options?: SearchOptions]
 
-  return values.every(value => normalizeAccents(value).toLowerCase().includes(query))
+/** Splits the variadic form from the `(values, options)` one. */
+function readSearchArgs(args: SearchArgs): { values: string[], fold: (str: string) => string } {
+  const [first, options = {}] = args
+  const values = Array.isArray(first) ? first : args as string[]
+  const { caseSensitive = false, accentSensitive = false } = Array.isArray(first) ? options as SearchOptions : {}
+
+  return {
+    values,
+    fold: (str) => {
+      const folded = accentSensitive ? str : normalizeAccents(str)
+
+      return caseSensitive ? folded : folded.toLowerCase()
+    },
+  }
+}
+
+/** Whether any value contains the query, case and accents folded unless `options` say otherwise. */
+export function searchOne(query: string, ...values: string[]): boolean
+export function searchOne(query: string, values: string[], options?: SearchOptions): boolean
+export function searchOne(query: string, ...args: SearchArgs): boolean {
+  const { values, fold } = readSearchArgs(args)
+  const needle = fold(query)
+
+  return values.some(value => fold(value).includes(needle))
+}
+
+/** Whether every value contains the query, case and accents folded unless `options` say otherwise. */
+export function searchAll(query: string, ...values: string[]): boolean
+export function searchAll(query: string, values: string[], options?: SearchOptions): boolean
+export function searchAll(query: string, ...args: SearchArgs): boolean {
+  const { values, fold } = readSearchArgs(args)
+  const needle = fold(query)
+
+  return values.every(value => fold(value).includes(needle))
 }
 
 /** whether the needle's characters appear in the value in order, contiguous or not */
@@ -166,14 +199,19 @@ function isSubsequence(needle: string, value: string): boolean {
   return at === wanted.length
 }
 
+const WHITESPACE_RUN_REGEX = /\s+/
+
 /** whether every whitespace-separated term of the query is spread through one of the values, in order */
-export function searchFuzzy(query: string, ...values: string[]): boolean {
-  const terms = normalizeAccents(query).toLowerCase().split(/\s+/).filter(Boolean)
+export function searchFuzzy(query: string, ...values: string[]): boolean
+export function searchFuzzy(query: string, values: string[], options?: SearchOptions): boolean
+export function searchFuzzy(query: string, ...args: SearchArgs): boolean {
+  const { values, fold } = readSearchArgs(args)
+  const terms = fold(query).split(WHITESPACE_RUN_REGEX).filter(Boolean)
 
   if (!terms.length)
     return true
 
-  const haystacks = values.map(value => normalizeAccents(value).toLowerCase())
+  const haystacks = values.map(fold)
 
   return terms.every(term => haystacks.some(value => isSubsequence(term, value)))
 }
@@ -375,14 +413,24 @@ function toComparable(str: string): ArrayLike<string> {
   return SURROGATE_RE.test(str) ? [...str] : str
 }
 
+export interface ClosestMatchOptions {
+  /** Most edits a match may be away. Defaults to a third of the query, at least 1. */
+  maxDistance?: number
+  /** Tells `A` from `a`. Defaults to true. */
+  caseSensitive?: boolean
+}
+
 /** the candidate nearest the query, for a "did you mean", or undefined when none is within `maxDistance` edits (a third of the query by default) */
-export function closestMatch(query: string, candidates: Iterable<string>, maxDistance = Math.max(1, Math.floor([...query].length / 3))): string | undefined {
-  const queryChars = toComparable(query)
+export function closestMatch(query: string, candidates: Iterable<string>, maxDistanceOrOptions: number | ClosestMatchOptions = {}): string | undefined {
+  const { maxDistance = Math.max(1, Math.floor([...query].length / 3)), caseSensitive = true } = typeof maxDistanceOrOptions === 'number' ? { maxDistance: maxDistanceOrOptions } : maxDistanceOrOptions
+  const queryChars = toComparable(caseSensitive ? query : query.toLowerCase())
 
   let best: string | undefined
   let bestDistance = maxDistance + 1
 
-  for (const candidate of candidates) {
+  for (const original of candidates) {
+    const candidate = caseSensitive ? original : original.toLowerCase()
+
     // the distance is at least the length difference, so a candidate that far off cannot win
     if (Math.abs(queryChars.length - candidate.length) >= bestDistance && !SURROGATE_RE.test(candidate))
       continue
@@ -390,7 +438,7 @@ export function closestMatch(query: string, candidates: Iterable<string>, maxDis
     const distance = distanceBetween(queryChars, toComparable(candidate))
 
     if (distance < bestDistance) {
-      best = candidate
+      best = original
       bestDistance = distance
     }
   }
@@ -424,10 +472,20 @@ export function progressBar(value: number, min: number, max: number, { emptyChar
 const F_TO_VES_REGEX = /(?:leaf|loaf|thief|wolf|half|calf|elf|sheaf|scarf|dwarf|hoof|wharf)$/
 const FE_TO_VES_REGEX = /(?:knife|life|wife)$/
 
-/** handle common pluralization rules */
-export function plural(singular: string, count?: number): string {
-  if (count === 1 || count === 0)
+export interface PluralOptions {
+  /** The plural form for a word the rules get wrong, like `children`. */
+  plural?: string
+  /** Whether a count of zero reads singular (`0 rule`, French style) or plural (`0 rules`). */
+  zero?: 'singular' | 'plural'
+}
+
+/** handle common pluralization rules; zero reads singular unless `zero: 'plural'` */
+export function plural(singular: string, count?: number, { plural: pluralForm, zero = 'singular' }: PluralOptions = {}): string {
+  if (count === 1 || (count === 0 && zero === 'singular'))
     return singular
+
+  if (pluralForm !== undefined)
+    return pluralForm
 
   if (singular.endsWith('y') && !(/[aeiou]y$/).test(singular))
     return `${singular.slice(0, -1)}ies`
@@ -441,10 +499,9 @@ export function plural(singular: string, count?: number): string {
   return FE_TO_VES_REGEX.test(singular) ? `${singular.slice(0, -2)}ves` : `${singular}s`
 }
 
-/** `1 rule`, `3 rules`: a count and the word it agrees with */
-export function counted(count: number, singular: string): string {
-  // `plural` reads zero as singular; a count written in front of the word wants `0 rules`.
-  return `${count} ${count === 1 ? singular : plural(singular, 2)}`
+/** `1 rule`, `3 rules`: a count and the word it agrees with; zero reads plural unless `zero: 'singular'` */
+export function counted(count: number, singular: string, { zero = 'plural', ...options }: PluralOptions = {}): string {
+  return `${count} ${plural(singular, count, { ...options, zero })}`
 }
 
 /** `base`, then `base_2`, `base_3`: the first name nothing in `taken` already holds */
@@ -541,8 +598,35 @@ export function frRankLabel(rank: string) {
   return rank === '2' ? 'nd' : 'ème'
 }
 
-export function truncate(str: string, len: number, suffix = '...'): string {
-  return str.length > len ? str.substring(0, len) + suffix : str
+export interface TruncateOptions {
+  /** Defaults to `...`. */
+  suffix?: string
+  /** Counts the suffix within `len`, so the result never exceeds it. Defaults to false. */
+  includeSuffix?: boolean
+  /** Cuts at the last whitespace before the limit, when there is one. Defaults to false. */
+  wordBoundary?: boolean
+}
+
+const LAST_WHITESPACE_REGEX = /\s+\S*$/
+const WHITESPACE_CHAR_REGEX = /\s/
+
+/** Cuts `str` past `len` characters and appends the suffix. */
+export function truncate(str: string, len: number, suffixOrOptions: string | TruncateOptions = '...'): string {
+  const { suffix = '...', includeSuffix = false, wordBoundary = false } = typeof suffixOrOptions === 'string' ? { suffix: suffixOrOptions } : suffixOrOptions
+
+  if (str.length <= len)
+    return str
+
+  let cut = str.substring(0, Math.max(0, includeSuffix ? len - suffix.length : len))
+
+  // A cut already followed by whitespace ends on a word; a single word longer than the limit is cut mid-word rather than emptied.
+  if (wordBoundary && !WHITESPACE_CHAR_REGEX.test(str[cut.length] ?? ' '))
+    cut = cut.replace(LAST_WHITESPACE_REGEX, '') || cut
+
+  if (wordBoundary)
+    cut = cut.trimEnd()
+
+  return cut + suffix
 }
 
 export function stripHtml(str: string): string {

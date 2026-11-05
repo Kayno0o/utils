@@ -1,5 +1,5 @@
 import { describe, expect, test as it, spyOn } from 'bun:test'
-import { base64Decode, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, uniqueName } from '../src'
+import { base64Decode, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -1191,5 +1191,64 @@ describe('base64', () => {
 
   it('throws on base64 that is not UTF-8', () => {
     expect(() => base64Decode('/w==')).toThrow()
+  })
+})
+
+describe('search options', () => {
+  it('keeps the variadic form folding case and accents', () => {
+    expect(searchOne('ECOLE', 'école', 'x')).toBe(true)
+    expect(searchAll('e', 'été', 'Eau')).toBe(true)
+    expect(searchFuzzy('ecl', 'École')).toBe(true)
+  })
+
+  it('tells case and accents apart when asked, through the array form', () => {
+    expect(searchOne('ECOLE', ['école'], { caseSensitive: true })).toBe(false)
+    expect(searchOne('ecole', ['école'], { accentSensitive: true })).toBe(false)
+    expect(searchOne('école', ['ÉCOLE', 'école'], { caseSensitive: true, accentSensitive: true })).toBe(true)
+    expect(searchAll('a', ['a', 'A'], { caseSensitive: true })).toBe(false)
+    expect(searchFuzzy('ecl', ['École'], { accentSensitive: true })).toBe(false)
+    expect(searchFuzzy('ecl', ['École'])).toBe(true)
+  })
+})
+
+describe('closestMatch options', () => {
+  it('matches case-insensitively, returning the candidate as written', () => {
+    expect(closestMatch('README', ['readme.md', 'Readme'])).toBeUndefined()
+    expect(closestMatch('README', ['readme.md', 'Readme'], { caseSensitive: false })).toBe('Readme')
+    expect(closestMatch('helo', ['hello'], { maxDistance: 0 })).toBeUndefined()
+  })
+})
+
+describe('plural options', () => {
+  it('takes an explicit plural form and a zero mode', () => {
+    expect(plural('child', 2, { plural: 'children' })).toBe('children')
+    expect(plural('child', 1, { plural: 'children' })).toBe('child')
+    expect(plural('rule', 0)).toBe('rule')
+    expect(plural('rule', 0, { zero: 'plural' })).toBe('rules')
+    expect(counted(0, 'rule')).toBe('0 rules')
+    expect(counted(0, 'règle', { zero: 'singular' })).toBe('0 règle')
+    expect(counted(3, 'person', { plural: 'people' })).toBe('3 people')
+  })
+})
+
+describe('truncate', () => {
+  it('appends the suffix past the limit by default', () => {
+    expect(truncate('hello world', 5)).toBe('hello...')
+    expect(truncate('hello', 5)).toBe('hello')
+    expect(truncate('hello world', 5, '…')).toBe('hello…')
+  })
+
+  it('keeps the total length with includeSuffix', () => {
+    const result = truncate('hello world', 8, { includeSuffix: true })
+
+    expect(result).toBe('hello...')
+    expect(result.length).toBeLessThanOrEqual(8)
+  })
+
+  it('cuts at a word boundary, or mid-word for a single long word', () => {
+    expect(truncate('hello wonderful world', 10, { wordBoundary: true })).toBe('hello...')
+    expect(truncate('hello world again', 11, { wordBoundary: true })).toBe('hello world...')
+    expect(truncate('supercalifragilistic', 5, { wordBoundary: true })).toBe('super...')
+    expect(truncate('hello wonderful world', 12, { wordBoundary: true, includeSuffix: true, suffix: '…' })).toBe('hello…')
   })
 })
