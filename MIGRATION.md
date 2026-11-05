@@ -48,6 +48,19 @@ No alias is kept: the type checker flags each call site.
 | `isWeekend(date, [5, 6])` | `isWeekend(date, { weekendDays: [5, 6] })` |
 | `isIP(value, 6)` | `isIP(value, { version: 6 })` |
 | `formatFileSize(bytes, true, 2)` | `formatFileSize(bytes, { units: 'si', dp: 2 })` |
+| `cronMatches(date, expression)` | `cronMatches(expression, date)` |
+| `cronNextRuns`, `cronPreviousRuns` | `getNextCronRuns`, `getPreviousCronRuns` |
+| `shuffle(array)`, shuffling in place | `const mixed = shuffle(items)`, a shuffled copy |
+| `sortBy(items, ...)`, sorting in place | `sortBy(items, ...)`, a sorted copy, `items` untouched |
+| `validateSemver` | `isSemver` |
+| `getUuidFromIri` | `getUUIDFromIri` |
+| `toCase` | `splitWords` |
+| `progressBar` | `renderProgressBar` |
+| `frRankLabel` | `getFrenchOrdinalSuffix` |
+| `alphabetOf` | `createAlphabet` |
+| `knownZone`, `wallClock`, `localDayHour`, `localDate`, `zoneOffsetMs` | `resolveTimeZone`, `getWallClock`, `getLocalDayHour`, `formatLocalDate`, `getZoneOffsetMs` |
+| `age`, `diffInDays`, `diffInHours` | `getAge`, `getDaysBetween`, `getHoursBetween` |
+| `copy`, `entriesFromDataTransfer`, `pickHtml` (`@kaynooo/utils/browser`) | `copyToClipboard`, `readDataTransferEntries`, `getHtmlOrText` |
 
 `formatDayMonth`, `formatMonthYear`, `formatMonthShort`, `formatTime`, `formatRelativeTime` and `formatSessionTime` take `locale | { locale, ...Intl options }` as their second parameter, so a bare locale keeps working; `formatTime` also takes a Date, and `formatFileSize` and `formatUnit` gain `locale`.
 
@@ -65,6 +78,8 @@ No alias is kept: the type checker flags each call site.
 - `decryptCaesar` and `decryptVigenere` shift lowercase letters too, keeping their case.
 - `cronMatches` and the run helpers AND the day fields when one starts with `*` (`*/2`), as Vixie cron does.
 - `randomString` reads `charset` by code point, so an emoji counts as one character.
+- `closestMatch` ignores case by default, like `searchOne`, `searchAll` and `searchFuzzy`; pass `{ caseSensitive: true }` for the old behaviour.
+- `sortBy` orders numbers before strings when keys mix both types, instead of leaving their order unspecified.
 - `formatDuration` keeps the sign (`-1h`, not `1h`) and takes `y`, `M` and `w` in `units`; `parseDuration` reads a leading `-`.
 - `fromISODate` returns `null` for anything but a real `YYYY-MM-DD` day (`2024-02-30`, `2024-3-1`, `2024-03`) instead of an overflowed Date, and `localDayRange` throws a `RangeError` on such a date.
 - `sendDiscordWebhook` and `sendGotify` time out after 15 s unless given a `timeout`, and `sendDiscordWebhook` takes `retry`.
