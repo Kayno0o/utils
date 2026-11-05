@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- **Build**: `bun run build` - Builds the library using tsup to generate CJS and ESM outputs
+- **Build**: `bun run build` - Bundles `src/` to ESM with `Bun.build` (`scripts/build.ts`) and emits declarations with tsgo
 - **Lint Fix**: `bun run lint:fix` - Automatically fixes linting issues
 - **Test**: `bun run test` - Runs tests with Bun and generates coverage report with genhtml
 - **Documentation**: `bun run doc` - Generates TypeDoc documentation with GitHub theme
@@ -59,7 +59,7 @@ This is a TypeScript utility library (`@kaynooo/utils`) that provides a collecti
 - **Type Safety**: Heavy use of TypeScript generics and type inference
 - **Builder Pattern**: Many utilities use builder patterns for configuration
 - **Path Aliases**: Uses `~` prefix for internal imports (configured in tsconfig.json)
-- **Dual Output**: Builds to both CJS and ESM formats
+- **ESM Output**: Builds to ESM only, one file per source module
 - **i18n System**: Type-safe internationalization with dot notation keys and variable interpolation
 
 ### Development Notes
