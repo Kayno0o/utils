@@ -214,16 +214,12 @@ export function applyLowQuality(
   const step = 255 / (levels - 1)
   const imageData = ctx.getImageData(0, 0, width, height)
   const data = imageData.data
+  // contrast and posterize depend on the channel value alone, so they are tabulated once
+  const levelOf = Float64Array.from({ length: 256 }, (_, v) => Math.round((factor * (v - 128) + 128) / step) * step)
 
   for (let i = 0; i < data.length; i += 4) {
-    for (let c = 0; c < 3; c++) {
-      let v = data[i + c]!
-
-      v = factor * (v - 128) + 128
-      v = Math.round(v / step) * step
-      v += (Math.random() - 0.5) * noise
-      data[i + c] = clamp(v, 0, 255)
-    }
+    for (let c = 0; c < 3; c++)
+      data[i + c] = clamp(levelOf[data[i + c]!]! + (Math.random() - 0.5) * noise, 0, 255)
   }
 
   ctx.putImageData(imageData, 0, 0)

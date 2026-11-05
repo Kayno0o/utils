@@ -123,7 +123,8 @@ export async function cropImage(src: string, crop: CropRect, options: CropImageO
  * Uses an intermediate canvas; rotation is in clockwise degrees.
  */
 export async function transformImage(src: string, transform: ImageTransform, options: Pick<CropImageOptions, 'format' | 'quality'> = {}): Promise<LoadedImage> {
-  const img = await loadImageDimensions(src)
+  const el = await loadImageElement(src)
+  const img = { width: el.naturalWidth, height: el.naturalHeight }
   const isSideways = transform.rotate === 90 || transform.rotate === 270
   const width = isSideways ? img.height : img.width
   const height = isSideways ? img.width : img.height
@@ -136,8 +137,6 @@ export async function transformImage(src: string, transform: ImageTransform, opt
 
   if (!ctx)
     throw new Error('Could not get canvas context')
-
-  const el = await loadImageElement(src)
 
   ctx.translate(width / 2, height / 2)
 
