@@ -1,12 +1,7 @@
 import type { CanvasFormat, CropRect } from './canvas'
 import { base64DecodeBytes } from '../text'
 
-const REMOTE_URL = /^https?:/i
-
-interface LoadImageOptions {
-  /** CORS mode of the request. Defaults to `'anonymous'` for a remote (http/https) source, so drawing it does not taint a canvas; `null` sets none. */
-  crossOrigin?: 'anonymous' | 'use-credentials' | null
-}
+const REMOTE_URL = /^(?:https?:)?\/\//i
 
 function readAsDataUrl(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -18,17 +13,13 @@ function readAsDataUrl(file: Blob): Promise<string> {
   })
 }
 
-function defaultCrossOrigin(src: string): 'anonymous' | null {
-  return REMOTE_URL.test(src) ? 'anonymous' : null
-}
-
-function loadImageElement(src: string, options: LoadImageOptions = {}): Promise<HTMLImageElement> {
+/** Loads `src`, a remote (http(s) or protocol-relative) one with `crossOrigin = 'anonymous'` so drawing it does not taint a canvas. */
+function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    const crossOrigin = options.crossOrigin === undefined ? defaultCrossOrigin(src) : options.crossOrigin
 
-    if (crossOrigin)
-      img.crossOrigin = crossOrigin
+    if (REMOTE_URL.test(src))
+      img.crossOrigin = 'anonymous'
 
     img.onload = () => resolve(img)
     img.onerror = () => reject(new Error('Could not load image'))

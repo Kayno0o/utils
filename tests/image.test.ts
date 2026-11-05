@@ -198,15 +198,17 @@ describe('image loading', () => {
   it('requests a remote image anonymously so a crop does not taint the canvas', async () => {
     await cropImage('https://example.com/a.png', { x: 0, y: 0, w: 10, h: 10 })
     await convertImage('http://example.com/a.png')
+    await convertImage('//cdn.example.com/a.png')
 
-    expect(loaded.map(entry => entry.crossOrigin)).toEqual(['anonymous', 'anonymous'])
+    expect(loaded.map(entry => entry.crossOrigin)).toEqual(['anonymous', 'anonymous', 'anonymous'])
   })
 
   it('leaves a data or blob source without a crossOrigin', async () => {
     await transformImage('data:image/png;base64,AA==', { rotate: 0, flipH: false, flipV: false })
     await transformImage('blob:http://example.com/id', { rotate: 0, flipH: false, flipV: false })
+    await transformImage('/local/a.png', { rotate: 0, flipH: false, flipV: false })
 
-    expect(loaded.map(entry => entry.crossOrigin)).toEqual([undefined, undefined])
+    expect(loaded.map(entry => entry.crossOrigin)).toEqual([undefined, undefined, undefined])
   })
 
   it('convertImage rejects with an Error when the image fails to load', async () => {

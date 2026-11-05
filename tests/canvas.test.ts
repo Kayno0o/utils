@@ -2,7 +2,6 @@ import { describe, expect, it } from 'bun:test'
 import {
   applyLowQuality,
   canvasExtension,
-
   createCenteredCrop,
   fitCropToImage,
   moveCrop,

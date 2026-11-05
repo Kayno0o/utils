@@ -7,13 +7,13 @@ export interface SpawnResult { stdout: string, stderr: string, exitCode: number 
 
 export interface SpawnOptions {
   /** Written to the process and closed; without it the process reads nothing. */
-  stdin?: ArrayBuffer | Uint8Array | string
+  stdin?: ArrayBuffer | Uint8Array | string | undefined
   /** Kills the process past this deadline, which then counts as a failed exit. */
-  timeout?: number
+  timeout?: number | undefined
   /** Working directory. Defaults to the current one. */
   cwd?: string | undefined
   /** The whole environment the process sees. Defaults to `process.env`; spread it to add to it. */
-  env?: Record<string, string | undefined>
+  env?: Record<string, string | undefined> | undefined
   /** Kills the process when aborted, rejecting with the signal's reason. */
   signal?: AbortSignal | undefined
 }

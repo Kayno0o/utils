@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, jest } from 'bun:test'
+import { OBJECT_URL_REVOKE_DELAY_MS } from '../src/browser/anchor'
 import { downloadCanvas } from '../src/browser/canvas'
 import { getHtmlOrText, readClipboardEntries, readDataTransferEntries } from '../src/browser/clipboard'
 import { downloadFile, downloadFromString, downloadFromUrl, downloadVCard } from '../src/browser/download'
@@ -107,8 +108,12 @@ function stubDownload() {
 }
 
 describe('download helpers', () => {
-  afterEach(async () => {
-    await new Promise(resolve => setTimeout(resolve, 0))
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
   })
 
   it('downloadFromUrl clicks a temporary anchor and removes it', () => {
@@ -121,7 +126,7 @@ describe('download helpers', () => {
     expect(attached.size).toBe(0)
   })
 
-  it('downloadFile points an attached anchor at an object url of the blob, revoked after the click', async () => {
+  it('downloadFile points an attached anchor at an object url of the blob, revoked once the browser has had time to read it', () => {
     const { anchors, attached, urls } = stubDownload()
     const blob = new Blob(['x'])
 
@@ -132,20 +137,23 @@ describe('download helpers', () => {
     expect(attached.size).toBe(0)
     expect(urls.revoked).toEqual([])
 
-    await new Promise(resolve => setTimeout(resolve, 0))
+    jest.advanceTimersByTime(OBJECT_URL_REVOKE_DELAY_MS - 1)
+    expect(urls.revoked).toEqual([])
+
+    jest.advanceTimersByTime(1)
     expect(urls.revoked).toEqual(['blob:test'])
   })
 
-  it('downloadFromUrl never revokes the url it was given', async () => {
+  it('downloadFromUrl never revokes the url it was given', () => {
     const { urls } = stubDownload()
 
     downloadFromUrl('blob:other', 'a.txt')
-    await new Promise(resolve => setTimeout(resolve, 0))
+    jest.advanceTimersByTime(OBJECT_URL_REVOKE_DELAY_MS)
 
     expect(urls.revoked).toEqual([])
   })
 
-  it('downloadCanvas downloads the encoded blob through an attached anchor', async () => {
+  it('downloadCanvas downloads the encoded blob through an attached anchor', () => {
     const { anchors, urls } = stubDownload()
     const asked: unknown[] = []
     const canvas = { toBlob: (cb: (blob: Blob | null) => void, ...args: unknown[]) => {
@@ -154,7 +162,7 @@ describe('download helpers', () => {
     } }
 
     downloadCanvas(canvas as unknown as HTMLCanvasElement, 'a.png', 'image/webp', 0.5)
-    await new Promise(resolve => setTimeout(resolve, 0))
+    jest.advanceTimersByTime(OBJECT_URL_REVOKE_DELAY_MS)
 
     expect(asked).toEqual(['image/webp', 0.5])
     expect(anchors[0]).toMatchObject({ download: 'a.png', clicked: true })
@@ -175,7 +183,7 @@ describe('download helpers', () => {
     const { anchors, urls } = stubDownload()
 
     downloadVCard([{ given_name: 'Ada' }], 'ada.vcf')
-    await new Promise(resolve => setTimeout(resolve, 0))
+    jest.advanceTimersByTime(OBJECT_URL_REVOKE_DELAY_MS)
 
     expect(urls.created[0]!.type).toBe('text/vcard')
     expect(await urls.created[0]!.text()).toContain('BEGIN:VCARD')

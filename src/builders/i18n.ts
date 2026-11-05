@@ -69,9 +69,9 @@ export function declareI18n<
   function lookup(locale: LocaleType, key: I18nKey, variables?: Record<string, string | number>): string {
     const localeTranslations = translations[locale]
 
-    const template = getObjectValue(localeTranslations, key) as string
+    const template = getObjectValue(localeTranslations, key)
 
-    if (!template) {
+    if (typeof template !== 'string' || !template) {
       console.warn(`Translation key "${key}" not found for locale "${locale}"`)
 
       return key

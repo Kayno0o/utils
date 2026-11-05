@@ -115,16 +115,28 @@ export class JsonStorage {
   }
 }
 
-/** Lazily-resolved singleton so the `Storage` global is only touched on first use (SSR/worker-safe). */
-function lazyJsonStorage(resolveStorage: () => Storage): JsonStorage {
+/** Resolves the `Storage` global on use, keeping the instance only once it exists, so one installed after import (SSR, polyfill) is picked up. */
+function lazyJsonStorage(resolveStorage: () => Storage | undefined): JsonStorage {
   let instance: JsonStorage | undefined
-  const resolve = (): JsonStorage => instance ??= new JsonStorage(resolveStorage())
+
+  const resolve = (): JsonStorage => {
+    if (instance)
+      return instance
+
+    const storage = resolveStorage()
+
+    if (!storage)
+      return new JsonStorage(storage as unknown as Storage) // every method catches the missing storage
+
+    return instance = new JsonStorage(storage)
+  }
 
   return new Proxy({} as JsonStorage, {
     get(_target, prop) {
-      const value = resolve()[prop as keyof JsonStorage]
+      const json = resolve()
+      const value = json[prop as keyof JsonStorage]
 
-      return typeof value === 'function' ? value.bind(resolve()) : value
+      return typeof value === 'function' ? value.bind(json) : value
     },
   })
 }

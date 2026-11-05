@@ -1,15 +1,19 @@
 import type { Memoized, MemoizeOptions, TtlCache } from '../cache'
+import type { AnyFunction } from '../types'
 import { createTtlCache, memoize } from '../cache'
 
+// A decorator cannot see the method's parameters, so `key` gets them untyped rather than as `never`.
+type DecoratedArgs = Parameters<AnyFunction>
+
 /** `memoize`'s options; `key` only applies to methods, a getter has a single entry. */
-interface MemoizeDecoratorOptions extends MemoizeOptions<never[]> {
+interface MemoizeDecoratorOptions extends MemoizeOptions<DecoratedArgs> {
   /** Properties whose assignment invalidates this cache. */
   clearOn?: string[]
 }
 
 interface MemoizeState {
   caches: Map<string, TtlCache<string, unknown>>
-  methods: Map<string, Memoized<never[], unknown>>
+  methods: Map<string, Memoized<DecoratedArgs, unknown>>
   deps: Map<string, string[]>
   patched: Set<string>
 }
@@ -42,7 +46,7 @@ function cacheOf(instance: object, propertyKey: string, options?: MemoizeDecorat
 }
 
 /** A method goes through `memoize`, so a rejected promise is evicted the same way. */
-function methodOf(instance: object, propertyKey: string, method: (...args: never[]) => unknown, options?: MemoizeDecoratorOptions) {
+function methodOf(instance: object, propertyKey: string, method: AnyFunction, options?: MemoizeDecoratorOptions) {
   const { caches, methods } = stateOf(instance)
   let memoized = methods.get(propertyKey)
 
@@ -154,7 +158,7 @@ export function Memoize(options?: MemoizeDecoratorOptions) {
     else {
       const originalMethod = descriptor.value
 
-      descriptor.value = function (this: object, ...args: never[]) {
+      descriptor.value = function (this: object, ...args: DecoratedArgs) {
         register(this, propertyKey, options)
 
         return methodOf(this, propertyKey, originalMethod, options).apply(this, args)

@@ -274,6 +274,17 @@ describe('Memoize decorator cache options', () => {
     expect(service.greet({ id: 1, name: 'Renamed' })).toBe('hi Ann')
     expect(calls).toBe(1)
   })
+
+  it('takes a key whose parameters are left unannotated', () => {
+    class Service {
+      @Memoize({ key: (a, b) => `${a.toFixed(0)}:${b.toFixed(0)}` })
+      add(a: number, b: number): number {
+        return a + b
+      }
+    }
+
+    expect(new Service().add(1, 2)).toBe(3)
+  })
 })
 
 describe('Memoize decorator on async methods', () => {

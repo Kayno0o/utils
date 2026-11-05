@@ -128,5 +128,7 @@ describe('storage that fails', () => {
 
     expect(setStorage('k', 1)).toBe(true)
     expect(late.getItem('k')).toBe('1')
+    expect(jsonLocalStorage.set('json', { a: 1 })).toBe(true)
+    expect(late.getItem('json')).toBe('{"a":1}')
   })
 })

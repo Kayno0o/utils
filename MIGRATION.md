@@ -74,6 +74,7 @@ No alias is kept: the type checker flags each call site.
 | `getRandomElement(values)` typed `T` | typed `T \| undefined`, `undefined` for `[]` |
 | `UnitConverter` `'kB'` to `'YB'` as powers of 1024 | `'KiB'` to `'YiB'`; `'kB'` to `'YB'` are now powers of 1000, as in `formatFileSize(..., { units: 'si' })` |
 | `UnitConverter.value` holding the base-unit value | `value` holds the input, in `unit` |
+| `Color.from('hex', 0xff0000)`, typed but throwing | `Color.from('hex', '#ff0000')`; `'hex'` takes a string only |
 
 `formatDayMonth`, `formatMonthYear`, `formatMonthShort`, `formatTime`, `formatRelativeTime` and `formatSessionTime` take `locale | { locale, ...Intl options }` as their second parameter, so a bare locale keeps working; `formatTime` also takes a Date, and `formatFileSize` and `formatUnit` gain `locale`.
 
@@ -83,13 +84,13 @@ No alias is kept: the type checker flags each call site.
 
 - `getObjectValue` and `toJSONWithGetters` return `unknown` and `Record<string, unknown>`; `queryToNestedObject` returns `NestedQuery`, so a nested read needs narrowing.
 - `sendDiscordWebhook<T = unknown>` resolves `Promise<T>`; pass `T` to read the reply.
-- `isArray` narrows to `unknown[]`, `isPromise` to `Promise<unknown>`; every `is*` guard and `isEmpty` takes `unknown`.
+- `isArray` narrows to `unknown[]`, `isPromise` to `Promise<unknown>`; the type guards and `isEmpty` take `unknown`, while `isUUID` and `isIP` keep taking a string.
 - `partial` types its preset arguments, `delay` resolves `ReturnType<T>`, and a logger's `log` takes `...unknown[]`, so a handler with narrower parameters no longer type-checks.
-- `DiscordWebhookPayload` types `allowed_mentions` and `poll` (`DiscordAllowedMentions`, `DiscordPoll`).
+- `DiscordWebhookPayload` types `allowed_mentions` and `poll` (`DiscordAllowedMentions`, `DiscordPoll`), each `components` entry needs a numeric `type`, and `files` is `unknown[]`.
+- An optional field with no value is left out instead of set to `undefined`: `cronExpressionExplainer`'s `command`, `buildOllamaMeta`'s `thinking`, so `'command' in explanation` now tells whether one was given.
 
 ### Changed defaults
 
-- `Color.from('hex', number)` reads the number as a hex value instead of throwing on `.startsWith`.
 - `buildUrlQuery` and `declareGetEndpoint` URL-encode keys and values; pass `{ encode: false }` for the old output.
 - `formatSessionTime` counts calendar days, so 23:00 yesterday reads "Yesterday" at 01:00, and a future date reads as a short date.
 - `declareLogger` sends errors to `console.error` and warnings to `console.warn`, and an `Error` logs its stack.
@@ -108,8 +109,10 @@ No alias is kept: the type checker flags each call site.
 - `sortBy` orders numbers before strings when keys mix both types, instead of leaving their order unspecified.
 - `mean`, `median`, `percentile` and `percentiles` of no values return `NaN` instead of `0`.
 - `setStorage`, `removeStorage` and every `JsonStorage` method no longer throw when storage is full, disabled, in private mode or absent (SSR): a setter or remover returns `false`, a getter its default, `JsonStorage.has` `false`. The default storage is resolved at call time, so importing under SSR is safe.
-- `convertImage`, `cropImage` and `transformImage` load an http(s) source with `crossOrigin = 'anonymous'`, so a remote crop no longer taints the canvas but the server must send CORS headers; `convertImage` rejects with an `Error` instead of the raw event.
-- `downloadFile`, `downloadFromString`, `downloadCanvas` and `downloadVCard` attach their anchor to `document.body` and revoke their object URL after the click.
+- `convertImage`, `cropImage`, `transformImage` and `loadImageDimensions` load an http(s) or protocol-relative (`//host/...`) source with `crossOrigin = 'anonymous'`, so a remote crop no longer taints the canvas but the server must send CORS headers; `convertImage` rejects with an `Error` instead of the raw event.
+- `downloadFile`, `downloadFromString`, `downloadCanvas` and `downloadVCard` attach their anchor to `document.body` and revoke their object URL 40 s after the click, once the browser has read it.
+- `streamOllamaJson` keeps a `fetchOptions.signal` when no `signal` is given, instead of dropping it.
+- `declareI18n`'s `t` returns the key and warns when it names a group of translations, instead of returning the group object.
 - `CookieManager.get` and `getAll` return the raw text of a name or value with invalid percent-encoding instead of throwing a `URIError`.
 - `UnitConverter` factors for km/h, kn, oz, psi, inHg, mmHg, BTU, acre, ft2, yd2, mi2 and the US volumes (tsp to gal, in3, ft3) are exact, so results move in the 5th to 7th significant digit.
 - `formatUnit` with a `locale` writes a count under 1000 in that locale too (`1,5` in `fr-FR`).

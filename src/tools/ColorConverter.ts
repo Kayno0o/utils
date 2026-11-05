@@ -289,7 +289,7 @@ export class Color {
     this.a = a
   }
 
-  static from(type: 'hex', value: string | number): Color
+  static from(type: 'hex', value: string): Color
   static from(type: 'rgb', value: RgbArrayType | RgbaArrayType | RgbObjectType): Color
   static from(type: 'hsl', value: HslArrayType | HslaArrayType | HslObjectType): Color
   static from(type: 'hsv', value: HsvArrayType | HsvaArrayType | HsvObjectType): Color
@@ -298,7 +298,7 @@ export class Color {
   static from(type: 'oklab', value: OklabArrayType | OklabaArrayType | OklabObjectType): Color
   static from(type: ColorType, value: unknown): Color {
     if (type === 'hex') {
-      const [r, g, b, a] = hexToRgb(typeof value === 'number' ? value.toString(16).padStart(6, '0') : value as string)
+      const [r, g, b, a] = hexToRgb(value as string)
 
       return new Color(r, g, b, a)
     }
