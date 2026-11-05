@@ -42,6 +42,22 @@ export function escapeRegExp(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+const SLUG_INVALID_RE = /[^A-Z0-9-]/gi
+const slugRegexes = new Map<string, { deduplicate: RegExp, trim: RegExp }>()
+
+function getSlugRegexes(replace: string) {
+  let cached = slugRegexes.get(replace)
+
+  if (!cached) {
+    const escaped = escapeRegExp(replace)
+
+    cached = { deduplicate: new RegExp(`${escaped}+`, 'g'), trim: new RegExp(`^${escaped}*|${escaped}*$`, 'g') }
+    slugRegexes.set(replace, cached)
+  }
+
+  return cached
+}
+
 /**
  * converts a string into a slug
  * @param {string} str
@@ -62,19 +78,19 @@ export function slugify(str: string, {
   replace?: string
   trim?: boolean
 } = {}): string {
-  const regexReplace = escapeRegExp(replace)
+  const regexes = getSlugRegexes(replace)
 
   let result = normalizeAccents(str)
-    .replace(/[^A-Z0-9-]/gi, replace)
+    .replace(SLUG_INVALID_RE, replace)
 
   if (deduplicate)
-    result = result.replace(new RegExp(`${regexReplace}+`, 'g'), replace)
+    result = result.replace(regexes.deduplicate, replace)
 
   if (lower)
     result = result.toLowerCase()
 
   if (trim)
-    result = result.replace(new RegExp(`^${regexReplace}*|${regexReplace}*$`, 'g'), '')
+    result = result.replace(regexes.trim, '')
 
   return result
 }
@@ -781,13 +797,22 @@ function resolveOverlaps(matches: MaskMatch[]): MaskMatch[] {
   const kept: MaskMatch[] = []
 
   for (const m of matches) {
-    const overlaps = kept.filter(k => k.start < m.end && k.end > m.start)
+    // kept is sorted and disjoint, so only its tail can reach back over m
+    let tailStart = kept.length
 
-    if (overlaps.some(k => k.priority >= m.priority))
+    while (tailStart > 0 && kept[tailStart - 1]!.end > m.start)
+      tailStart--
+
+    const tail = kept.splice(tailStart)
+    const overlaps = tail.filter(k => k.start < m.end)
+
+    if (overlaps.some(k => k.priority >= m.priority)) {
+      kept.push(...tail)
+
       continue
+    }
 
-    kept.splice(0, kept.length, ...kept.filter(k => !overlaps.includes(k)))
-    kept.push(m)
+    kept.push(...tail.filter(k => !overlaps.includes(k)), m)
   }
 
   return kept

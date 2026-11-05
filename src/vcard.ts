@@ -2,6 +2,7 @@ const NON_DIGIT_RE = /\D/g
 const LINE_BREAK_RE = /\r?\n/
 const LEADING_SPACE_RE = /^\s/
 const FIELD_PREFIX_RE = /^[^:]+:/
+const PROPERTY_NAME_RE = /^([^;:]*)(?:;[^:]*)?:/
 const FN_SPACE_RE = /\s+/
 const BDAY_DASH_RE = /-/g
 const NOTE_NL_RE = /\\n/g
@@ -37,12 +38,16 @@ export function parseVCards(text: string): Partial<VCardContact>[] {
         rawLines.push(line.trim())
     }
 
-    const get = (prefix: string) => {
-      const re = new RegExp(`^${prefix}(;[^:]*)?:`, 'i')
-      const found = rawLines.find(l => re.test(l))
+    const fields = new Map<string, string>()
 
-      return found ? found.replace(FIELD_PREFIX_RE, '') : undefined
+    for (const line of rawLines) {
+      const name = PROPERTY_NAME_RE.exec(line)?.[1]?.toUpperCase()
+
+      if (name !== undefined && !fields.has(name))
+        fields.set(name, line.replace(FIELD_PREFIX_RE, ''))
     }
+
+    const get = (prefix: string) => fields.get(prefix.toUpperCase())
 
     const getFirst = (...prefixes: string[]): string | undefined => {
       for (const p of prefixes) {

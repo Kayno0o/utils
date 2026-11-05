@@ -288,11 +288,20 @@ function parseOption(option: OptionDefinition & { name: string }, value: string 
   throw new OptionFormatError(option, value)
 }
 
+const keywordRegexes = new Map<string, RegExp>()
+
 function block(name: string, content: string | (string | undefined)[], keywords: string[] = []): string {
   let filteredContent = toArray(content).filter(notNullish)
 
   if (keywords.length) {
-    const regexp = new RegExp(`\\b${keywords.join('\\b|\\b')}\\b`, 'g')
+    const source = `\\b${keywords.join('\\b|\\b')}\\b`
+
+    let regexp = keywordRegexes.get(source)
+
+    if (!regexp) {
+      regexp = new RegExp(source, 'g')
+      keywordRegexes.set(source, regexp)
+    }
 
     filteredContent = filteredContent.map(c => c.replace(regexp, colors.underline))
   }

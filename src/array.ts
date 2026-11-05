@@ -52,16 +52,19 @@ export function shuffle(array: any[]) {
  * Clamps `n` to `[0, items.length]`.
  */
 export function sample<T>(items: T[], n: number): T[] {
-  const pool = [...items]
-  const count = Math.max(0, Math.min(n, pool.length))
+  const count = Math.max(0, Math.min(n, items.length))
+  // swaps are recorded virtually, so only the touched slots are allocated
+  const swapped = new Map<number, T>()
+  const result: T[] = []
 
   for (let i = 0; i < count; i++) {
-    const j = i + Math.floor(Math.random() * (pool.length - i));
+    const j = i + Math.floor(Math.random() * (items.length - i))
 
-    [pool[i], pool[j]] = [pool[j]!, pool[i]!]
+    result.push(swapped.has(j) ? swapped.get(j)! : items[j]!)
+    swapped.set(j, swapped.has(i) ? swapped.get(i)! : items[i]!)
   }
 
-  return pool.slice(0, count)
+  return result
 }
 
 /**
@@ -155,15 +158,23 @@ export function median(values: number[]): number {
 
 // p from 0 to 100, interpolating linearly between the two closest ranks like NumPy: percentile([1, 2, 3, 4], 50) is 2.5.
 export function percentile(values: number[], p: number): number {
+  return percentiles(values, [p])[0]!
+}
+
+/** Several percentiles of `values`, sorting once. */
+export function percentiles(values: number[], ps: number[]): number[] {
   if (values.length === 0)
-    return 0
+    return ps.map(() => 0)
 
   const sorted = [...values].sort((a, b) => a - b)
-  const rank = clamp(p, 0, 100) / 100 * (sorted.length - 1)
-  const low = Math.floor(rank)
-  const high = Math.ceil(rank)
 
-  return sorted[low]! + (sorted[high]! - sorted[low]!) * (rank - low)
+  return ps.map((p) => {
+    const rank = clamp(p, 0, 100) / 100 * (sorted.length - 1)
+    const low = Math.floor(rank)
+    const high = Math.ceil(rank)
+
+    return sorted[low]! + (sorted[high]! - sorted[low]!) * (rank - low)
+  })
 }
 
 export function partition<T>(items: T[], getGroup: (item: T) => boolean): [T[], T[]] {
