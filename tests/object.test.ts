@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { interpolate, omit, pick } from '../src'
+import { interpolate, isPlainObject, mergeObjects, omit, pick } from '../src'
 
 describe('interpolate function', () => {
   it('keeps keys only present in start', () => {
@@ -34,5 +34,61 @@ describe('omit function', () => {
 
     omit(source, ['b'])
     expect(source).toEqual({ a: 1, b: 2 })
+  })
+})
+
+describe('mergeObjects', () => {
+  it('fills missing keys deeply, the first object winning by default', () => {
+    expect(mergeObjects<any>({ a: 1, nested: { x: 1 } }, { a: 2, b: 3, nested: { x: 2, y: 2 } })).toEqual({ a: 1, nested: { x: 1, y: 2 }, b: 3 })
+  })
+
+  it('lets the second object win with priority', () => {
+    expect(mergeObjects<any>({ a: 1, nested: { x: 1 } }, { a: 2, nested: { y: 2 } }, { priority: 'second' })).toEqual({ a: 2, nested: { x: 1, y: 2 } })
+  })
+
+  it('merges, replaces or concatenates arrays', () => {
+    const first = { list: [1, 2] }
+    const second = { list: [3, 4, 5] }
+
+    expect(mergeObjects<any>(first, second).list).toEqual([1, 2, 5])
+    expect(mergeObjects<any>(first, second, { arrays: 'replace' }).list).toEqual([1, 2])
+    expect(mergeObjects<any>(first, second, { arrays: 'replace', priority: 'second' }).list).toEqual([3, 4, 5])
+    expect(mergeObjects<any>(first, second, { arrays: 'concat' }).list).toEqual([1, 2, 3, 4, 5])
+  })
+
+  it('keeps Dates, functions and undefined, and copies rather than aliases', () => {
+    const date = new Date('2024-01-01')
+    const fn = () => 1
+    const first = { date, nested: { deep: [1] } }
+    const merged = mergeObjects<any>(first, { fn, missing: undefined })
+
+    expect(merged.date).toBeInstanceOf(Date)
+    expect(merged.date.getTime()).toBe(date.getTime())
+    expect(merged.date).not.toBe(date)
+    expect(merged.fn).toBe(fn)
+    expect('missing' in merged).toBe(true)
+    expect(merged.nested.deep).not.toBe(first.nested.deep)
+  })
+
+  it('takes the other side where the winner is undefined, and keeps a winning null', () => {
+    expect(mergeObjects<any>({ a: undefined, b: null }, { a: 1, b: { c: 1 } })).toEqual({ a: 1, b: null })
+    expect(mergeObjects<any>({ b: { c: 1 } }, { b: null })).toEqual({ b: { c: 1 } })
+  })
+
+  it('never touches a prototype through __proto__ keys', () => {
+    const merged = mergeObjects<any>({}, JSON.parse('{"__proto__": {"polluted": true}}'))
+
+    expect(merged.polluted).toBeUndefined()
+    expect(({} as any).polluted).toBeUndefined()
+  })
+})
+
+describe('isPlainObject', () => {
+  it('accepts literals and null-prototype objects only', () => {
+    expect(isPlainObject({})).toBe(true)
+    expect(isPlainObject(Object.create(null))).toBe(true)
+    expect(isPlainObject([])).toBe(false)
+    expect(isPlainObject(new Date())).toBe(false)
+    expect(isPlainObject(null)).toBe(false)
   })
 })

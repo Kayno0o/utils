@@ -8,24 +8,77 @@ export function getObjectValue(object: any, key: Key): any {
   return object[key] ? object[key] : String(key).split('.').reduce((acc, key) => acc?.[key], object)
 }
 
-export function mergeObjects<T extends object>(obj1: T | RecursivePartial<T>, obj2: T | RecursivePartial<T>): T {
-  const merged: T = JSON.parse(JSON.stringify(obj1)) as T
+/** True for `{}` literals and `Object.create(null)`, false for arrays, class instances and `null`. */
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null)
+    return false
 
-  mergeInto(merged, obj2)
+  const prototype = Object.getPrototypeOf(value)
 
-  return merged
+  return prototype === Object.prototype || prototype === null
 }
 
-function mergeInto(target: any, source: any): void {
-  for (const key in source) {
-    if (Object.hasOwn(source, key)) {
-      // add from source if undefined in target
-      if (!Object.hasOwn(target, key))
-        target[key] = source[key]
-      else if (typeof target[key] === 'object' && typeof source[key] === 'object')
-        mergeInto(target[key], source[key])
-    }
+export interface MergeObjectsOptions {
+  /** Which object's value is kept when both set a key. Defaults to `first`. */
+  priority?: 'first' | 'second'
+  /** `merge` merges arrays index by index, `replace` keeps the winning array, `concat` joins first then second. Defaults to `merge`. */
+  arrays?: 'merge' | 'replace' | 'concat'
+}
+
+/** Deep-merges two objects into a new one; a key left `undefined` on the winning side takes the other side's value. */
+export function mergeObjects<T extends object>(obj1: T | RecursivePartial<T>, obj2: T | RecursivePartial<T>, { priority = 'first', arrays = 'merge' }: MergeObjectsOptions = {}): T {
+  return mergeValues(obj1, obj2, { priority, arrays }) as T
+}
+
+function mergeValues(first: unknown, second: unknown, options: Required<MergeObjectsOptions>): unknown {
+  const [winner, loser] = options.priority === 'first' ? [first, second] : [second, first]
+
+  if (winner === undefined)
+    return cloneValue(loser)
+
+  if (Array.isArray(first) && Array.isArray(second)) {
+    if (options.arrays === 'concat')
+      return cloneValue([...first, ...second])
+
+    if (options.arrays === 'replace')
+      return cloneValue(winner)
+
+    return Array.from({ length: Math.max(first.length, second.length) }, (_, i) => mergeValues(first[i], second[i], options))
   }
+
+  if (isPlainObject(first) && isPlainObject(second)) {
+    const merged: Record<string, unknown> = {}
+
+    for (const key of new Set([...Object.keys(first), ...Object.keys(second)])) {
+      if (key !== '__proto__')
+        merged[key] = mergeValues(first[key], second[key], options)
+    }
+
+    return merged
+  }
+
+  return cloneValue(winner)
+}
+
+/** Copies arrays, plain objects and Dates so the merge never aliases its inputs; anything else is kept by reference. */
+function cloneValue(value: unknown): unknown {
+  if (Array.isArray(value))
+    return value.map(cloneValue)
+
+  if (value instanceof Date)
+    return new Date(value)
+
+  if (!isPlainObject(value))
+    return value
+
+  const copy: Record<string, unknown> = {}
+
+  for (const [key, item] of Object.entries(value)) {
+    if (key !== '__proto__')
+      copy[key] = cloneValue(item)
+  }
+
+  return copy
 }
 
 export function interpolate<T extends number>(start: T, end: T, framesNb: number): T[]

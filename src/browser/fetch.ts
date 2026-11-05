@@ -1,5 +1,6 @@
 import type { RetryOptions } from '../promise'
 import { combineSignals } from '../fetch'
+import { isPlainObject } from '../object'
 import { retry as retryCall } from '../promise'
 
 type HeaderValue = string | undefined
@@ -27,15 +28,6 @@ export function mergeHeaders(...sources: (HeadersInput | undefined)[]): Headers 
   }
 
   return target
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  if (typeof value !== 'object' || value === null)
-    return false
-
-  const prototype = Object.getPrototypeOf(value)
-
-  return prototype === Object.prototype || prototype === null
 }
 
 function isJsonBody(body: unknown): boolean {
