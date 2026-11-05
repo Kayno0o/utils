@@ -1,5 +1,6 @@
 import type { OllamaFetchOptions, OllamaInputMessage, OllamaInputOptions, OllamaMeta, OllamaOutputChatResponse } from './ollama'
-import { mergeHeaders } from './browser/fetch'
+import { mergeHeaders, toFetchError } from './browser/fetch'
+import { combineSignals } from './fetch'
 import { buildOllamaMeta, streamOllama } from './ollama'
 
 /** Incremental text emitted while generating. */
@@ -29,6 +30,8 @@ export interface StreamOllamaJsonOptions {
   /** Raw user content, stored as `rawInput` in the response metadata. */
   rawInput: string
   signal?: AbortSignal
+  /** Transport options for the Ollama call itself, e.g. `token` for an Ollama behind auth. */
+  fetchOptions?: Omit<OllamaFetchOptions, 'signal'>
   /** Turns the accumulated raw content into the final data object (parse/transform/fallback). */
   finalize: (rawContent: string) => Record<string, unknown>
 }
@@ -56,7 +59,7 @@ export function streamOllamaJson(opts: StreamOllamaJsonOptions): Response {
           think: opts.think,
           ...(opts.format ? { format: opts.format } : {}),
           options: opts.options,
-        }, { signal: opts.signal })
+        }, { ...opts.fetchOptions, signal: opts.signal })
 
         for await (const chunk of chunks) {
           const c = chunk.message.content ?? ''
@@ -100,7 +103,7 @@ export function streamOllamaJson(opts: StreamOllamaJsonOptions): Response {
   })
 }
 
-export interface ReadOllamaJsonStreamOptions extends Pick<OllamaFetchOptions, 'signal' | 'headers' | 'token'> {
+export interface ReadOllamaJsonStreamOptions extends Pick<OllamaFetchOptions, 'signal' | 'headers' | 'token' | 'timeout'> {
   /** Fires for each `delta` frame while generating. */
   onDelta?: (delta: OllamaStreamDelta) => void
 }
@@ -121,11 +124,14 @@ export async function readOllamaJsonStream<T>(
       opts.headers,
     ),
     body,
-    signal: opts.signal,
+    signal: combineSignals(opts.signal, opts.timeout),
   })
 
-  if (!res.ok || !res.body)
-    throw new Error(`HTTP ${res.status}`)
+  if (!res.ok)
+    throw await toFetchError(res, String(url))
+
+  if (!res.body)
+    throw new Error(`No body from ${url}`)
 
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
   let buffer = ''

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test'
+import { FetchError } from '../src/browser/fetch'
 import { readOllamaJsonStream, streamOllamaJson } from '../src/ollamaStream'
 
 const OLLAMA = 'http://ollama.test/api/chat'
@@ -142,6 +143,17 @@ describe('streamOllamaJson', () => {
     expect(JSON.parse(without[0]!.init.body as string)).not.toHaveProperty('format')
   })
 
+  it('forwards fetchOptions to the Ollama call', async () => {
+    const calls = mockFetch([finalChunk()])
+
+    await readLines(streamOllamaJson({ ...baseOpts(), fetchOptions: { token: 'abc', headers: { 'X-Test': '1' } } }))
+
+    const headers = new Headers(calls[0]!.init.headers)
+
+    expect(headers.get('Authorization')).toBe('Bearer abc')
+    expect(headers.get('X-Test')).toBe('1')
+  })
+
   it('emits an error frame when the generation throws', async () => {
     globalThis.fetch = Object.assign(
       async () => { throw new Error('ollama down') },
@@ -201,6 +213,25 @@ describe('readOllamaJsonStream', () => {
 
     expect(deltas).toEqual([{ content: 'a' }])
     expect(done.text).toBe('a')
+  })
+
+  it('throws a FetchError carrying the status and body on a non-2xx response', async () => {
+    mockFetch([], () => new Response('{"error":"quota exceeded"}', { status: 429, statusText: 'Too Many Requests' }))
+
+    const request = readOllamaJsonStream(ROUTE, new FormData())
+
+    await expect(request).rejects.toBeInstanceOf(FetchError)
+    await expect(request).rejects.toMatchObject({ status: 429, said: 'quota exceeded' })
+  })
+
+  it('passes a deadline signal only when `timeout` is set', async () => {
+    const calls = mockFetch([], () => ndjsonResponse([`${JSON.stringify({ done: {} })}\n`]))
+
+    await readOllamaJsonStream(ROUTE, new FormData(), { timeout: 1000 })
+    await readOllamaJsonStream(ROUTE, new FormData())
+
+    expect(calls[0]!.init.signal).toBeInstanceOf(AbortSignal)
+    expect(calls[1]!.init.signal).toBeUndefined()
   })
 
   it('sends a bearer token when given, and none otherwise', async () => {
