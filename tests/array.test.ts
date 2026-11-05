@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { countBy, getRandomElement, groupBy, keyBy, mean, median, notNullish, percentile, range, sum, unique } from '../src'
+import { countBy, cryptoRandom, getRandomElement, groupBy, keyBy, mean, median, notNullish, percentile, range, sum, unique } from '../src'
 
 describe('groupBy function', () => {
   it('groups items and reads each key once', () => {
@@ -73,9 +73,14 @@ describe('getRandomElement function', () => {
 
   it('should return an element from the array (crypto random)', () => {
     const values = [1, 2, 3, 4, 5]
-    const element = getRandomElement(values, true)
+    const element = getRandomElement(values, cryptoRandom)
 
     expect(values).toContain(element)
+  })
+
+  it('picks the index given by the source', () => {
+    expect(getRandomElement(['a', 'b', 'c'], () => 0)).toBe('a')
+    expect(getRandomElement(['a', 'b', 'c'], () => 0.99)).toBe('c')
   })
 })
 

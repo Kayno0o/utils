@@ -1,6 +1,5 @@
 import { sfc32, xmur3 } from '../crypto'
 import { getDaysInMonth } from '../date'
-import { randomInt } from '../number'
 import { capitalize } from '../text'
 
 const LOREM_WORDS = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'proin', 'ultricies', 'sed', 'dui', 'scelerisque', 'donec', 'pellentesque', 'diam', 'vel', 'ligula', 'efficitur']
@@ -18,9 +17,9 @@ const SPACE_REGEX = / /g
 const LEADING_AT_REGEX = /^@/
 
 export interface FakerOptions {
-  /** Makes every call that is not `isCrypto` deterministic, for fixtures and snapshots. */
+  /** Makes every call deterministic, for fixtures and snapshots. */
   seed?: string | number
-  /** A random source in `[0, 1)`, taking precedence over `seed`. Defaults to `Math.random`. */
+  /** A random source in `[0, 1)`, taking precedence over `seed`. Defaults to `Math.random`; pass `cryptoRandom` for secrets. */
   random?: () => number
   firstNames?: readonly string[]
   lastNames?: readonly string[]
@@ -44,20 +43,20 @@ export function createFaker({
   const hash = seed === undefined ? undefined : xmur3(String(seed))
   const next = random ?? (hash ? sfc32(hash(), hash(), hash(), hash()) : Math.random)
 
-  const int = (min: number, max: number, isCrypto = false): number => isCrypto ? randomInt(min, max, true) : min + Math.floor(next() * (max - min))
-  const pick = <T>(values: readonly T[], isCrypto = false): T => values[int(0, values.length, isCrypto)]!
+  const int = (min: number, max: number): number => min + Math.floor(next() * (max - min))
+  const pick = <T>(values: readonly T[]): T => values[int(0, values.length)]!
 
   const lorem = {
-    paragraph: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
-      Array.from({ length: Math.max(1, length) }, () => lorem.sentence(int(3, 7, isCrypto), isCrypto, dictionary)).join('\n'),
-    sentence: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
+    paragraph: (length = 1, dictionary = LOREM_WORDS): string =>
+      Array.from({ length: Math.max(1, length) }, () => lorem.sentence(int(3, 7), dictionary)).join('\n'),
+    sentence: (length = 1, dictionary = LOREM_WORDS): string =>
       Array.from({ length: Math.max(1, length) }, () => {
-        const sentence = lorem.word(int(5, 15, isCrypto), isCrypto, dictionary).replace(SPACE_REGEX, () => next() < 0.1 ? ', ' : ' ')
+        const sentence = lorem.word(int(5, 15), dictionary).replace(SPACE_REGEX, () => next() < 0.1 ? ', ' : ' ')
 
         return `${capitalize(sentence)}.`
       }).join(' '),
-    word: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
-      Array.from({ length: Math.max(1, length) }, () => pick(dictionary, isCrypto)).join(' '),
+    word: (length = 1, dictionary = LOREM_WORDS): string =>
+      Array.from({ length: Math.max(1, length) }, () => pick(dictionary)).join(' '),
   }
 
   const date = {
@@ -85,8 +84,8 @@ export function createFaker({
   }
 
   const datatype = {
-    uuidV4: (isCrypto = false): string => UUID_V4_TEMPLATE.replace(UUID_PLACEHOLDER_REGEX, (c) => {
-      const r = int(0, 16, isCrypto)
+    uuidV4: (): string => UUID_V4_TEMPLATE.replace(UUID_PLACEHOLDER_REGEX, (c) => {
+      const r = int(0, 16)
 
       return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
     }),

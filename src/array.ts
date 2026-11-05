@@ -1,7 +1,8 @@
+import type { RandomSource } from './number'
 import { clamp, randomInt } from './number'
 
-export function getRandomElement<T>(values: T[], isCrypto = false): T {
-  const index = randomInt(0, values.length, isCrypto)
+export function getRandomElement<T>(values: T[], random: RandomSource = Math.random): T {
+  const index = randomInt(0, values.length, random)
 
   return values[index]!
 }
@@ -34,9 +35,10 @@ export function isEmpty(value: any): boolean {
   return false
 }
 
-export function shuffle(array: any[], isCrypto = false) {
+/** Shuffles `array` in place. */
+export function shuffle(array: any[], random: RandomSource = Math.random) {
   for (let i = array.length - 1; i > 0; i--) {
-    const j = randomInt(0, i + 1, isCrypto);
+    const j = randomInt(0, i + 1, random);
 
     [array[i], array[j]] = [array[j], array[i]]
   }
@@ -47,14 +49,14 @@ export function shuffle(array: any[], isCrypto = false) {
  * Uses partial Fisher-Yates — O(n) in sample size, not array length.
  * Clamps `n` to `[0, items.length]`.
  */
-export function sample<T>(items: T[], n: number, isCrypto = false): T[] {
+export function sample<T>(items: T[], n: number, random: RandomSource = Math.random): T[] {
   const count = Math.max(0, Math.min(n, items.length))
   // swaps are recorded virtually, so only the touched slots are allocated
   const swapped = new Map<number, T>()
   const result: T[] = []
 
   for (let i = 0; i < count; i++) {
-    const j = randomInt(i, items.length, isCrypto)
+    const j = randomInt(i, items.length, random)
 
     result.push(swapped.has(j) ? swapped.get(j)! : items[j]!)
     swapped.set(j, swapped.has(i) ? swapped.get(i)! : items[i]!)

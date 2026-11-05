@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, spyOn } from 'bun:test'
-import { createBoard, sample, shuffle } from '../src'
+import { createBoard, cryptoRandom, sample, sfc32, shuffle } from '../src'
 
 describe('sample', () => {
   it('returns n items without replacement', () => {
@@ -63,23 +63,50 @@ describe('createBoard', () => {
   })
 })
 
+describe('seeded source in shuffle and sample', () => {
+  it('shuffles identically for identical seeds, keeping the items', () => {
+    const a = [1, 2, 3, 4, 5, 6, 7, 8]
+    const b = [...a]
+
+    shuffle(a, sfc32(1, 2, 3, 4))
+    shuffle(b, sfc32(1, 2, 3, 4))
+
+    expect(a).toEqual(b)
+    expect(a.toSorted((x, y) => x - y)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+  })
+
+  it('samples identically for identical seeds', () => {
+    const items = [1, 2, 3, 4, 5, 6, 7, 8]
+
+    expect(sample(items, 4, sfc32(5, 6, 7, 8))).toEqual(sample(items, 4, sfc32(5, 6, 7, 8)))
+  })
+
+  it('shuffle with a constant 0 source rotates left', () => {
+    const items = [1, 2, 3]
+
+    shuffle(items, () => 0)
+
+    expect(items).toEqual([2, 3, 1])
+  })
+})
+
 describe('crypto randomness in shuffle and sample', () => {
   afterEach(() => {
     spyOn(Math, 'random').mockRestore()
     spyOn(crypto, 'getRandomValues').mockRestore()
   })
 
-  it('draws from crypto.getRandomValues instead of Math.random when isCrypto is set', () => {
+  it('draws from crypto.getRandomValues instead of Math.random with cryptoRandom', () => {
     const mathRandom = spyOn(Math, 'random')
-    const cryptoRandom = spyOn(crypto, 'getRandomValues')
+    const cryptoSpy = spyOn(crypto, 'getRandomValues')
     const arr = [1, 2, 3, 4, 5]
 
-    shuffle(arr, true)
+    shuffle(arr, cryptoRandom)
     expect(arr.toSorted()).toEqual([1, 2, 3, 4, 5])
-    expect(sample(arr, 3, true)).toHaveLength(3)
+    expect(sample(arr, 3, cryptoRandom)).toHaveLength(3)
 
     expect(mathRandom).not.toHaveBeenCalled()
-    expect(cryptoRandom).toHaveBeenCalledTimes(4 + 3)
+    expect(cryptoSpy).toHaveBeenCalledTimes(4 + 3)
   })
 
   it('uses Math.random by default', () => {

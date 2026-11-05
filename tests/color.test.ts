@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { blendRgb, complementary, contrastRatio, darken, isDark, isLight, lighten, luminance, mix, randomHex, stringToHexColor, triadic } from '../src'
+import { blendRgb, complementary, contrastRatio, darken, isDark, isLight, lighten, luminance, mix, randomHex, sfc32, stringToHexColor, triadic } from '../src'
 import { Color } from '../src/tools'
 
 describe('hexToRgb function', () => {
@@ -85,6 +85,11 @@ describe('randomHex function', () => {
     const result = randomHex()
 
     expect(result).toMatch(/^#[0-9A-F]{6}$/) // Checks format #XXXXXX with uppercase hex
+  })
+
+  it('is deterministic with a seeded source', () => {
+    expect(randomHex(() => 0)).toBe('#000000')
+    expect(randomHex(sfc32(1, 2, 3, 4))).toBe(randomHex(sfc32(1, 2, 3, 4)))
   })
 
   it('should generate a different hex color each time', () => {

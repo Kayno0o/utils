@@ -1,11 +1,12 @@
+import type { RandomSource } from './number'
 import type { RgbArrayType } from './tools/ColorConverter'
 import { hashString } from './crypto'
 import { ACHROMATIC_CHROMA } from './internal'
 import { clamp, mapRange, randomInt } from './number'
 import { Color } from './tools/ColorConverter'
 
-export function randomHex(isCrypto = false) {
-  return `#${Math.floor(randomInt(0, 16777215, isCrypto)).toString(16).padStart(6, '0')}`.toUpperCase()
+export function randomHex(random: RandomSource = Math.random) {
+  return `#${Math.floor(randomInt(0, 16777215, random)).toString(16).padStart(6, '0')}`.toUpperCase()
 }
 
 export function blendRgb(rgb1: RgbArrayType, rgb2: RgbArrayType, a1: number): RgbArrayType {

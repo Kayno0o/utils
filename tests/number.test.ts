@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { convertBase, degToRad, entropyBits, formatNumber, gcd, isPrime, lcm, mapRange, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, reduceRatio, round } from '../src'
+import { convertBase, cryptoRandom, degToRad, entropyBits, formatNumber, gcd, isPrime, lcm, mapRange, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, reduceRatio, round, sfc32 } from '../src'
 
 describe('randomInt function', () => {
   it('within the specified range', () => {
@@ -117,6 +117,38 @@ describe('round function', () => {
 
   it('handle negative precision', () => {
     expect(round(135.179234, 4)).toEqual(135.1792)
+  })
+})
+
+describe('seeded random source', () => {
+  it('randomInt maps the source onto [min, max)', () => {
+    expect(randomInt(5, 10, () => 0)).toBe(5)
+    expect(randomInt(5, 10, () => 0.99)).toBe(9)
+    expect(randomInt(10, () => 0.5)).toBe(5)
+    expect(randomInt(1, 7, sfc32(1, 2, 3, 4))).toBe(randomInt(1, 7, sfc32(1, 2, 3, 4)))
+  })
+
+  it('randomFloat maps the source onto [min, max)', () => {
+    expect(randomFloat(2, 4, () => 0.5)).toBe(3)
+    expect(randomFloat(8, () => 0.25)).toBe(2)
+  })
+
+  it('randomBool compares the source to the probability', () => {
+    expect(randomBool(0.5, () => 0.4)).toBe(true)
+    expect(randomBool(0.5, () => 0.6)).toBe(false)
+  })
+
+  it('cryptoRandom stays in [0, 1) and plugs into every helper', () => {
+    for (let i = 0; i < 100; i++) {
+      const value = cryptoRandom()
+
+      expect(value).toBeGreaterThanOrEqual(0)
+      expect(value).toBeLessThan(1)
+    }
+
+    expect(randomInt(3, cryptoRandom)).toBeLessThan(3)
+    expect(randomFloat(3, cryptoRandom)).toBeLessThan(3)
+    expect(typeof randomBool(0.5, cryptoRandom)).toBe('boolean')
   })
 })
 

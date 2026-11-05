@@ -2,41 +2,45 @@ import { getNumberFormat } from './intlCache'
 
 const arr32 = new Uint32Array(1)
 
-const randomUnit = (isCrypto: boolean) => isCrypto ? crypto.getRandomValues(arr32)[0]! / 2 ** 32 : Math.random()
+/** A random source in `[0, 1)`, as `Math.random` or a seeded `sfc32`. */
+export type RandomSource = () => number
 
-export function randomInt(min: number, max: number, isCrypto?: boolean): number
-export function randomInt(max: number, isCrypto?: boolean): number
-
-export function randomInt(minOrMax: number, max?: number | boolean, isCrypto?: boolean) {
-  if (typeof max === 'boolean')
-    isCrypto = max
-
-  isCrypto ??= false
-
-  const min = (typeof max !== 'number') ? 0 : minOrMax
-  const range = (typeof max !== 'number') ? minOrMax : max - minOrMax
-
-  return Math.floor(randomUnit(isCrypto) * range) + min
+/** Uniform `[0, 1)` from `crypto.getRandomValues`, for any helper taking a `random` source. */
+export function cryptoRandom(): number {
+  return crypto.getRandomValues(arr32)[0]! / 2 ** 32
 }
 
-export function randomFloat(min: number, max: number, isCrypto?: boolean): number
-export function randomFloat(max: number, isCrypto?: boolean): number
+/** Integer in `[min, max)`, or `[0, max)` with one bound. */
+export function randomInt(min: number, max: number, random?: RandomSource): number
+export function randomInt(max: number, random?: RandomSource): number
 
-export function randomFloat(minOrMax: number, max?: number | boolean, isCrypto?: boolean) {
-  if (typeof max === 'boolean')
-    isCrypto = max
-
-  isCrypto ??= false
+export function randomInt(minOrMax: number, max?: number | RandomSource, random?: RandomSource) {
+  if (typeof max === 'function')
+    random = max
 
   const min = (typeof max !== 'number') ? 0 : minOrMax
   const range = (typeof max !== 'number') ? minOrMax : max - minOrMax
 
-  return randomUnit(isCrypto) * range + min
+  return Math.floor((random ?? Math.random)() * range) + min
+}
+
+/** Float in `[min, max)`, or `[0, max)` with one bound. */
+export function randomFloat(min: number, max: number, random?: RandomSource): number
+export function randomFloat(max: number, random?: RandomSource): number
+
+export function randomFloat(minOrMax: number, max?: number | RandomSource, random?: RandomSource) {
+  if (typeof max === 'function')
+    random = max
+
+  const min = (typeof max !== 'number') ? 0 : minOrMax
+  const range = (typeof max !== 'number') ? minOrMax : max - minOrMax
+
+  return (random ?? Math.random)() * range + min
 }
 
 /** Random boolean, `true` with the given `probability` (0-1, default 0.5). */
-export function randomBool(probability = 0.5, isCrypto = false): boolean {
-  return randomUnit(isCrypto) < probability
+export function randomBool(probability = 0.5, random: RandomSource = Math.random): boolean {
+  return random() < probability
 }
 
 /** @see https://processing.org/reference/map_.html */

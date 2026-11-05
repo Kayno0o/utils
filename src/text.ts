@@ -1,3 +1,4 @@
+import type { RandomSource } from './number'
 import type { ExtractParams } from './types'
 import { utf8Encoder, utf8StrictDecoder } from './internal'
 import { randomInt } from './number'
@@ -5,35 +6,13 @@ import { STRICT_UUID_REGEX, UUID_REGEX } from './regex'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-/** `length` characters of `charset`, read by code point so emoji count as one; `isCrypto` needs at most 256 of them. */
-export function randomString(length: number, charset?: string, isCrypto = false): string {
+/** `length` characters of `charset` read by code point, each drawn from `random`; pass `cryptoRandom` for secrets (uniform up to 2^-32 per draw, any charset size). */
+export function randomString(length: number, charset?: string, random: RandomSource = Math.random): string {
   const chars = Array.from(charset || wordChars)
-
-  if (isCrypto) {
-    if (chars.length > 256)
-      throw new RangeError('randomString needs at most 256 characters with isCrypto')
-
-    let id = ''
-    let count = 0
-    // rejection sampling: discard bytes in the biased tail so every char is equiprobable
-    const limit = Math.floor(256 / chars.length) * chars.length
-
-    while (count < length) {
-      for (const byte of crypto.getRandomValues(new Uint8Array(length - count))) {
-        if (byte < limit) {
-          id += chars[byte % chars.length]
-          count++
-        }
-      }
-    }
-
-    return id
-  }
-
   let result = ''
 
   for (let i = 0; i < length; i++)
-    result += chars[randomInt(0, chars.length)]
+    result += chars[randomInt(0, chars.length, random)]
 
   return result
 }

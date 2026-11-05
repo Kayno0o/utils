@@ -1,5 +1,5 @@
-import { describe, expect, test as it, spyOn } from 'bun:test'
-import { base64Decode, base64DecodeBytes, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, splitList, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
+import { describe, expect, test as it } from 'bun:test'
+import { base64Decode, base64DecodeBytes, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, cryptoRandom, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, splitList, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -8,31 +8,21 @@ describe('randomString function', () => {
     expect(randomString(length)).toHaveLength(length)
   })
 
-  it('should generate a crypto random string of specified length', () => {
-    const length = 10
+  it('draws each character from the given source', () => {
+    const draws = [0, 0.5, 0.99]
+    const random = () => draws.shift()!
 
-    expect(randomString(length, undefined, true)).toHaveLength(length)
+    expect(randomString(3, 'abc', random)).toBe('abc')
   })
 
-  it('draws again for bytes past the last whole run over the charset, so no character is favoured', () => {
-    // 255 is the biased tail of a 3-symbol charset (limit 255), so it is dropped and the next draw fills the gap.
-    const draws = [[255, 4], [5]]
-    const spy = spyOn(crypto, 'getRandomValues').mockImplementation(<T extends ArrayBufferView | null>(array: T): T => {
-      (array as unknown as Uint8Array).set(draws.shift() ?? [])
-
-      return array
-    })
-
-    expect(randomString(2, 'abc', true)).toBe('bc')
-    expect(spy).toHaveBeenCalledTimes(2)
-
-    spy.mockRestore()
+  it('works with cryptoRandom, even past 256 characters', () => {
+    expect(randomString(10, undefined, cryptoRandom)).toHaveLength(10)
+    expect(randomString(4, 'x'.repeat(300), cryptoRandom)).toBe('xxxx')
   })
 
-  it('draws whole code points, and refuses a crypto charset past 256 characters', () => {
+  it('draws whole code points', () => {
     expect(Array.from(randomString(5, '👋🎉'))).toHaveLength(5)
-    expect(Array.from(randomString(5, '👋🎉', true)).every(char => char === '👋' || char === '🎉')).toBe(true)
-    expect(() => randomString(4, 'x'.repeat(257), true)).toThrow(RangeError)
+    expect(Array.from(randomString(5, '👋🎉', cryptoRandom)).every(char => char === '👋' || char === '🎉')).toBe(true)
   })
 
   it('should generate a random string from default charset', () => {
