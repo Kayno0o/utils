@@ -41,6 +41,21 @@ describe('buildUrlQuery function', () => {
 
     expect(result).toBe('?city!=New York&name=John Doe')
   })
+
+  it('joins arrays with commas by default', () => {
+    expect(buildUrlQuery({ tags: ['x', 'y'] })).toBe('?tags=x,y')
+  })
+
+  it('repeats the key for each array item with `arrayFormat: repeat`', () => {
+    expect(buildUrlQuery({ tags: ['x', 'y'], q: 'a' }, { arrayFormat: 'repeat' })).toBe('?tags=x&tags=y&q=a')
+  })
+
+  it('encodes keys and values with `encode`', () => {
+    expect(buildUrlQuery({ 'q': 'a&b=c', 'path': '/x?y#z', 'name': 'John Doé', 'k&': 1, 'none': null }, { encode: true }))
+      .toBe('?q=a%26b%3Dc&path=%2Fx%3Fy%23z&name=John%20Do%C3%A9&k%26=1')
+    expect(buildUrlQuery({ tags: ['a,b', 'c&'] }, { encode: true })).toBe('?tags=a%2Cb,c%26')
+    expect(buildUrlQuery({ tags: ['a b'] }, { encode: true, arrayFormat: 'repeat' })).toBe('?tags=a%20b')
+  })
 })
 
 describe('queryToNestedObject function', () => {

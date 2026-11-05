@@ -28,10 +28,15 @@ type OnlyAllowedKeys<T, AllowedKeys extends Key> = {
   [K in keyof T]: K extends AllowedKeys ? T[K] : never
 }
 
+export interface GetEndpointOptions {
+  /** URL-encode each param. Off by default to keep the raw output; it becomes the default in the next major. */
+  encode?: boolean
+}
+
 export function declareGetEndpoint<
   EndpointsConst extends Record<Key, string>,
   CustomTypes extends OnlyAllowedKeys<CustomTypes, KeysWithVariablesType<EndpointsConst>> = {},
->(ENDPOINTS: EndpointsConst) {
+>(ENDPOINTS: EndpointsConst, { encode = false }: GetEndpointOptions = {}) {
   type KeysWithoutVariables = KeysWithoutVariablesType<EndpointsConst>
   type KeysWithVariables = KeysWithVariablesType<EndpointsConst>
 
@@ -44,7 +49,9 @@ export function declareGetEndpoint<
     if (!resolvedParams)
       return endpoint
 
-    return Object.entries(resolvedParams).reduce((acc, [key, value]) => acc.replaceAll(`{${key}}`, String(value)), endpoint)
+    const format = encode ? encodeURIComponent : String
+
+    return Object.entries(resolvedParams).reduce((acc, [key, value]) => acc.replaceAll(`{${key}}`, () => format(value as string)), endpoint)
   }
 
   return getEndpoint

@@ -1,17 +1,31 @@
 import { notNullish } from './array'
 import { typedObjectEntries } from './object'
 
-export function buildUrlQuery(query?: object | null) {
-  const output = query
-    ? Object.entries(query).reduce((acc, curr) => {
-      if (notNullish(curr[1]))
-        acc.push(`${curr[0]}=${curr[1]}`)
+export interface BuildUrlQueryOptions {
+  /** URL-encode keys and values. Off by default to keep the raw output; it becomes the default in the next major. */
+  encode?: boolean
+  /** `comma` writes `tags=a,b`, `repeat` writes `tags=a&tags=b` like `fetchJson`'s `query`. */
+  arrayFormat?: 'comma' | 'repeat'
+}
 
-      return acc
-    }, [] as string[]).join('&')
-    : ''
+export function buildUrlQuery(query?: object | null, { encode = false, arrayFormat = 'comma' }: BuildUrlQueryOptions = {}) {
+  const format = encode ? encodeURIComponent : String
+  const pairs: string[] = []
 
-  return output ? `?${output}` : ''
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (!notNullish(value))
+      continue
+
+    if (Array.isArray(value) && arrayFormat === 'repeat') {
+      for (const item of value)
+        pairs.push(`${format(key)}=${format(item)}`)
+    }
+    else {
+      pairs.push(`${format(key)}=${Array.isArray(value) ? value.map(format).join(',') : format(value)}`)
+    }
+  }
+
+  return pairs.length ? `?${pairs.join('&')}` : ''
 }
 
 export function queryToNestedObject(query: Record<string, string>): Record<string, any> {
