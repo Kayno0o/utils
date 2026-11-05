@@ -22,15 +22,21 @@ export type OklabArrayType = [l: number, a: number, b: number]
 export interface OklabObjectType { l: number, a: number, b: number, alpha?: number }
 export type OklabaArrayType = [l: number, a: number, b: number, alpha: number]
 
-function hexToRgb(hex: string): [number, number, number] | [number, number, number, number] {
-  // Remove leading '#' and convert to lowercase
-  const cleanHex = hex.startsWith('#') ? hex.slice(1).toLowerCase() : hex.toLowerCase()
+const HEX_DIGITS = /^[a-f0-9]+$/i
 
-  // Validate hex characters
-  if (!(/^[a-f0-9]+$/).test(cleanHex))
+function hexToRgb(hex: string): [number, number, number] | [number, number, number, number] {
+  const cleanHex = hex.startsWith('#') ? hex.slice(1) : hex
+
+  if (!HEX_DIGITS.test(cleanHex))
     return [0, 0, 0]
 
   const len = cleanHex.length
+
+  if (len === 6) {
+    const value = Number.parseInt(cleanHex, 16)
+
+    return [value >> 16, value >> 8 & 255, value & 255]
+  }
 
   const parse = (s: string) => Number.parseInt(s, 16)
 
@@ -186,13 +192,21 @@ function cmykToRgb(c: number, m: number, y: number, k: number): RgbArrayType {
 }
 
 const srgbToLinear = (c: number) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+// The 256 channel values every conversion from RGB starts from, worked out once rather than three pow calls a colour.
+const LINEAR_OF_BYTE = Array.from({ length: 256 }, (_, byte) => srgbToLinear(byte / 255))
+const linearOfChannel = (channel: number) => Number.isInteger(channel) && channel >= 0 && channel <= 255 ? LINEAR_OF_BYTE[channel]! : srgbToLinear(channel / 255)
 const linearToSrgb = (c: number) => c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055
-const roundTo = (n: number, p: number) => Math.round(n * 10 ** p) / 10 ** p
+
+function roundTo(n: number, p: number): number {
+  const scale = p === 4 ? 10_000 : p === 2 ? 100 : 10 ** p
+
+  return Math.round(n * scale) / scale
+}
 
 function rgbToOklab(rgb: RgbArrayType): OklabArrayType {
-  const r = srgbToLinear(rgb[0] / 255)
-  const g = srgbToLinear(rgb[1] / 255)
-  const b = srgbToLinear(rgb[2] / 255)
+  const r = linearOfChannel(rgb[0])
+  const g = linearOfChannel(rgb[1])
+  const b = linearOfChannel(rgb[2])
 
   const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
   const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)

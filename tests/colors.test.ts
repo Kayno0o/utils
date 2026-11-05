@@ -107,3 +107,33 @@ describe('colors through a pipe', () => {
     expect(await run({ FORCE_COLOR: '1' })).toBe('\u001B[31mx\u001B[39m')
   })
 })
+
+describe('cached chains', () => {
+  const tty = { isTTY: true }
+
+  it('hands back the same chain for the same style, so a call allocates nothing', () => {
+    const colors = createColors({ stream: tty, env: {} })
+
+    expect(colors.bold).toBe(colors.bold)
+    expect(colors.bold.red).toBe(colors.bold.red)
+    expect(colors.hex('#ff8800')).toBe(colors.hex('#ff8800'))
+    expect(colors.hex('#ff8800')).not.toBe(colors.hex('#ff8801'))
+  })
+
+  it('keeps working after many different colours', () => {
+    const colors = createColors({ stream: tty, env: {} })
+
+    for (let value = 0; value < 200; value++)
+      expect(colors.rgb(value, 0, 0)('x')).toBe(`\u001B[38;2;${value};0;0mx\u001B[39m`)
+  })
+
+  it('reads hex of every length the converter does', () => {
+    const colors = createColors({ stream: tty, env: {} })
+
+    expect(colors.hex('#f80')('x')).toBe('\u001B[38;2;255;136;0mx\u001B[39m')
+    expect(colors.hex('ff8800aa')('x')).toBe('\u001B[38;2;255;136;0mx\u001B[39m')
+    expect(colors.hex('nope')('x')).toBe('\u001B[38;2;0;0;0mx\u001B[39m')
+    expect(() => colors.hex('#ff88')('x')).not.toThrow()
+    expect(() => colors.hex('#ff880')).toThrow('Invalid hex color length')
+  })
+})

@@ -1,5 +1,4 @@
 import type { FunctionKeys, NonFunctionKeys } from '../types'
-import { Color } from './ColorConverter'
 
 type ColorStyle = [start: number | string, end: number | string]
 type StyleMap = typeof styleMap
@@ -23,6 +22,25 @@ export interface ColorsOptions {
 const FG = 39
 const BG = 49
 const ANSI = '\u001B['
+
+const MAX_CACHED = 64
+const HEX_DIGITS = /^[a-f0-9]+$/i
+
+// Reads hex as `Color.from('hex', ...)` does (3, 4, 6 or 8 digits, the alpha dropped, non-hex text black), without loading the converter for it.
+function parseHex(hex: string): [number, number, number] {
+  const digits = hex.startsWith('#') ? hex.slice(1) : hex
+
+  if (!HEX_DIGITS.test(digits))
+    return [0, 0, 0]
+
+  if (digits.length === 3 || digits.length === 4)
+    return [Number.parseInt(digits[0]! + digits[0]!, 16), Number.parseInt(digits[1]! + digits[1]!, 16), Number.parseInt(digits[2]! + digits[2]!, 16)]
+
+  if (digits.length !== 6 && digits.length !== 8)
+    throw new Error(`Invalid hex color length: ${digits.length}`)
+
+  return [Number.parseInt(digits.slice(0, 2), 16), Number.parseInt(digits.slice(2, 4), 16), Number.parseInt(digits.slice(4, 6), 16)]
+}
 
 const styleMap = {
   reset: [0, 0],
@@ -74,7 +92,7 @@ const styleMap = {
 
   rgb: (r: number, g: number, b: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle,
   hex: (hex: string, type: Appearance = 'fg') => {
-    const [r, g, b] = Color.from('hex', hex).to('rgb')
+    const [r, g, b] = parseHex(hex)
 
     return [`${type === 'fg' ? 38 : 48};2;${r};${g};${b}`, type === 'fg' ? FG : BG] as ColorStyle
   },
@@ -95,35 +113,51 @@ function shouldColorize(stream: ColorStream | undefined, env: Record<string, str
   return stream?.isTTY === true
 }
 
-function applyStyles(styles: ColorStyle[], value: string, options: ColorsOptions): string {
-  if (!shouldColorize(options.stream ?? globalThis.process?.stdout, options.env))
-    return value
-
+function makeProxy(options: ColorsOptions, styles: ColorStyle[] = []): ColorsType {
   let open = ''
   let close = ''
 
   for (let i = 0, len = styles.length; i < len; i++) {
-    const [start, end] = styles[i]!
-
-    open += `${ANSI}${start}m`
-    close = `${ANSI}${end}m${close}`
+    open += `${ANSI}${styles[i]![0]}m`
+    close = `${ANSI}${styles[i]![1]}m${close}`
   }
 
-  return open + value + close
-}
-
-function makeProxy(options: ColorsOptions, styles: ColorStyle[] = []): ColorsType {
-  const fn = (val: string) => applyStyles(styles, val, options)
+  const fn = (val: string) => shouldColorize(options.stream ?? globalThis.process?.stdout, options.env) ? open + val + close : val
+  // `colors.bold` is the same chain every time, so it is built once.
+  const children = new Map<string, ColorsType>()
 
   return new Proxy(fn, {
     get(_, prop: keyof ColorsType) {
       const val = styleMap[prop as keyof typeof styleMap]
 
-      if (Array.isArray(val))
-        return makeProxy(options, [...styles, val as ColorStyle])
+      if (Array.isArray(val)) {
+        let child = children.get(prop)
 
-      if (typeof val === 'function')
-        return (...args: any) => makeProxy(options, [...styles, (val as any)(...args) as ColorStyle])
+        if (child === undefined) {
+          child = makeProxy(options, [...styles, val as ColorStyle])
+          children.set(prop, child)
+        }
+
+        return child
+      }
+
+      if (typeof val === 'function') {
+        return (...args: any) => {
+          const key = `${prop}:${args.join(',')}`
+          let child = children.get(key)
+
+          if (child === undefined) {
+            // A loop over many colours would grow this without end, so it starts over past a few.
+            if (children.size >= MAX_CACHED)
+              children.clear()
+
+            child = makeProxy(options, [...styles, (val as any)(...args) as ColorStyle])
+            children.set(key, child)
+          }
+
+          return child
+        }
+      }
 
       throw new Error(`Unknown style: ${String(prop)}`)
     },
