@@ -1,4 +1,9 @@
-import { getDateTimeFormat, getRelativeTimeFormat } from './intlCache'
+import { formatDateTime, getRelativeTimeFormat } from './intlCache'
+
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+const ISO_DATE_LABEL_REGEX = /^(\d{4})-(\d{2})-(\d{2})(?:[T ].*)?$/
+const COMPACT_DATE_LABEL_REGEX = /^(\d{4})(\d{2})(\d{2})$/
+const SLASH_DATE_LABEL_REGEX = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/
 
 export const SECOND_MS = 1000
 export const MINUTE_MS = 60 * SECOND_MS
@@ -76,13 +81,10 @@ export function getFrenchHolidays(year: number): string[] {
 }
 
 export function isHoliday(date: Date | string): boolean {
-  const dateObj = new Date(date)
-  const year = dateObj.getFullYear()
-  const holidays = getFrenchHolidays(year)
+  // a bare `YYYY-MM-DD` already names the local day; `new Date()` would read it as UTC midnight
+  const formattedDate = typeof date === 'string' && ISO_DATE_REGEX.test(date) ? date : toISODate(new Date(date))
 
-  const formattedDate = dateObj.toISOString().split('T')[0]!
-
-  return holidays.includes(formattedDate)
+  return getFrenchHolidays(Number(formattedDate.slice(0, 4))).includes(formattedDate)
 }
 
 const DURATION_UNIT_MS: Record<string, number> = {
@@ -217,34 +219,35 @@ export function formatRelativeTime(date: Date | string | number, options: Format
 
 /** Short day-month label in day-before-month order, e.g. "15 Jan" (never the US month-first order). */
 export function formatDayMonth(d: Date): string {
-  return getDateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(d)
+  return formatDateTime(d, 'en-GB', { day: 'numeric', month: 'short' })
 }
 
 /** Short month-year label, e.g. "Jan 2026". */
 export function formatMonthYear(d: Date): string {
-  return getDateTimeFormat('en-GB', { month: 'short', year: 'numeric' }).format(d)
+  return formatDateTime(d, 'en-GB', { month: 'short', year: 'numeric' })
 }
 
 /** Short month label, e.g. "Jan". */
 export function formatMonthShort(d: Date): string {
-  return getDateTimeFormat('en-GB', { month: 'short' }).format(d)
+  return formatDateTime(d, 'en-GB', { month: 'short' })
 }
 
-/** Parse a date label in `YYYY-MM-DD`, `YYYYMMDD` or `D/M/Y` form into a local-midnight Date, or `null`. */
+/** Parse a date label in `YYYY-MM-DD` (a time may follow), `YYYYMMDD` or `D/M/Y` form into a local-midnight Date, or `null` when it names no real day. */
 export function parseDateLabel(label: string): Date | null {
-  let m = label.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  let m = label.match(ISO_DATE_LABEL_REGEX) ?? label.match(COMPACT_DATE_LABEL_REGEX)
 
   if (m)
-    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    return localDate(Number(m[1]), Number(m[2]), Number(m[3]))
 
-  m = label.match(/^(\d{4})(\d{2})(\d{2})$/)
+  m = label.match(SLASH_DATE_LABEL_REGEX)
 
-  if (m)
-    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+  return m ? localDate(m[3]!.length === 2 ? 2000 + Number(m[3]) : Number(m[3]), Number(m[2]), Number(m[1])) : null
+}
 
-  m = label.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/)
+function localDate(year: number, month: number, day: number): Date | null {
+  const date = new Date(year, month - 1, day)
 
-  return m ? new Date(m[3]!.length === 2 ? 2000 + Number(m[3]) : Number(m[3]), Number(m[2]) - 1, Number(m[1])) : null
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null
 }
 
 /** Local-date ISO string `YYYY-MM-DD` without UTC shift (unlike `toISOString`). */
@@ -299,12 +302,12 @@ export function formatHour(hour: number): string {
 
 /** Localized short date-time label, e.g. "Jan 15, 03:04 PM". */
 export function formatTime(timestamp: number): string {
-  return getDateTimeFormat(undefined, {
+  return formatDateTime(timestamp, undefined, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(timestamp)
+  })
 }
 
 /** Return a new Date shifted by `days` (may be negative). Does not mutate the input. */
@@ -487,13 +490,13 @@ export function formatSessionTime(date: Date): string {
   const diffDays = Math.floor((Date.now() - date.getTime()) / DAY_MS)
 
   if (diffDays === 0)
-    return getDateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(date)
+    return formatDateTime(date, undefined, { hour: '2-digit', minute: '2-digit' })
 
   if (diffDays === 1)
     return 'Yesterday'
 
   if (diffDays < 7)
-    return getDateTimeFormat(undefined, { weekday: 'short' }).format(date)
+    return formatDateTime(date, undefined, { weekday: 'short' })
 
-  return getDateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
+  return formatDateTime(date, undefined, { month: 'short', day: 'numeric' })
 }

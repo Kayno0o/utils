@@ -119,6 +119,11 @@ describe('isHoliday function', () => {
 
     expect(result).toBe(false)
   })
+
+  it('reads a Date on its local day', () => {
+    expect(isHoliday(new Date(2026, 11, 25, 0, 30))).toBe(true)
+    expect(isHoliday(new Date(2026, 11, 24, 23, 30))).toBe(false)
+  })
 })
 
 describe('stringToMsDuration function', () => {
@@ -250,6 +255,16 @@ describe('parseDateLabel function', () => {
 
   it('returns null for unrecognized labels', () => {
     expect(parseDateLabel('not a date')).toBeNull()
+    expect(parseDateLabel('2026-01-15xyz')).toBeNull()
+    expect(parseDateLabel('20260115x')).toBeNull()
+  })
+
+  it('returns null for a day that does not exist', () => {
+    expect(parseDateLabel('2026-02-31')).toBeNull()
+    expect(parseDateLabel('20261301')).toBeNull()
+    expect(parseDateLabel('31/4/2026')).toBeNull()
+    expect(parseDateLabel('29/2/2027')).toBeNull()
+    expect(parseDateLabel('29/2/28')).toEqual(new Date(2028, 1, 29))
     expect(parseDateLabel('')).toBeNull()
   })
 })

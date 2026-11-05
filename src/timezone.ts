@@ -1,25 +1,17 @@
 import { addDays, fromISODate, toISODate } from './date'
-
-const formatters = new Map<string, Intl.DateTimeFormat>()
+import { getDateTimeFormat } from './intlCache'
 
 function formatter(timeZone: string): Intl.DateTimeFormat {
-  let cached = formatters.get(timeZone)
-
-  if (!cached) {
-    cached = new Intl.DateTimeFormat('en-CA', {
-      timeZone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hourCycle: 'h23',
-    })
-    formatters.set(timeZone, cached)
-  }
-
-  return cached
+  return getDateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  })
 }
 
 /** A zone this runtime knows, or `fallback` when the caller names one it doesn't. */

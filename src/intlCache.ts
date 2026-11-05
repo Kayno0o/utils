@@ -1,15 +1,18 @@
 type Locale = string | string[] | undefined
 
+const MAX_DATE_MS = 8.64e15
+
 const dateTimeFormats = new Map<string, Intl.DateTimeFormat>()
 const numberFormats = new Map<string, Intl.NumberFormat>()
 const relativeTimeFormats = new Map<string, Intl.RelativeTimeFormat>()
 
-function cacheKey(locale: Locale, options: object | undefined): string {
-  return `${Array.isArray(locale) ? locale.join(',') : locale ?? ''}|${options ? JSON.stringify(options) : ''}`
+function cacheKey(locale: Locale, options: object | undefined, extra?: string): string {
+  return JSON.stringify([locale ?? null, options ?? null, extra])
 }
 
+/** A format built without a `timeZone` captures the ambient one, so it is keyed on the current `TZ`. */
 export function getDateTimeFormat(locale: Locale, options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
-  const key = cacheKey(locale, options)
+  const key = cacheKey(locale, options, options?.timeZone ? undefined : globalThis.process?.env?.TZ ?? '')
 
   let cached = dateTimeFormats.get(key)
 
@@ -19,6 +22,11 @@ export function getDateTimeFormat(locale: Locale, options?: Intl.DateTimeFormatO
   }
 
   return cached
+}
+
+/** `format` that returns `'Invalid Date'` for a non-finite date like `toLocaleString`, instead of throwing. */
+export function formatDateTime(date: Date | number, locale: Locale, options?: Intl.DateTimeFormatOptions): string {
+  return Math.abs(Number(date)) <= MAX_DATE_MS ? getDateTimeFormat(locale, options).format(date) : 'Invalid Date'
 }
 
 export function getNumberFormat(locale: Locale, options?: Intl.NumberFormatOptions): Intl.NumberFormat {
