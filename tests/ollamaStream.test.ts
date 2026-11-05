@@ -67,7 +67,6 @@ async function readLines(res: Response): Promise<any[]> {
 
 function baseOpts() {
   return {
-    url: OLLAMA,
     model: 'llama3',
     messages: [{ role: 'user' as const, content: 'hi' }],
     think: false,
@@ -81,7 +80,7 @@ describe('streamOllamaJson', () => {
   it('emits a delta per chunk then a finalized done frame', async () => {
     mockFetch([chunk('Hel'), chunk('lo'), finalChunk()])
 
-    const frames = await readLines(streamOllamaJson(baseOpts()))
+    const frames = await readLines(streamOllamaJson(OLLAMA, baseOpts()))
 
     expect(frames.slice(0, 2)).toEqual([
       { delta: { content: 'Hel' } },
@@ -93,7 +92,7 @@ describe('streamOllamaJson', () => {
   it('sets NDJSON headers', () => {
     mockFetch([finalChunk()])
 
-    const res = streamOllamaJson(baseOpts())
+    const res = streamOllamaJson(OLLAMA, baseOpts())
 
     expect(res.headers.get('Content-Type')).toBe('application/x-ndjson')
     expect(res.headers.get('Cache-Control')).toBe('no-cache')
@@ -102,7 +101,7 @@ describe('streamOllamaJson', () => {
   it('builds meta from the final chunk over the accumulated content', async () => {
     mockFetch([chunk('Hel'), chunk('lo'), finalChunk()])
 
-    const frames = await readLines(streamOllamaJson(baseOpts()))
+    const frames = await readLines(streamOllamaJson(OLLAMA, baseOpts()))
     const { __meta } = frames[2].done
 
     expect(__meta.model).toBe('llama3')
@@ -116,7 +115,7 @@ describe('streamOllamaJson', () => {
   it('accumulates thinking separately from content', async () => {
     mockFetch([chunk('', 'hmm'), chunk('yes'), finalChunk()])
 
-    const frames = await readLines(streamOllamaJson(baseOpts()))
+    const frames = await readLines(streamOllamaJson(OLLAMA, baseOpts()))
 
     expect(frames[0]).toEqual({ delta: { thinking: 'hmm' } })
     expect(frames[2].done.text).toBe('yes')
@@ -126,7 +125,7 @@ describe('streamOllamaJson', () => {
   it('skips chunks that carry neither content nor thinking', async () => {
     mockFetch([chunk(''), chunk('x'), finalChunk()])
 
-    const frames = await readLines(streamOllamaJson(baseOpts()))
+    const frames = await readLines(streamOllamaJson(OLLAMA, baseOpts()))
 
     expect(frames.filter(f => f.delta)).toHaveLength(1)
   })
@@ -134,19 +133,19 @@ describe('streamOllamaJson', () => {
   it('passes format through and omits it when unset', async () => {
     const withFormat = mockFetch([finalChunk()])
 
-    await readLines(streamOllamaJson({ ...baseOpts(), format: 'json' }))
+    await readLines(streamOllamaJson(OLLAMA, { ...baseOpts(), format: 'json' }))
     expect(JSON.parse(withFormat[0]!.init.body as string).format).toBe('json')
 
     const without = mockFetch([finalChunk()])
 
-    await readLines(streamOllamaJson(baseOpts()))
+    await readLines(streamOllamaJson(OLLAMA, baseOpts()))
     expect(JSON.parse(without[0]!.init.body as string)).not.toHaveProperty('format')
   })
 
   it('forwards fetchOptions to the Ollama call', async () => {
     const calls = mockFetch([finalChunk()])
 
-    await readLines(streamOllamaJson({ ...baseOpts(), fetchOptions: { token: 'abc', headers: { 'X-Test': '1' } } }))
+    await readLines(streamOllamaJson(OLLAMA, { ...baseOpts(), fetchOptions: { token: 'abc', headers: { 'X-Test': '1' } } }))
 
     const headers = new Headers(calls[0]!.init.headers)
 
@@ -161,7 +160,7 @@ describe('streamOllamaJson', () => {
       { preconnect: () => {} },
     ) as unknown as typeof fetch
 
-    const frames = await readLines(streamOllamaJson(baseOpts()))
+    const frames = await readLines(streamOllamaJson(OLLAMA, baseOpts()))
 
     expect(frames).toEqual([{ error: 'ollama down' }])
   })
@@ -179,7 +178,7 @@ describe('streamOllamaJson', () => {
       { preconnect: () => {} },
     ) as unknown as typeof fetch
 
-    const text = await new Response(streamOllamaJson(baseOpts()).body).text()
+    const text = await new Response(streamOllamaJson(OLLAMA, baseOpts()).body).text()
 
     expect(text).toBe('')
   })
@@ -264,18 +263,19 @@ describe('readOllamaJsonStream', () => {
     await expect(readOllamaJsonStream(ROUTE, new FormData())).rejects.toThrow('HTTP 500')
   })
 
-  it('ignores unparsable lines', async () => {
+  it('throws a SyntaxError naming an unparsable line', async () => {
     mockFetch([], () => ndjsonResponse([`not json\n${JSON.stringify({ done: { text: 'a' } })}\n`]))
 
-    const done = await readOllamaJsonStream<{ text: string }>(ROUTE, new FormData())
+    const request = readOllamaJsonStream<{ text: string }>(ROUTE, new FormData())
 
-    expect(done.text).toBe('a')
+    await expect(request).rejects.toBeInstanceOf(SyntaxError)
+    await expect(request).rejects.toThrow('line 1: not json')
   })
 
   it('round-trips a real streamOllamaJson response', async () => {
     mockFetch(
       [chunk('Hel'), chunk('lo'), finalChunk()],
-      () => streamOllamaJson(baseOpts()),
+      () => streamOllamaJson(OLLAMA, baseOpts()),
     )
 
     const deltas: any[] = []

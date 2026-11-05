@@ -61,9 +61,9 @@ function mockStream(chunks: string[]): MockCall {
 const ENDPOINT = 'http://ollama.test/api/chat'
 
 describe('promptOllama', () => {
-  it('wraps a string message into a user message', async () => {
+  it('sends the request with stream disabled', async () => {
     const call = mockFetch({ message: { role: 'assistant', content: 'hi' } })
-    const res = await promptOllama(ENDPOINT, 'hello', { model: 'llama3' })
+    const res = await promptOllama(ENDPOINT, { model: 'llama3', messages: [{ role: 'user', content: 'hello' }] })
 
     expect(res.message.content).toBe('hi')
     expect(call.url).toBe(ENDPOINT)
@@ -89,7 +89,7 @@ describe('promptOllama', () => {
   it('throws FetchError on a non-2xx response', async () => {
     mockFetch('model not found', false, 404)
 
-    const promise = promptOllama(ENDPOINT, 'hi', { model: 'nope' })
+    const promise = promptOllama(ENDPOINT, { model: 'nope', messages: [{ role: 'user', content: 'hi' }] })
 
     await expect(promise).rejects.toBeInstanceOf(FetchError)
     await expect(promise).rejects.toMatchObject({ status: 404 })
@@ -104,13 +104,13 @@ describe('promptOllama', () => {
       { preconnect: () => {} },
     ) as unknown as typeof fetch
 
-    await expect(promptOllama(ENDPOINT, 'hi', { model: 'llama3' })).rejects.toThrow('network down')
+    await expect(promptOllama(ENDPOINT, { model: 'llama3', messages: [{ role: 'user', content: 'hi' }] })).rejects.toThrow('network down')
   })
 
   it('forwards transport options to fetch', async () => {
     const call = mockFetch({ message: { role: 'assistant', content: 'hi' } })
 
-    await promptOllama(ENDPOINT, 'hi', { model: 'llama3' }, { token: 'secret' })
+    await promptOllama(ENDPOINT, { model: 'llama3', messages: [{ role: 'user', content: 'hi' }] }, { token: 'secret' })
 
     expect(new Headers(call.init.headers).get('Authorization')).toBe('Bearer secret')
   })
@@ -120,7 +120,7 @@ describe('promptOllama', () => {
 
     mockFetch({ message: { role: 'assistant', content: '', tool_calls: [toolCall] } })
 
-    const res = await promptOllama(ENDPOINT, 'weather?', { model: 'llama3' })
+    const res = await promptOllama(ENDPOINT, { model: 'llama3', messages: [{ role: 'user', content: 'weather?' }] })
 
     expect(res.message.tool_calls).toEqual([toolCall])
   })
@@ -129,14 +129,14 @@ describe('promptOllama', () => {
 describe('promptOllamaSafe', () => {
   it('returns the response on success', async () => {
     mockFetch({ message: { role: 'assistant', content: 'hi' } })
-    const res = await promptOllamaSafe(ENDPOINT, 'hello', { model: 'llama3' })
+    const res = await promptOllamaSafe(ENDPOINT, { model: 'llama3', messages: [{ role: 'user', content: 'hello' }] })
 
     expect(res).not.toBeInstanceOf(Error)
   })
 
   it('returns an Error on a non-2xx response', async () => {
     mockFetch('model not found', false, 404)
-    const res = await promptOllamaSafe(ENDPOINT, 'hi', { model: 'nope' })
+    const res = await promptOllamaSafe(ENDPOINT, { model: 'nope', messages: [{ role: 'user', content: 'hi' }] })
 
     expect(res).toBeInstanceOf(Error)
     expect((res as Error).message).toContain('404')
@@ -146,7 +146,7 @@ describe('promptOllamaSafe', () => {
 describe('promptOllamaJson', () => {
   it('defaults format to json and parses the content', async () => {
     const call = mockFetch({ message: { role: 'assistant', content: '{"ok":true}' } })
-    const res = await promptOllamaJson<{ ok: boolean }>(ENDPOINT, 'hi', { model: 'llama3' })
+    const res = await promptOllamaJson<{ ok: boolean }>(ENDPOINT, { model: 'llama3', messages: [{ role: 'user', content: 'hi' }] })
 
     expect(res).toEqual({ ok: true })
     expect(JSON.parse(call.init.body as string).format).toBe('json')
@@ -164,7 +164,7 @@ describe('promptOllamaJson', () => {
   it('throws on invalid JSON content', async () => {
     mockFetch({ message: { role: 'assistant', content: 'not json' } })
 
-    await expect(promptOllamaJson(ENDPOINT, 'hi', { model: 'llama3' })).rejects.toThrow('invalid JSON')
+    await expect(promptOllamaJson(ENDPOINT, { model: 'llama3', messages: [{ role: 'user', content: 'hi' }] })).rejects.toThrow('invalid JSON')
   })
 })
 
@@ -184,6 +184,18 @@ describe('streamOllama', () => {
     expect(chunks.map(c => c.message.content)).toEqual(['hello', ' world', ''])
     expect(chunks.at(-1)?.done).toBe(true)
     expect(JSON.parse(call.init.body as string).stream).toBe(true)
+  })
+
+  it('throws a SyntaxError naming an unparsable line', async () => {
+    mockStream(['{"done":false,"message":{"role":"assistant","content":"a"}}\nnot json\n'])
+
+    const iterate = async () => {
+      for await (const _ of streamOllama(ENDPOINT, { model: 'llama3', messages: [] }))
+        void _
+    }
+
+    await expect(iterate()).rejects.toBeInstanceOf(SyntaxError)
+    await expect(iterate()).rejects.toThrow('line 2: not json')
   })
 
   it('throws FetchError on a non-2xx response', async () => {

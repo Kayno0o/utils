@@ -1,8 +1,8 @@
 import type { Buffer } from 'node:buffer'
 import type { FetchJsonOptions } from './browser/fetch'
 import type { DiscordWebhookPayload } from './types'
-import { mergeHeaders, toFetchError } from './browser/fetch'
-import { combineSignals } from './fetch'
+import { fetchJson } from './browser/fetch'
+import { DEFAULT_FETCH_TIMEOUT_MS } from './fetch'
 
 export interface DiscordWebhookFile {
   buffer: Buffer
@@ -12,7 +12,7 @@ export interface DiscordWebhookFile {
 }
 
 /** Transport options, like `sendGotify`'s. */
-export type DiscordFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers' | 'fetch'>
+export type DiscordFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers' | 'fetch' | 'retry'>
 
 /** Discord CDN avatar URL; picks `gif` for animated hashes (`a_` prefix), else `png`. */
 export function getDiscordAvatarUrl(userId: string, avatarHash: string): string {
@@ -28,7 +28,7 @@ export function getDiscordBannerUrl(userId: string, bannerHash: string): string 
   return `https://cdn.discordapp.com/banners/${userId}/${bannerHash}.${format}`
 }
 
-/** POSTs `payload` and `files` to a Discord webhook. Throws `FetchError` on a non-2xx response. */
+/** POSTs `payload` and `files` to a Discord webhook, with a default timeout. Throws `FetchError` on a non-2xx response. */
 export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPayload, files: DiscordWebhookFile[] = [], options: DiscordFetchOptions = {}): Promise<any> {
   const formData = new FormData()
 
@@ -41,16 +41,6 @@ export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPay
     formData.append(`files[${i}]`, blob, file.filename)
   }
 
-  const response = await (options.fetch ?? fetch)(url, {
-    body: formData,
-    method: 'POST',
-    headers: mergeHeaders(options.headers),
-    signal: combineSignals(options.signal, options.timeout),
-  })
-
-  if (!response.ok)
-    throw await toFetchError(response, url)
-
-  // Discord answers 204 with no body unless the url carries `?wait=true`.
-  return response.status === 204 ? null : await response.json()
+  // Discord answers 204 with no body unless the url carries `?wait=true`, which `fetchJson` reads as null.
+  return await fetchJson(url, { timeout: DEFAULT_FETCH_TIMEOUT_MS, ...options, method: 'POST', body: formData })
 }

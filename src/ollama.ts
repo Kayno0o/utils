@@ -1,5 +1,5 @@
 import type { FetchJsonOptions } from './browser/fetch'
-import { fetchJson, mergeHeaders, toFetchError } from './browser/fetch'
+import { fetchJson, mergeHeaders, readNdjson, toFetchError } from './browser/fetch'
 import { combineSignals } from './fetch'
 
 export interface OllamaOutputUsage {
@@ -117,41 +117,19 @@ export type OllamaPromptRequest = Omit<OllamaInputChatRequest, 'stream'>
 /** Transport options forwarded to `fetchJson`, e.g. `timeout` and `signal`. */
 export type OllamaFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers' | 'token' | 'fetch'>
 
-type PromptArgs = [OllamaPromptRequest | string, (Omit<OllamaPromptRequest, 'messages'> | OllamaFetchOptions)?, OllamaFetchOptions?]
-
-/** Normalizes both overload shapes into a request plus transport options. */
-function parseArgs(...[a, b, c]: PromptArgs): { request: OllamaPromptRequest, options: OllamaFetchOptions } {
-  if (typeof a === 'string') {
-    return {
-      request: { ...b as Omit<OllamaPromptRequest, 'messages'>, messages: [{ role: 'user', content: a }] },
-      options: c ?? {},
-    }
-  }
-
-  return { request: a, options: (b as OllamaFetchOptions) ?? {} }
-}
-
 /** POSTs a chat request to an Ollama `/api/chat` endpoint. Throws `FetchError` on a non-2xx response. */
-export async function promptOllama(url: string, input: OllamaPromptRequest, options?: OllamaFetchOptions): Promise<OllamaOutputChatResponse>
-export async function promptOllama(url: string, message: string, input: Omit<OllamaPromptRequest, 'messages'>, options?: OllamaFetchOptions): Promise<OllamaOutputChatResponse>
-export async function promptOllama(url: string, ...args: PromptArgs): Promise<OllamaOutputChatResponse> {
-  const { request, options } = parseArgs(...args)
-
+export async function promptOllama(url: string, input: OllamaPromptRequest, options: OllamaFetchOptions = {}): Promise<OllamaOutputChatResponse> {
   return fetchJson<OllamaOutputChatResponse>(url, {
     ...options,
     method: 'POST',
-    body: { ...request, stream: false },
+    body: { ...input, stream: false },
   })
 }
 
 /** Like `promptOllama`, but returns any thrown error instead of throwing. */
-export async function promptOllamaSafe(url: string, input: OllamaPromptRequest, options?: OllamaFetchOptions): Promise<OllamaOutputChatResponse | Error>
-export async function promptOllamaSafe(url: string, message: string, input: Omit<OllamaPromptRequest, 'messages'>, options?: OllamaFetchOptions): Promise<OllamaOutputChatResponse | Error>
-export async function promptOllamaSafe(url: string, ...args: PromptArgs): Promise<OllamaOutputChatResponse | Error> {
-  const { request, options } = parseArgs(...args)
-
+export async function promptOllamaSafe(url: string, input: OllamaPromptRequest, options?: OllamaFetchOptions): Promise<OllamaOutputChatResponse | Error> {
   try {
-    return await promptOllama(url, request, options)
+    return await promptOllama(url, input, options)
   }
   catch (e) {
     return e instanceof Error ? e : new Error(typeof e === 'string' ? e : `Unknown error: ${e}`)
@@ -159,11 +137,8 @@ export async function promptOllamaSafe(url: string, ...args: PromptArgs): Promis
 }
 
 /** POSTs a chat request with `format` defaulted to `'json'`, parsing `message.content` into `T`. */
-export async function promptOllamaJson<T>(url: string, input: OllamaPromptRequest, options?: OllamaFetchOptions): Promise<T>
-export async function promptOllamaJson<T>(url: string, message: string, input: Omit<OllamaPromptRequest, 'messages'>, options?: OllamaFetchOptions): Promise<T>
-export async function promptOllamaJson<T>(url: string, ...args: PromptArgs): Promise<T> {
-  const { request, options } = parseArgs(...args)
-  const res = await promptOllama(url, { format: 'json', ...request }, options)
+export async function promptOllamaJson<T>(url: string, input: OllamaPromptRequest, options?: OllamaFetchOptions): Promise<T> {
+  const res = await promptOllama(url, { format: 'json', ...input }, options)
 
   try {
     return JSON.parse(res.message.content) as T
@@ -282,36 +257,5 @@ export async function* streamOllama(
   if (!res.body)
     throw new Error(`Ollama returned no body for ${url}`)
 
-  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
-  let buffer = ''
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read()
-
-      if (done)
-        break
-
-      buffer += value
-
-      const lines = buffer.split('\n')
-
-      buffer = lines.pop() ?? ''
-
-      for (const line of lines) {
-        if (line.trim())
-          yield JSON.parse(line) as OllamaOutputResponse
-      }
-    }
-
-    if (buffer.trim())
-      yield JSON.parse(buffer) as OllamaOutputResponse
-  }
-  finally {
-    // Releases the connection when the consumer breaks out of the loop early.
-    try {
-      await reader.cancel()
-    }
-    catch {}
-  }
+  yield* readNdjson<OllamaOutputResponse>(res.body)
 }

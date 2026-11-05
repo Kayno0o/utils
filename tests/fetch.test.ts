@@ -440,7 +440,7 @@ describe('fetchWithTimeout', () => {
   it('aborts on its own deadline', async () => {
     mockHangingFetch()
 
-    const [error] = await tryCatch(async () => fetchWithTimeout('/slow', { timeoutMs: 5 }))
+    const [error] = await tryCatch(async () => fetchWithTimeout('/slow', { timeout: 5 }))
 
     expect(error).toBeInstanceOf(Error)
   })
@@ -448,7 +448,7 @@ describe('fetchWithTimeout', () => {
   it('still aborts on the caller signal', async () => {
     const mock = mockHangingFetch()
     const controller = new AbortController()
-    const call = tryCatch(async () => fetchWithTimeout('/slow', { signal: controller.signal, timeoutMs: 10_000 }))
+    const call = tryCatch(async () => fetchWithTimeout('/slow', { signal: controller.signal, timeout: 10_000 }))
 
     controller.abort(new Error('caller went away'))
 

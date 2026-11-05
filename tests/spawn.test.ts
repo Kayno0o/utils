@@ -26,12 +26,12 @@ describe('spawnText', () => {
   it('kills the process past the deadline and fails', async () => {
     const started = Date.now()
 
-    await expect(spawnText(['sleep', '5'], { timeoutMs: 100 })).rejects.toThrow('exit 143')
+    await expect(spawnText(['sleep', '5'], { timeout: 100 })).rejects.toThrow('exit 143')
     expect(Date.now() - started).toBeLessThan(2000)
   })
 
   it('finishes when stderr outgrows the pipe buffer', async () => {
-    expect(await spawnText(['sh', '-c', 'head -c 200000 /dev/zero >&2; echo ok'], { timeoutMs: 5000 })).toBe('ok')
+    expect(await spawnText(['sh', '-c', 'head -c 200000 /dev/zero >&2; echo ok'], { timeout: 5000 })).toBe('ok')
   })
 })
 
@@ -61,7 +61,7 @@ describe('spawnExit', () => {
 
   it('resolves non-zero without throwing', async () => {
     expect(await spawnExit(['false'])).toBe(1)
-    expect(await spawnExit(['sleep', '5'], { timeoutMs: 100 })).toBe(143)
+    expect(await spawnExit(['sleep', '5'], { timeout: 100 })).toBe(143)
   })
 })
 

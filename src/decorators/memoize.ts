@@ -34,7 +34,7 @@ function cacheOf(instance: object, propertyKey: string, options?: MemoizeDecorat
   let cache = caches.get(propertyKey)
 
   if (!cache) {
-    cache = createTtlCache<string, any>(options?.ttl, options)
+    cache = createTtlCache<string, any>(options)
     caches.set(propertyKey, cache)
   }
 

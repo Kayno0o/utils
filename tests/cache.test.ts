@@ -3,7 +3,7 @@ import { createTtlCache, memoize } from '../src/cache'
 
 describe('createTtlCache', () => {
   test('returns a stored value within the TTL', () => {
-    const cache = createTtlCache<string, number>(1000)
+    const cache = createTtlCache<string, number>({ ttl: 1000 })
 
     cache.set('a', 1)
     expect(cache.get('a')).toBe(1)
@@ -11,7 +11,7 @@ describe('createTtlCache', () => {
   })
 
   test('expires a value past the TTL', () => {
-    const cache = createTtlCache<string, number>(-1)
+    const cache = createTtlCache<string, number>({ ttl: -1 })
 
     cache.set('a', 1)
     expect(cache.get('a')).toBeUndefined()
@@ -25,7 +25,7 @@ describe('createTtlCache', () => {
   })
 
   test('evicts the oldest entry when maxEntries is exceeded', () => {
-    const cache = createTtlCache<string, number>(1000, { maxEntries: 2 })
+    const cache = createTtlCache<string, number>({ ttl: 1000, maxEntries: 2 })
 
     cache.set('a', 1)
     cache.set('b', 2)
@@ -37,12 +37,12 @@ describe('createTtlCache', () => {
   })
 
   test('rejects a non-positive maxEntries', () => {
-    expect(() => createTtlCache(1000, { maxEntries: 0 })).toThrow(RangeError)
-    expect(() => createTtlCache(1000, { maxEntries: -1 })).toThrow(RangeError)
+    expect(() => createTtlCache({ ttl: 1000, maxEntries: 0 })).toThrow(RangeError)
+    expect(() => createTtlCache({ ttl: 1000, maxEntries: -1 })).toThrow(RangeError)
   })
 
   test('re-setting a key moves it to the back of the eviction queue', () => {
-    const cache = createTtlCache<string, number>(1000, { maxEntries: 2 })
+    const cache = createTtlCache<string, number>({ ttl: 1000, maxEntries: 2 })
 
     cache.set('a', 1)
     cache.set('b', 2)
@@ -55,7 +55,7 @@ describe('createTtlCache', () => {
   })
 
   test('get does not promote under the default FIFO policy', () => {
-    const cache = createTtlCache<string, number>(1000, { maxEntries: 2 })
+    const cache = createTtlCache<string, number>({ ttl: 1000, maxEntries: 2 })
 
     cache.set('a', 1)
     cache.set('b', 2)
@@ -66,7 +66,7 @@ describe('createTtlCache', () => {
   })
 
   test('lru evicts the least recently used entry', () => {
-    const cache = createTtlCache<string, number>(1000, { maxEntries: 2, lru: true })
+    const cache = createTtlCache<string, number>({ ttl: 1000, maxEntries: 2, lru: true })
 
     cache.set('a', 1)
     cache.set('b', 2)
@@ -79,7 +79,7 @@ describe('createTtlCache', () => {
   })
 
   test('lru peek and has do not promote', () => {
-    const cache = createTtlCache<string, number>(1000, { maxEntries: 2, lru: true })
+    const cache = createTtlCache<string, number>({ ttl: 1000, maxEntries: 2, lru: true })
 
     cache.set('a', 1)
     cache.set('b', 2)
@@ -95,7 +95,7 @@ describe('createTtlCache', () => {
 
     setSystemTime(t0)
 
-    const cache = createTtlCache<string, number>(100, { lru: true })
+    const cache = createTtlCache<string, number>({ ttl: 100, lru: true })
 
     cache.set('a', 1)
 
@@ -109,7 +109,7 @@ describe('createTtlCache', () => {
   })
 
   test('iterates live entries in eviction order', () => {
-    const cache = createTtlCache<string, number>(1000, { maxEntries: 3, lru: true })
+    const cache = createTtlCache<string, number>({ ttl: 1000, maxEntries: 3, lru: true })
 
     cache.set('a', 1)
     cache.set('b', 2)
@@ -120,7 +120,7 @@ describe('createTtlCache', () => {
   })
 
   test('iteration skips expired entries', () => {
-    const cache = createTtlCache<string, number>(-1)
+    const cache = createTtlCache<string, number>({ ttl: -1 })
 
     cache.set('a', 1)
 
@@ -128,7 +128,7 @@ describe('createTtlCache', () => {
   })
 
   test('has distinguishes a cached undefined from a miss', () => {
-    const cache = createTtlCache<string, number | undefined>(1000)
+    const cache = createTtlCache<string, number | undefined>({ ttl: 1000 })
 
     cache.set('a', undefined)
 
@@ -138,14 +138,14 @@ describe('createTtlCache', () => {
   })
 
   test('has reports an expired entry as absent', () => {
-    const cache = createTtlCache<string, number>(-1)
+    const cache = createTtlCache<string, number>({ ttl: -1 })
 
     cache.set('a', 1)
     expect(cache.has('a')).toBe(false)
   })
 
   test('delete and clear drop entries', () => {
-    const cache = createTtlCache<string, number>(1000)
+    const cache = createTtlCache<string, number>({ ttl: 1000 })
 
     cache.set('a', 1)
     cache.set('b', 2)
@@ -160,7 +160,7 @@ describe('createTtlCache', () => {
   })
 
   test('getOrLoad runs the loader once, then serves from cache', async () => {
-    const cache = createTtlCache<string, number>(1000)
+    const cache = createTtlCache<string, number>({ ttl: 1000 })
     let calls = 0
     const loader = async () => {
       calls++
@@ -174,7 +174,7 @@ describe('createTtlCache', () => {
   })
 
   test('getOrLoad serves a cached undefined without reloading', async () => {
-    const cache = createTtlCache<string, number | undefined>(1000)
+    const cache = createTtlCache<string, number | undefined>({ ttl: 1000 })
     let calls = 0
     const loader = async () => {
       calls++
@@ -188,7 +188,7 @@ describe('createTtlCache', () => {
   })
 
   test('getOrLoad reloads once the entry has expired', async () => {
-    const cache = createTtlCache<string, number>(-1)
+    const cache = createTtlCache<string, number>({ ttl: -1 })
     let calls = 0
     const loader = async () => ++calls
 
@@ -198,7 +198,7 @@ describe('createTtlCache', () => {
   })
 
   test('getOrLoad dedups concurrent misses for the same key', async () => {
-    const cache = createTtlCache<string, number>(1000)
+    const cache = createTtlCache<string, number>({ ttl: 1000 })
     let calls = 0
     const loader = async () => {
       calls++
@@ -215,7 +215,7 @@ describe('createTtlCache', () => {
   })
 
   test('getOrLoad retries after a failed load (inflight cleared)', async () => {
-    const cache = createTtlCache<string, number>(1000)
+    const cache = createTtlCache<string, number>({ ttl: 1000 })
     let calls = 0
     const loader = async () => {
       calls++

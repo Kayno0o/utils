@@ -305,3 +305,52 @@ export function createFetcher(defaults: string | FetchJsonOptions) {
     headers: mergeHeaders(base.headers, options.headers),
   })
 }
+
+/** Yields each non-empty line of an NDJSON body parsed as JSON. Throws a `SyntaxError` naming the line on one that is not JSON, and cancels the body when the consumer stops early. */
+export async function* readNdjson<T>(body: NonNullable<Response['body']>): AsyncGenerator<T, void> {
+  const reader = body.pipeThrough(new TextDecoderStream()).getReader()
+  let buffer = ''
+  let lineNumber = 0
+
+  function parseLine(line: string): T {
+    try {
+      return JSON.parse(line) as T
+    }
+    catch (e) {
+      throw new SyntaxError(`Invalid NDJSON at line ${lineNumber}: ${line.slice(0, 200)}`, { cause: e })
+    }
+  }
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+
+      if (done)
+        break
+
+      buffer += value
+
+      const lines = buffer.split('\n')
+
+      buffer = lines.pop() ?? ''
+
+      for (const line of lines) {
+        ++lineNumber
+
+        if (line.trim())
+          yield parseLine(line)
+      }
+    }
+
+    ++lineNumber
+
+    if (buffer.trim())
+      yield parseLine(buffer)
+  }
+  finally {
+    try {
+      await reader.cancel()
+    }
+    catch {}
+  }
+}

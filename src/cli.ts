@@ -9,7 +9,7 @@ export interface SpawnOptions {
   /** Written to the process and closed; without it the process reads nothing. */
   stdin?: ArrayBuffer | Uint8Array | string
   /** Kills the process past this deadline, which then counts as a failed exit. */
-  timeoutMs?: number
+  timeout?: number
   /** Working directory. Defaults to the current one. */
   cwd?: string
   /** The whole environment the process sees. Defaults to `process.env`; spread it to add to it. */
@@ -44,7 +44,7 @@ async function run<T>(argv: string[], opts: SpawnOptions, read: (stdout: Readabl
 
   const proc = Bun.spawn(argv, { stdout: 'pipe', stderr: 'pipe', stdin: opts.stdin === undefined ? 'ignore' : 'pipe', cwd: opts.cwd, env: opts.env, signal: opts.signal })
 
-  const timer = opts.timeoutMs === undefined ? undefined : setTimeout(() => proc.kill(), opts.timeoutMs)
+  const timer = opts.timeout === undefined ? undefined : setTimeout(() => proc.kill(), opts.timeout)
 
   try {
     const [out, err, code] = await Promise.all([read(proc.stdout), new Response(proc.stderr).text(), proc.exited, feed(proc.stdin, opts.stdin)])

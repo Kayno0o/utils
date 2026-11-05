@@ -39,6 +39,44 @@ describe('sendDiscordWebhook', () => {
     expect(init.signal).toBeInstanceOf(AbortSignal)
   })
 
+  it('applies a default deadline when no timeout is given', async () => {
+    const fetchSpy = mockFetch(() => new Response(null, { status: 204 }))
+
+    await sendDiscordWebhook(URL, { content: 'hi' })
+
+    expect(fetchSpy.mock.calls[0]![1]!.signal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('aborts a webhook that hangs past its timeout', async () => {
+    spyOn(globalThis, 'fetch').mockImplementation(((_url: string, init: RequestInit) => new Promise((_, reject) => {
+      init.signal!.addEventListener('abort', () => reject(init.signal!.reason))
+    })) as unknown as typeof fetch)
+
+    await expect(sendDiscordWebhook(URL, { content: 'hi' }, [], { timeout: 10 })).rejects.toMatchObject({ name: 'TimeoutError' })
+  })
+
+  it('resolves to the parsed body under ?wait=true', async () => {
+    mockFetch(() => new Response('{"id":"1"}', { status: 200 }))
+
+    expect(await sendDiscordWebhook(URL, { content: 'hi' })).toEqual({ id: '1' })
+  })
+
+  it('retries a 5xx response when asked to', async () => {
+    let calls = 0
+    const fetchSpy = mockFetch(() => ++calls === 1 ? new Response('down', { status: 503 }) : new Response(null, { status: 204 }))
+
+    await sendDiscordWebhook(URL, { content: 'hi' }, [], { retry: { attempts: 2, delay: 0 } })
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not retry by default', async () => {
+    const fetchSpy = mockFetch(() => new Response('down', { status: 503 }))
+
+    await expect(sendDiscordWebhook(URL, { content: 'hi' })).rejects.toBeInstanceOf(FetchError)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
   it('throws a FetchError on a non-2xx response', async () => {
     mockFetch(() => new Response('{"message":"Invalid Webhook Token"}', { status: 401, statusText: 'Unauthorized' }))
 

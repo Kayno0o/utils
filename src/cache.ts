@@ -1,4 +1,6 @@
 export interface TtlCacheOptions {
+  /** Entry lifetime in ms. Defaults to no expiry. */
+  ttl?: number
   /** Evict past this many entries. Defaults to unbounded. */
   maxEntries?: number
   /** Promote an entry to most-recently-used on `get`, so eviction drops the least recently used. Defaults to insertion order (FIFO). */
@@ -19,8 +21,8 @@ export interface TtlCache<K, V> {
 }
 
 /** In-memory TTL cache with optional size-based eviction, FIFO by default or LRU via `options.lru`. */
-export function createTtlCache<K, V>(ttlMs = Infinity, options?: TtlCacheOptions): TtlCache<K, V> {
-  const { maxEntries = Infinity, lru = false } = options ?? {}
+export function createTtlCache<K, V>(options?: TtlCacheOptions): TtlCache<K, V> {
+  const { ttl = Infinity, maxEntries = Infinity, lru = false } = options ?? {}
 
   if (maxEntries <= 0)
     throw new RangeError('maxEntries must be > 0')
@@ -35,7 +37,7 @@ export function createTtlCache<K, V>(ttlMs = Infinity, options?: TtlCacheOptions
     if (!hit)
       return undefined
 
-    if (Date.now() - hit.at >= ttlMs) {
+    if (Date.now() - hit.at >= ttl) {
       map.delete(key)
 
       return undefined
@@ -137,8 +139,6 @@ export function createTtlCache<K, V>(ttlMs = Infinity, options?: TtlCacheOptions
 }
 
 export interface MemoizeOptions<A extends any[]> extends TtlCacheOptions {
-  /** Entry lifetime in ms. Defaults to no expiry. */
-  ttl?: number
   /** Cache key for a call. Defaults to `JSON.stringify(args)`. */
   key?: (...args: A) => string
 }
@@ -150,7 +150,7 @@ export type Memoized<A extends any[], R> = ((...args: A) => R) & { cache: TtlCac
  * so concurrent calls share one in-flight run and a rejection evicts the entry.
  */
 export function memoize<A extends any[], R>(fn: (...args: A) => R, options?: MemoizeOptions<A>): Memoized<A, R> {
-  const cache = createTtlCache<string, R>(options?.ttl, options)
+  const cache = createTtlCache<string, R>(options)
   const toKey = options?.key ?? ((...args: A) => JSON.stringify(args))
 
   const memoized = function (this: unknown, ...args: A): R {

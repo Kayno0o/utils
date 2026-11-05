@@ -4,17 +4,17 @@ import { SECOND_MS } from './date'
 export const DEFAULT_FETCH_TIMEOUT_MS = 15 * SECOND_MS
 
 /** The caller's signal, a deadline, or both - undefined when there is neither. */
-export function combineSignals(signal: AbortSignal | null | undefined, timeoutMs: number | undefined): AbortSignal | undefined {
-  if (timeoutMs === undefined)
+export function combineSignals(signal: AbortSignal | null | undefined, timeout: number | undefined): AbortSignal | undefined {
+  if (timeout === undefined)
     return signal ?? undefined
 
-  const deadline = AbortSignal.timeout(timeoutMs)
+  const deadline = AbortSignal.timeout(timeout)
 
   return signal ? AbortSignal.any([signal, deadline]) : deadline
 }
 
 export interface FetchWithTimeoutInit extends RequestInit {
-  timeoutMs?: number
+  timeout?: number
 }
 
 /**
@@ -23,7 +23,7 @@ export interface FetchWithTimeoutInit extends RequestInit {
  * any fixed deadline.
  */
 export async function fetchWithTimeout(url: string | URL, init: FetchWithTimeoutInit = {}): Promise<Response> {
-  const { timeoutMs = DEFAULT_FETCH_TIMEOUT_MS, signal, ...rest } = init
+  const { timeout = DEFAULT_FETCH_TIMEOUT_MS, signal, ...rest } = init
 
-  return await fetch(url, { ...rest, signal: combineSignals(signal, timeoutMs) })
+  return await fetch(url, { ...rest, signal: combineSignals(signal, timeout) })
 }

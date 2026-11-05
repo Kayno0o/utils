@@ -1,5 +1,5 @@
 import type { OllamaFetchOptions, OllamaInputMessage, OllamaInputOptions, OllamaMeta, OllamaOutputChatResponse } from './ollama'
-import { mergeHeaders, toFetchError } from './browser/fetch'
+import { mergeHeaders, readNdjson, toFetchError } from './browser/fetch'
 import { combineSignals } from './fetch'
 import { buildOllamaMeta, streamOllama } from './ollama'
 
@@ -19,8 +19,6 @@ export type OllamaStreamFrame<T = Record<string, unknown>>
     | { error: string }
 
 export interface StreamOllamaJsonOptions {
-  /** Ollama `/api/chat` endpoint. */
-  url: string
   model: string
   messages: OllamaInputMessage[]
   think: boolean
@@ -43,7 +41,7 @@ const encoder = new TextEncoder()
  * Finalizing here keeps the terminal `done` payload identical to what a non-streaming
  * route would return. Pair with `readOllamaJsonStream` on the client.
  */
-export function streamOllamaJson(opts: StreamOllamaJsonOptions): Response {
+export function streamOllamaJson(url: string, opts: StreamOllamaJsonOptions): Response {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const write = (frame: OllamaStreamFrame) => controller.enqueue(encoder.encode(`${JSON.stringify(frame)}\n`))
@@ -53,7 +51,7 @@ export function streamOllamaJson(opts: StreamOllamaJsonOptions): Response {
         let thinking = ''
         let last: OllamaOutputChatResponse | undefined
 
-        const chunks = streamOllama(opts.url, {
+        const chunks = streamOllama(url, {
           model: opts.model,
           messages: opts.messages,
           think: opts.think,
@@ -110,7 +108,7 @@ export interface ReadOllamaJsonStreamOptions extends Pick<OllamaFetchOptions, 's
 
 /**
  * POSTs `body` to a `streamOllamaJson` route and consumes its NDJSON, resolving to the
- * terminal `done` payload. Rejects if the stream carries an `error` frame or ends early.
+ * terminal `done` payload. Rejects if the stream carries an `error` frame or ends early or a line is not JSON.
  */
 export async function readOllamaJsonStream<T>(
   url: string | URL,
@@ -133,51 +131,15 @@ export async function readOllamaJsonStream<T>(
   if (!res.body)
     throw new Error(`No body from ${url}`)
 
-  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
-  let buffer = ''
   let done: (T & { __meta?: OllamaMeta }) | undefined
 
-  try {
-    while (true) {
-      const { done: streamDone, value } = await reader.read()
-
-      if (streamDone)
-        break
-
-      buffer += value
-
-      const lines = buffer.split('\n')
-
-      buffer = lines.pop() ?? ''
-
-      for (const line of lines) {
-        if (!line.trim())
-          continue
-
-        let frame: OllamaStreamFrame<T>
-
-        try {
-          frame = JSON.parse(line)
-        }
-        catch {
-          continue
-        }
-
-        if ('delta' in frame)
-          opts.onDelta?.(frame.delta)
-        else if ('done' in frame)
-          done = frame.done
-        else if ('error' in frame)
-          throw new Error(frame.error)
-      }
-    }
-  }
-  finally {
-    // Releases the connection when we throw or break out before the stream ends.
-    try {
-      await reader.cancel()
-    }
-    catch {}
+  for await (const frame of readNdjson<OllamaStreamFrame<T>>(res.body)) {
+    if ('delta' in frame)
+      opts.onDelta?.(frame.delta)
+    else if ('done' in frame)
+      done = frame.done
+    else if ('error' in frame)
+      throw new Error(frame.error)
   }
 
   if (!done)
