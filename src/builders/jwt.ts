@@ -37,25 +37,68 @@ export function decodeJwt(token: string): DecodedJwt | null {
   }
 }
 
-export class JWTBuilder<Payload> {
+/** What most JWT libraries take when signing, e.g. jsonwebtoken's `sign` options. */
+export interface JwtSignOptions {
+  /** Seconds, or a duration string such as `'1h'`. */
+  expiresIn?: string | number
+  algorithm?: string
+  [option: string]: unknown
+}
+
+/** The JWT library calls the builder wraps, e.g. `{ generate: jwt.sign, verify: jwt.verify }`. */
+export interface JwtLibrary<Payload, SignOptions = JwtSignOptions> {
+  generate: (payload: Payload, secret: string, options?: SignOptions) => string
+  verify: (token: string, secret: string) => unknown
+}
+
+export type JwtVerification<Payload>
+  = | { ok: true, payload: Payload }
+    | { ok: false, reason: 'expired' | 'malformed' | 'invalid', error: unknown }
+
+const EXPIRED_ERROR_REGEX = /expired/i
+
+/** jsonwebtoken names it `TokenExpiredError`, jose codes it `ERR_JWT_EXPIRED`; otherwise the token's own `exp` tells. */
+function isExpiry(error: unknown, token: string): boolean {
+  const { name, code } = (error ?? {}) as { name?: unknown, code?: unknown }
+
+  if ((typeof name === 'string' && EXPIRED_ERROR_REGEX.test(name)) || code === 'ERR_JWT_EXPIRED')
+    return true
+
+  const exp = decodeJwt(token)?.payload.exp
+
+  return typeof exp === 'number' && exp * 1000 <= Date.now()
+}
+
+export class JWTBuilder<Payload, SignOptions extends object = JwtSignOptions> {
   constructor(
-    public jwt: {
-      generate: (payload: Payload, options: any) => string
-      verify: (token: string, secret: string) => any
-    },
+    public jwt: JwtLibrary<Payload, SignOptions>,
     public secret: string,
+    /** Sign options every `generate` starts from, e.g. `{ expiresIn: '1h' }`. */
+    public defaults?: NoInfer<SignOptions>,
   ) {}
 
-  generate(payload: Payload) {
-    return this.jwt.generate(payload, this.secret)
+  /** Signs `payload`; `options` win over the builder's defaults. */
+  generate(payload: Payload, options?: SignOptions) {
+    return this.jwt.generate(payload, this.secret, this.defaults || options ? { ...this.defaults, ...options } as SignOptions : undefined)
   }
 
+  /** The payload, or `undefined` for any failure; `validate` says which. */
   verify(token: string): Payload | undefined {
+    const result = this.validate(token)
+
+    return result.ok ? result.payload : undefined
+  }
+
+  /** The payload, or why the token was refused: `expired`, `malformed` (not a JWT at all) or `invalid` (bad signature, wrong audience...). */
+  validate(token: string): JwtVerification<Payload> {
     try {
-      return this.jwt.verify(token, this.secret) as Payload | undefined
+      return { ok: true, payload: this.jwt.verify(token, this.secret) as Payload }
     }
-    catch {
-      return undefined
+    catch (error) {
+      if (!decodeJwt(token))
+        return { ok: false, reason: 'malformed', error }
+
+      return { ok: false, reason: isExpiry(error, token) ? 'expired' : 'invalid', error }
     }
   }
 }
