@@ -60,6 +60,11 @@ describe('formatUnit function', () => {
     expect(result).toEqual('999')
   })
 
+  it('formats negative numbers like positive ones', () => {
+    expect(formatUnit(-5000)).toEqual('-5.0k')
+    expect(formatUnit(-999)).toEqual('-999')
+  })
+
   it('should format thousands with "k"', () => {
     const result = formatUnit(1500)
 

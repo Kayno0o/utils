@@ -39,6 +39,9 @@ export function formatFileSize(bytes: number, siOrOptions: boolean | { units?: F
 }
 
 export function formatUnit(num: number): string {
+  if (num < 0)
+    return `-${formatUnit(-num)}`
+
   if (num < 1000)
     return num.toString()
 
