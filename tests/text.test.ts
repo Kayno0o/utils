@@ -541,6 +541,15 @@ describe('plural function', () => {
     expect(result).toEqual('knives')
   })
 
+  it('only turns the known -f and -fe words into -ves', () => {
+    expect(plural('safe')).toEqual('safes')
+    expect(plural('roof')).toEqual('roofs')
+    expect(plural('chef')).toEqual('chefs')
+    expect(plural('wolf')).toEqual('wolves')
+    expect(plural('shelf')).toEqual('shelves')
+    expect(plural('wife')).toEqual('wives')
+  })
+
   it('should handle regular plurals', () => {
     const result = plural('cat')
 

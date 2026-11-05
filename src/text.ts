@@ -366,6 +366,10 @@ export function progressBar(value: number, min: number, max: number, { emptyChar
   return startChar + fillBar + emptyChar.repeat(emptyLength) + endChar
 }
 
+// the -f and -fe words that do turn into -ves: `roof`, `chef` and `safe` take a plain -s
+const F_TO_VES_REGEX = /(?:leaf|loaf|thief|wolf|half|calf|elf|sheaf)$/
+const FE_TO_VES_REGEX = /(?:knife|life|wife)$/
+
 /** handle common pluralization rules */
 export function plural(singular: string, count?: number): string {
   if (count === 1 || count === 0)
@@ -377,10 +381,10 @@ export function plural(singular: string, count?: number): string {
   if (singular.endsWith('s') || singular.endsWith('x') || singular.endsWith('z') || singular.endsWith('ch') || singular.endsWith('sh'))
     return `${singular}es`
 
-  if (singular.endsWith('f'))
+  if (F_TO_VES_REGEX.test(singular))
     return `${singular.slice(0, -1)}ves`
 
-  return singular.endsWith('fe') ? `${singular.slice(0, -2)}ves` : `${singular}s`
+  return FE_TO_VES_REGEX.test(singular) ? `${singular.slice(0, -2)}ves` : `${singular}s`
 }
 
 /** `1 rule`, `3 rules`: a count and the word it agrees with */
