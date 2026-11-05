@@ -33,6 +33,13 @@ describe('getSvgDimension', () => {
   it('returns null when attribute absent', () => {
     expect(getSvgDimension(SVG_WITHOUT_VIEWBOX, 'width')).toBeNull()
   })
+
+  it('reads the width attribute itself, not stroke-width or data-width', () => {
+    expect(getSvgDimension('<svg stroke-width="2" width="24" data-height="9" height="12">', 'width')).toBe(24)
+    expect(getSvgDimension('<svg width="24" stroke-width="2">', 'width')).toBe(24)
+    expect(getSvgDimension('<svg data-height="9" height="12">', 'height')).toBe(12)
+    expect(getSvgDimension('<svg stroke-width="2">', 'width')).toBeNull()
+  })
 })
 
 describe('setViewBox', () => {

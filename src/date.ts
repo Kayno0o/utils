@@ -3,7 +3,8 @@ import { formatDateTime, getRelativeTimeFormat } from './intlCache'
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 const ISO_DATE_LABEL_REGEX = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}.*)?$/
 const COMPACT_DATE_LABEL_REGEX = /^(\d{4})(\d{2})(\d{2})$/
-const SLASH_DATE_LABEL_REGEX = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/
+const DURATION_PART_REGEX = /(\d+)\s*([a-z])/gi
+const SLASH_DATE_LABEL_REGEX = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/
 
 export const SECOND_MS = 1000
 export const MINUTE_MS = 60 * SECOND_MS
@@ -136,7 +137,7 @@ export function stringToMsDuration(duration: string | number): number {
 
   let total = 0
 
-  for (const [, time, unit] of duration.matchAll(/(\d+)\s*([a-z])/gi)) {
+  for (const [, time, unit] of duration.matchAll(DURATION_PART_REGEX)) {
     const factor = DURATION_UNIT_MS[unit!]
 
     if (factor !== undefined)

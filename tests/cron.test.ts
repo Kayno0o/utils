@@ -127,6 +127,22 @@ describe('cronNextRuns / cronPreviousRuns', () => {
   })
 })
 
+describe('cronMatches day fields', () => {
+  it('ANDs the day fields when one starts with a star, as Vixie cron does', () => {
+    // 2026-06-15 is a Monday, the 15th: odd, so `*/2` (1, 3, 5...) matches it.
+    expect(cronMatches(new Date(2026, 5, 15, 0, 0), '0 0 */2 * 1')).toBe(true)
+    // 2026-06-16 is a Tuesday, the 16th: neither an odd day nor a Monday.
+    expect(cronMatches(new Date(2026, 5, 16, 0, 0), '0 0 */2 * 1')).toBe(false)
+    // 2026-06-17 is a Wednesday, the 17th: an odd day, not a Monday.
+    expect(cronMatches(new Date(2026, 5, 17, 0, 0), '0 0 */2 * 1')).toBe(false)
+  })
+
+  it('ORs two restricted day fields', () => {
+    expect(cronMatches(new Date(2026, 5, 17, 0, 0), '0 0 17 * 1')).toBe(true)
+    expect(cronMatches(new Date(2026, 5, 15, 0, 0), '0 0 17 * 1')).toBe(true)
+  })
+})
+
 describe('cronMatches', () => {
   it('returns true when the date satisfies the expression', () => {
     expect(cronMatches(new Date(2026, 5, 14, 0, 0), '0 * * * 0')).toBe(true) // Sunday, minute 0

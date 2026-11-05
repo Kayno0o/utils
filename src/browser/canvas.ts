@@ -124,13 +124,6 @@ export function wrapTextForWidth(ctx: CanvasRenderingContext2D, text: string, ma
 
   for (const hard of text.split('\n')) {
     const words = hard.split(' ')
-
-    if (!words.length) {
-      result.push('')
-
-      continue
-    }
-
     let line = words[0]!
 
     for (let i = 1; i < words.length; i++) {

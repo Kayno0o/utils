@@ -17,6 +17,17 @@ const { getIconData, has, renderSvg, inlineIconUrl } = createIconify({
   },
 })
 
+describe('createIconify lookups and attributes', () => {
+  it('finds own icons only, never prototype keys', () => {
+    expect(has('ti:constructor')).toBe(false)
+    expect(renderSvg('ti:toString' as never)).toBe('')
+  })
+
+  it('escapes attribute values', () => {
+    expect(renderSvg('ti:home', { title: 'a "b" <c>' })).toContain('title="a &quot;b&quot; &lt;c&gt;"')
+  })
+})
+
 describe('createIconify', () => {
   it('returns svg body and default viewBox', () => {
     expect(getIconData('ti:home')).toStrictEqual({

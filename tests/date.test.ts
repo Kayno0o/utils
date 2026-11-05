@@ -283,6 +283,10 @@ describe('parseDateLabel function', () => {
     expect(parseDateLabel('5/3/26')).toEqual(new Date(2026, 2, 5))
   })
 
+  it('refuses a three-digit year', () => {
+    expect(parseDateLabel('5/3/202')).toBeNull()
+  })
+
   it('ignores a trailing time on the ISO form', () => {
     expect(parseDateLabel('2026-01-15T12:30:00')).toEqual(new Date(2026, 0, 15))
   })

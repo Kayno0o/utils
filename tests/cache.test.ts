@@ -354,3 +354,55 @@ describe('memoize', () => {
     expect(calls).toBe(2)
   })
 })
+
+describe('getOrLoad during a delete', () => {
+  test('a load running across a delete does not cache its stale value', async () => {
+    const cache = createTtlCache<string, number>()
+    let release!: (value: number) => void
+    const loading = cache.getOrLoad('a', async () => new Promise<number>(resolve => (release = resolve)))
+
+    cache.delete('a')
+    release(1)
+
+    expect(await loading).toBe(1)
+    expect(cache.has('a')).toBe(false)
+  })
+
+  test('the older load leaves a newer one for the key in place', async () => {
+    const cache = createTtlCache<string, number>()
+    let releaseOld!: (value: number) => void
+    const old = cache.getOrLoad('a', async () => new Promise<number>(resolve => (releaseOld = resolve)))
+
+    cache.delete('a')
+
+    let calls = 0
+    let releaseNew!: (value: number) => void
+    const loader = async () => {
+      calls++
+
+      return new Promise<number>(resolve => (releaseNew = resolve))
+    }
+    const fresh = cache.getOrLoad('a', loader)
+
+    releaseOld(1)
+    await old
+
+    const joined = cache.getOrLoad('a', loader)
+
+    releaseNew(2)
+
+    expect(await fresh).toBe(2)
+    expect(await joined).toBe(2)
+    expect(calls).toBe(1)
+    expect(cache.get('a')).toBe(2)
+  })
+
+  test('a loader throwing synchronously rejects and leaves no pending load', async () => {
+    const cache = createTtlCache<string, number>()
+
+    await expect(cache.getOrLoad('a', (() => {
+      throw new Error('boom')
+    }) as never)).rejects.toThrow('boom')
+    expect(await cache.getOrLoad('a', async () => 3)).toBe(3)
+  })
+})

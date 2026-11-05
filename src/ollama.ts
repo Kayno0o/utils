@@ -247,7 +247,7 @@ export function buildOllamaMeta(res: OllamaOutputChatResponse, rawInput: string)
     totalMs: (res.total_duration ?? 0) / NS_PER_MS,
     promptTokens: res.prompt_eval_count ?? 0,
     outputTokens: res.eval_count ?? 0,
-    tokensPerSec: res.eval_duration ? res.eval_count / (res.eval_duration / NS_PER_S) : 0,
+    tokensPerSec: res.eval_duration ? (res.eval_count ?? 0) / (res.eval_duration / NS_PER_S) : 0,
     rawInput,
     rawOutput: res.message.content,
     thinking: res.message.thinking,

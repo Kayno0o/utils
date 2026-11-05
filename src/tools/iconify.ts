@@ -1,3 +1,5 @@
+import { escapeXml } from '../text'
+
 export interface IconifyIcon {
   body: string
   width?: number
@@ -29,7 +31,7 @@ export function createIconify<const T extends Record<string, IconifyJSON>>(libs:
 
     const library = libs[prefix]
 
-    if (!library || !(iconName in library.icons))
+    if (!library || !Object.hasOwn(library.icons, iconName))
       return null
 
     const icon = library.icons[iconName]
@@ -56,7 +58,7 @@ export function createIconify<const T extends Record<string, IconifyJSON>>(libs:
       return ''
 
     const extra = Object.entries(attrs ?? {})
-      .map(([k, v]) => ` ${k}="${v}"`)
+      .map(([k, v]) => ` ${k}="${escapeXml(String(v))}"`)
       .join('')
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${data.viewBox}"${extra}>${data.svg}</svg>`

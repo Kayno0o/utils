@@ -5,6 +5,8 @@ const FIELD_PREFIX_RE = /^[^:]+:/
 const PROPERTY_NAME_RE = /^([^;:]*)(?:;[^:]*)?:/
 const FN_SPACE_RE = /\s+/
 const BDAY_DASH_RE = /-/g
+const BEGIN_VCARD_RE = /BEGIN:VCARD/i
+const TEL_LINE_RE = /^TEL/i
 const NOTE_NL_RE = /\\n/g
 
 export interface VCardContact {
@@ -25,7 +27,7 @@ export function normalizePhone(phone: string): string {
 }
 
 export function parseVCards(text: string): Partial<VCardContact>[] {
-  const blocks = text.split(/BEGIN:VCARD/i).slice(1)
+  const blocks = text.split(BEGIN_VCARD_RE).slice(1)
 
   return blocks.flatMap((block) => {
     // Unfold RFC 2425 continuation lines
@@ -95,10 +97,12 @@ export function parseVCards(text: string): Partial<VCardContact>[] {
     const bday = get('BDAY')
 
     if (bday) {
+      // vCard 3 and 4 write a birthday without a year as `--MMDD` or `--MM-DD`.
+      const yearless = bday.startsWith('--')
       const clean = bday.replace(BDAY_DASH_RE, '')
-      const y = Number.parseInt(clean.slice(0, 4))
-      const m = Number.parseInt(clean.slice(4, 6))
-      const d = Number.parseInt(clean.slice(6, 8))
+      const y = yearless ? Number.NaN : Number.parseInt(clean.slice(0, 4))
+      const m = Number.parseInt(yearless ? clean.slice(0, 2) : clean.slice(4, 6))
+      const d = Number.parseInt(yearless ? clean.slice(2, 4) : clean.slice(6, 8))
 
       if (!Number.isNaN(m) && m > 0)
         birth_month = m
@@ -110,7 +114,7 @@ export function parseVCards(text: string): Partial<VCardContact>[] {
         birth_year = y
     }
 
-    const telLine = rawLines.find(l => (/^TEL/i).test(l))
+    const telLine = rawLines.find(l => TEL_LINE_RE.test(l))
     const contact_phone = telLine ? telLine.replace(FIELD_PREFIX_RE, '').trim() : undefined
     const contact_email = getFirst('EMAIL')?.trim()
     const contact_social = get('URL')?.trim()

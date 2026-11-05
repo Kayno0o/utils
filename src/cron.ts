@@ -128,17 +128,11 @@ function dayMatches(date: Date, dayOfMonth: CronField, dayOfWeek: CronField): bo
   const domMatch = dayOfMonth.values.has(date.getDate())
   const dowMatch = dayOfWeek.values.has(date.getDay())
 
-  // Vixie cron: when both day fields are restricted, either may match.
-  if (dayOfMonth.restricted && dayOfWeek.restricted)
-    return domMatch || dowMatch
+  // Vixie cron: a day field starting with `*` (`*/2` too) is unrestricted, and when neither is, either may match.
+  const domStar = dayOfMonth.raw.startsWith('*')
+  const dowStar = dayOfWeek.raw.startsWith('*')
 
-  if (dayOfMonth.restricted)
-    return domMatch
-
-  if (dayOfWeek.restricted)
-    return dowMatch
-
-  return true
+  return !domStar && !dowStar ? domMatch || dowMatch : domMatch && dowMatch
 }
 
 function matchesFields(fields: ReturnType<typeof parseExpression>, date: Date): boolean {

@@ -98,18 +98,26 @@ export function createTtlCache<K, V>(ttlMs = Infinity, options?: TtlCacheOptions
       if (pending)
         return pending
 
+      // Wrapped so a loader throwing synchronously still rejects, after `promise` is assigned.
+      const loading = (async () => loader(key))()
+      // A `delete` or `clear` during the load drops it: its stale value is not cached, and a newer load for the key is left alone.
+      let tracked: Promise<V> | undefined
       const promise = (async () => {
         try {
-          const value = await loader(key)
+          const value = await loading
 
-          cache.set(key, value)
+          if (inflight.get(key) === tracked)
+            cache.set(key, value)
 
           return value
         }
         finally {
-          inflight.delete(key)
+          if (inflight.get(key) === tracked)
+            inflight.delete(key)
         }
       })()
+
+      tracked = promise
 
       inflight.set(key, promise)
 

@@ -103,3 +103,14 @@ describe('generateVCard', () => {
     expect(v).toContain('NOTE:Hello\\nWorld')
   })
 })
+
+describe('parseVCards yearless birthday', () => {
+  it('reads month and day from --MMDD and --MM-DD', () => {
+    for (const bday of ['--1225', '--12-25']) {
+      const [c] = parseVCards(`BEGIN:VCARD\nVERSION:4.0\nFN:Ana\nBDAY:${bday}\nEND:VCARD`)
+
+      expect(c).toMatchObject({ birth_month: 12, birth_day: 25 })
+      expect(c?.birth_year).toBeUndefined()
+    }
+  })
+})

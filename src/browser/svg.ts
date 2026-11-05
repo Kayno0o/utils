@@ -3,8 +3,8 @@ import { round } from '../number'
 const VIEWBOX_RE = /viewBox=["']\s*([\d\-.]+)[\s,]+([\d\-.]+)[\s,]+([\d\-.]+)[\s,]+([\d\-.]+)\s*["']/
 const VIEWBOX_VALUE_RE = /viewBox=["'][^"']*["']/
 const SVG_DIM_RES = {
-  height: /<svg[^>]+height=["']([\d.]+)(?:px)?["']/,
-  width: /<svg[^>]+width=["']([\d.]+)(?:px)?["']/,
+  height: /<svg\b[^>]*\sheight=["']([\d.]+)(?:px)?["']/,
+  width: /<svg\b[^>]*\swidth=["']([\d.]+)(?:px)?["']/,
 }
 
 /** Parses the `viewBox` attribute from an SVG string. Returns `null` when absent. */
