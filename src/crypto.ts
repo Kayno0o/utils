@@ -155,7 +155,7 @@ export function hashString(str: string, { algorithm = 'FNV-1a' }: { algorithm?: 
     for (let i = 0; i < str.length; i++)
       hash = Math.imul(hash, 33) ^ str.charCodeAt(i)
 
-    return hash
+    return (hash >>> 0) / 0xFFFFFFFF
   }
 
   let hash = 2166136261

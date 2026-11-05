@@ -1,5 +1,5 @@
 import { describe, expect, test as it, spyOn } from 'bun:test'
-import { comparePasswords, digestHex, hashPassword, hmac, nanoid, PASSWORD_HASH_PARAMS, passwordNeedsRehash } from '../src'
+import { comparePasswords, digestHex, hashPassword, hashString, hmac, nanoid, PASSWORD_HASH_PARAMS, passwordNeedsRehash } from '../src'
 
 describe('nanoid', () => {
   it('returns default length of 21', () => {
@@ -129,5 +129,19 @@ describe('digestHex', () => {
     expect(await digestHex('SHA-1', '')).toHaveLength(40)
     expect(await digestHex('SHA-384', '')).toHaveLength(96)
     expect(await digestHex('SHA-512', '')).toHaveLength(128)
+  })
+})
+
+describe('hashString', () => {
+  it('returns a deterministic float in [0, 1] for every algorithm', () => {
+    for (const algorithm of ['FNV-1a', 'sfc32', 'djb2'] as const) {
+      for (const str of ['', 'hello', 'a much longer string to overflow the hash']) {
+        const hash = hashString(str, { algorithm })
+
+        expect(hash).toBeGreaterThanOrEqual(0)
+        expect(hash).toBeLessThanOrEqual(1)
+        expect(hashString(str, { algorithm })).toBe(hash)
+      }
+    }
   })
 })
