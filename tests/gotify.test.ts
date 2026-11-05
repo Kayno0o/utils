@@ -45,6 +45,14 @@ describe('sendGotify', () => {
     expect(JSON.parse(call.init.body as string)).toEqual({ title: 'Hi', message: 'Body', priority: 5 })
   })
 
+  it('applies a default deadline when no timeout is given', async () => {
+    const call = mockFetch()
+
+    await sendGotify(ENDPOINT, 'secret', { title: 'Hi', message: 'Body' })
+
+    expect(call.init.signal).toBeInstanceOf(AbortSignal)
+  })
+
   it('keeps an explicit priority', async () => {
     const call = mockFetch()
 

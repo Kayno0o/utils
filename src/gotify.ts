@@ -1,5 +1,6 @@
 import type { FetchJsonOptions } from './browser/fetch'
 import { fetchJson, mergeHeaders } from './browser/fetch'
+import { DEFAULT_FETCH_TIMEOUT_MS } from './fetch'
 
 export interface GotifyMessage {
   title: string
@@ -14,7 +15,7 @@ export interface GotifyMessage {
 /** Transport options forwarded to `fetchJson`, e.g. `timeout` and `signal`. */
 export type GotifyFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers' | 'fetch' | 'retry'>
 
-/** POSTs a single message to a Gotify `/message` endpoint, authenticating with the app token. Throws `FetchError` on a non-2xx response. */
+/** POSTs a single message to a Gotify `/message` endpoint, authenticating with the app token, with a 15 s default `timeout`. Throws `FetchError` on a non-2xx response. */
 export async function sendGotify(url: string, token: string, message: GotifyMessage, options: GotifyFetchOptions = {}): Promise<void> {
   const extras: Record<string, unknown> = {}
 
@@ -29,6 +30,7 @@ export async function sendGotify(url: string, token: string, message: GotifyMess
   }
 
   await fetchJson(url, {
+    timeout: DEFAULT_FETCH_TIMEOUT_MS,
     ...options,
     method: 'POST',
     headers: mergeHeaders({ 'X-Gotify-Key': token }, options.headers),
