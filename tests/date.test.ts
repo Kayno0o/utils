@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { addDays, addMonths, addYears, age, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, diffInDays, diffInHours, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, getFrenchHolidays, getQuarter, getWeekNumber, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, msDurationToString, parseDateLabel, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, stringToMsDuration, WEEK_MS } from '../src'
+import { addDays, addMonths, addYears, age, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, diffInDays, diffInHours, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, getFrenchHolidays, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, msDurationToString, parseDateLabel, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, stringToMsDuration, WEEK_MS } from '../src'
 
 describe('msDurationToString function', () => {
   it('decomposes a duration into the largest units first', () => {
@@ -138,7 +138,11 @@ describe('isHoliday function', () => {
         expect(isHoliday('2026-12-24')).toBe(false)
       }
       finally {
-        process.env.TZ = timezone
+        // Assigning undefined would set the string "undefined", which reads as UTC for every later test.
+        if (timezone === undefined)
+          delete process.env.TZ
+        else
+          process.env.TZ = timezone
       }
     }
   })
@@ -423,5 +427,66 @@ describe('dateDifference', () => {
 
   it('returns null for a date that does not parse', () => {
     expect(dateDifference('nope', '2024-01-01')).toBeNull()
+  })
+})
+
+describe('working-day options', () => {
+  // 2024-05-06 is a Monday; 2024-05-08 (Victoire 1945) is a French holiday.
+  const monday = new Date(2024, 4, 6)
+  const nextMonday = new Date(2024, 4, 13)
+
+  it('takes other weekend days', () => {
+    expect(isWeekend(new Date(2024, 4, 10))).toBe(false)
+    expect(isWeekend(new Date(2024, 4, 10), [5, 6])).toBe(true)
+    expect(businessDaysBetween(monday, nextMonday, { weekendDays: [5, 6] })).toBe(6)
+  })
+
+  it('skips holidays with isHoliday or a predicate', () => {
+    expect(businessDaysBetween(monday, nextMonday)).toBe(6)
+    expect(businessDaysBetween(monday, nextMonday, { holidays: true })).toBe(4)
+    expect(businessDaysBetween(monday, nextMonday, { holidays: d => d.getDate() === 7 })).toBe(5)
+  })
+
+  it('applies to dateDifference working days', () => {
+    expect(dateDifference('2024-05-06', '2024-05-13')!.workingDays).toBe(5)
+    expect(dateDifference('2024-05-06', '2024-05-13', { holidays: true })!.workingDays).toBe(3)
+    expect(dateDifference('2024-05-06', '2024-05-13', { weekendDays: [0] })!.workingDays).toBe(6)
+  })
+})
+
+describe('week start', () => {
+  const wednesday = new Date(2024, 4, 8)
+
+  it('defaults to Monday and takes Sunday', () => {
+    expect(startOfWeekISO(wednesday)).toBe('2024-05-06')
+    expect(startOfWeekISO(wednesday, 0)).toBe('2024-05-05')
+    expect(startOfWeekISO(new Date(2024, 4, 5), 0)).toBe('2024-05-05')
+  })
+
+  it('pads grids back to the week start', () => {
+    expect(gridDays(1, wednesday)[0]).toBe('2024-05-06')
+    expect(gridDays(1, wednesday, 0)).toEqual(['2024-05-05', '2024-05-06', '2024-05-07', '2024-05-08'])
+  })
+})
+
+describe('parseDateLabel order', () => {
+  it('reads slash dates day-first by default and month-first on request', () => {
+    expect(parseDateLabel('03/04/2024')!.getMonth()).toBe(3)
+    expect(parseDateLabel('03/04/2024', { order: 'month-first' })!.getMonth()).toBe(2)
+    expect(parseDateLabel('13/04/2024', { order: 'month-first' })).toBeNull()
+  })
+})
+
+describe('formatSessionTime options', () => {
+  const now = new Date(2024, 4, 8, 9, 0)
+
+  it('counts calendar days from now, so last night reads as yesterday', () => {
+    expect(formatSessionTime(new Date(2024, 4, 7, 23, 0), { now })).toBe('Yesterday')
+    expect(formatSessionTime(new Date(2024, 4, 7, 23, 0), { now, labels: { yesterday: 'Hier' } })).toBe('Hier')
+  })
+
+  it('formats in the given locale', () => {
+    expect(formatSessionTime(new Date(2024, 4, 6, 12, 0), { now, locale: 'fr-FR' })).toBe('lun.')
+    expect(formatSessionTime(new Date(2024, 3, 1, 12, 0), { now, locale: 'en-US' })).toBe('Apr 1')
   })
 })

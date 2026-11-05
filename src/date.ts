@@ -258,8 +258,8 @@ export function formatMonthShort(d: Date, locale: string | string[] = 'en-GB'): 
   return formatDateTime(d, locale, { month: 'short' })
 }
 
-/** Parse a date label in `YYYY-MM-DD` (a time may follow), `YYYYMMDD` or `D/M/Y` form into a local-midnight Date, or `null` when it names no real day. */
-export function parseDateLabel(label: string): Date | null {
+/** Parse a date label in `YYYY-MM-DD` (a time may follow), `YYYYMMDD` or `D/M/Y` form (`M/D/Y` with `order: 'month-first'`) into a local-midnight Date, or `null` when it names no real day. */
+export function parseDateLabel(label: string, { order = 'day-first' }: { order?: 'day-first' | 'month-first' } = {}): Date | null {
   let m = label.match(ISO_DATE_LABEL_REGEX) ?? label.match(COMPACT_DATE_LABEL_REGEX)
 
   if (m)
@@ -267,7 +267,12 @@ export function parseDateLabel(label: string): Date | null {
 
   m = label.match(SLASH_DATE_LABEL_REGEX)
 
-  return m ? localDate(m[3]!.length === 2 ? 2000 + Number(m[3]) : Number(m[3]), Number(m[2]), Number(m[1])) : null
+  if (!m)
+    return null
+
+  const [day, month] = order === 'day-first' ? [m[1], m[2]] : [m[2], m[1]]
+
+  return localDate(m[3]!.length === 2 ? 2000 + Number(m[3]) : Number(m[3]), Number(month), Number(day))
 }
 
 function localDate(year: number, month: number, day: number): Date | null {
@@ -288,24 +293,27 @@ export function fromISODate(iso: string): Date {
   return new Date(y!, (m ?? 1) - 1, d ?? 1)
 }
 
-/** ISO week start (Monday) of the given date, as `YYYY-MM-DD`. DST-proof via local arithmetic. */
-export function startOfWeekISO(d: Date): string {
+/** A `getDay()` number, 0 for Sunday to 6 for Saturday. */
+export type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6
+
+/** Days since the last `weekStart` (`getDay()` numbering), 0 on that day itself. */
+function daysIntoWeek(date: Date, weekStart: WeekDay): number {
+  return (date.getDay() - weekStart + 7) % 7
+}
+
+/** Week start (Monday by default, ISO) of the given date, as `YYYY-MM-DD`. DST-proof via local arithmetic. */
+export function startOfWeekISO(d: Date, weekStart: WeekDay = 1): string {
   const date = new Date(d.getFullYear(), d.getMonth(), d.getDate())
 
-  // getDay(): 0=Sun..6=Sat → days since Monday
-  date.setDate(date.getDate() - (date.getDay() + 6) % 7)
+  date.setDate(date.getDate() - daysIntoWeek(date, weekStart))
 
   return toISODate(date)
 }
 
-/**
- * Returns an ascending list of `YYYY-MM-DD` keys for a contribution grid:
- * a `weeks`-week window ending on `today`, padded back to the preceding Monday
- * so the result is always a clean 7×N block.
- */
-export function gridDays(weeks: number, today: Date = new Date()): string[] {
+/** Ascending `YYYY-MM-DD` keys for a contribution grid: a `weeks`-week window ending on `today`, padded back to the preceding `weekStart` (Monday by default) so the result is always a clean 7×N block. */
+export function gridDays(weeks: number, today: Date = new Date(), weekStart: WeekDay = 1): string[] {
   const end = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const startOffset = (end.getDay() + 6) % 7 + (weeks - 1) * 7
+  const startOffset = daysIntoWeek(end, weekStart) + (weeks - 1) * 7
   const start = new Date(end)
 
   start.setDate(start.getDate() - startOffset)
@@ -374,8 +382,28 @@ export interface DateDifference {
   calendar: { years: number, months: number, days: number }
 }
 
-/** The span between two `YYYY-MM-DD` dates, in whichever order, counted on UTC days so a daylight saving change never shifts it by an hour; `null` when either does not parse. */
-export function dateDifference(from: string, to: string): DateDifference | null {
+export interface BusinessDayOptions {
+  /** `getDay()` numbers of the days off each week. Defaults to Saturday and Sunday. */
+  weekendDays?: readonly WeekDay[]
+  /** Also skips holidays: `true` for `isHoliday` (French public holidays), or a predicate of your own. Defaults to none. */
+  holidays?: boolean | ((date: Date) => boolean)
+}
+
+const DEFAULT_WEEKEND_DAYS: readonly WeekDay[] = [0, 6]
+
+/** Whether a local-midnight `date` is a working day under `options`. */
+function isBusinessDay(date: Date, { weekendDays = DEFAULT_WEEKEND_DAYS, holidays = false }: BusinessDayOptions): boolean {
+  if (weekendDays.includes(date.getDay() as WeekDay))
+    return false
+
+  if (!holidays)
+    return true
+
+  return !(holidays === true ? isHoliday(date) : holidays(date))
+}
+
+/** The span between two `YYYY-MM-DD` dates, in whichever order, counted on UTC days so a daylight saving change never shifts it by an hour; `null` when either does not parse. `options` set what `workingDays` skips. */
+export function dateDifference(from: string, to: string, options: BusinessDayOptions = {}): DateDifference | null {
   const a = Date.parse(`${from}T00:00:00Z`)
   const b = Date.parse(`${to}T00:00:00Z`)
 
@@ -387,9 +415,9 @@ export function dateDifference(from: string, to: string): DateDifference | null 
   let workingDays = 0
 
   for (let day = 0; day < days; day++) {
-    const weekday = new Date(start + day * DAY_MS).getUTCDay()
+    const utc = new Date(start + day * DAY_MS)
 
-    if (weekday !== 0 && weekday !== 6)
+    if (isBusinessDay(new Date(utc.getUTCFullYear(), utc.getUTCMonth(), utc.getUTCDate()), options))
       workingDays++
   }
 
@@ -443,11 +471,9 @@ export function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
 
-/** Whether `date` falls on a Saturday or Sunday. */
-export function isWeekend(date: Date): boolean {
-  const day = date.getDay()
-
-  return day === 0 || day === 6
+/** Whether `date` falls on one of `weekendDays`, Saturday or Sunday by default. */
+export function isWeekend(date: Date, weekendDays: readonly WeekDay[] = DEFAULT_WEEKEND_DAYS): boolean {
+  return weekendDays.includes(date.getDay() as WeekDay)
 }
 
 /** Whether `date` is on the current local calendar day. */
@@ -491,8 +517,8 @@ export function age(birth: Date, at: Date = new Date()): number {
   return years
 }
 
-/** Count of weekdays (Mon-Fri) within `[start, end]` inclusive. Order-insensitive. */
-export function businessDaysBetween(start: Date, end: Date): number {
+/** Count of working days within `[start, end]` inclusive, Mon-Fri unless `options` say otherwise. Order-insensitive. */
+export function businessDaysBetween(start: Date, end: Date, options: BusinessDayOptions = {}): number {
   let from = startOfDay(start)
   let to = startOfDay(end)
 
@@ -502,25 +528,33 @@ export function businessDaysBetween(start: Date, end: Date): number {
   let count = 0
 
   for (let d = from; d <= to; d = addDays(d, 1)) {
-    if (!isWeekend(d))
+    if (isBusinessDay(d, options))
       count++
   }
 
   return count
 }
 
-/** Relative session label: time today, "Yesterday", weekday within a week, else short date. */
-export function formatSessionTime(date: Date): string {
-  const diffDays = Math.floor((Date.now() - date.getTime()) / DAY_MS)
+export interface FormatSessionTimeOptions {
+  /** Defaults to the runtime's locale. */
+  locale?: string | string[]
+  labels?: { yesterday?: string }
+  /** The moment the label is relative to. Defaults to now. */
+  now?: Date | number
+}
+
+/** Relative session label: time today, "Yesterday", weekday within a week, else short date; days are counted on the calendar. */
+export function formatSessionTime(date: Date, { locale, labels = {}, now = Date.now() }: FormatSessionTimeOptions = {}): string {
+  const diffDays = diffInDays(date, new Date(now))
 
   if (diffDays === 0)
-    return formatDateTime(date, undefined, { hour: '2-digit', minute: '2-digit' })
+    return formatDateTime(date, locale, { hour: '2-digit', minute: '2-digit' })
 
   if (diffDays === 1)
-    return 'Yesterday'
+    return labels.yesterday ?? 'Yesterday'
 
-  if (diffDays < 7)
-    return formatDateTime(date, undefined, { weekday: 'short' })
+  if (diffDays > 1 && diffDays < 7)
+    return formatDateTime(date, locale, { weekday: 'short' })
 
-  return formatDateTime(date, undefined, { month: 'short', day: 'numeric' })
+  return formatDateTime(date, locale, { month: 'short', day: 'numeric' })
 }

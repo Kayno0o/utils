@@ -86,7 +86,10 @@ describe('gridDays', () => {
       expect(days).toContain('2026-03-29')
     }
     finally {
-      process.env.TZ = timezone
+      if (timezone === undefined)
+        delete process.env.TZ
+      else
+        process.env.TZ = timezone
     }
   })
 })
