@@ -15,7 +15,7 @@ function formatter(timeZone: string): Intl.DateTimeFormat {
 }
 
 /** A zone this runtime knows, or `fallback` when the caller names one it doesn't. */
-export function knownZone(timeZone: string | undefined, fallback: string): string {
+export function resolveTimeZone(timeZone: string | undefined, fallback: string): string {
   if (!timeZone)
     return fallback
 
@@ -39,7 +39,7 @@ export interface WallClock {
 }
 
 /** What a clock in `timeZone` reads at that instant. */
-export function wallClock(at: Date, timeZone: string): WallClock {
+export function getWallClock(at: Date, timeZone: string): WallClock {
   const parts = formatter(timeZone).formatToParts(at)
   const get = (type: string) => Number(parts.find(p => p.type === type)?.value ?? 0)
 
@@ -61,22 +61,22 @@ function isoDate(year: number, month: number, day: number): string {
  * Local 'YYYY-MM-DD' + hour (0-23) right now. Both the "is it time yet" check and the per-day
  * dedupe key of a daily report read from this, so a send lands on the local day.
  */
-export function localDayHour(timeZone: string): { date: string, hour: number } {
-  const { year, month, day, hour } = wallClock(new Date(), timeZone)
+export function getLocalDayHour(timeZone: string): { date: string, hour: number } {
+  const { year, month, day, hour } = getWallClock(new Date(), timeZone)
 
   return { date: isoDate(year, month, day), hour }
 }
 
 /** Local 'YYYY-MM-DD' of an instant, which is the day something that happened at it belongs to. */
-export function localDate(at: Date, timeZone: string): string {
-  const { year, month, day } = wallClock(at, timeZone)
+export function formatLocalDate(at: Date, timeZone: string): string {
+  const { year, month, day } = getWallClock(at, timeZone)
 
   return isoDate(year, month, day)
 }
 
 /** How far `timeZone` runs ahead of UTC at that instant, in ms. */
-export function zoneOffsetMs(at: Date, timeZone: string): number {
-  const { year, month, day, hour, minute, second } = wallClock(at, timeZone)
+export function getZoneOffsetMs(at: Date, timeZone: string): number {
+  const { year, month, day, hour, minute, second } = getWallClock(at, timeZone)
   const asUtc = Date.UTC(year, month - 1, day, hour, minute, second)
 
   return asUtc - Math.floor(at.getTime() / 1000) * 1000
@@ -85,9 +85,9 @@ export function zoneOffsetMs(at: Date, timeZone: string): number {
 /** The instant a local wall clock reads `date` at `time` ('HH:MM'). Offset is read twice so a DST-shifted day lands right. */
 export function localInstant(date: string, time: string, timeZone: string): Date {
   const asUtc = Date.parse(`${date}T${time}:00.000Z`)
-  const guess = new Date(asUtc - zoneOffsetMs(new Date(asUtc), timeZone))
+  const guess = new Date(asUtc - getZoneOffsetMs(new Date(asUtc), timeZone))
 
-  return new Date(asUtc - zoneOffsetMs(guess, timeZone))
+  return new Date(asUtc - getZoneOffsetMs(guess, timeZone))
 }
 
 export function localDayStart(date: string, timeZone: string): Date {

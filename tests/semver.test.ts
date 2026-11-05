@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'bun:test'
-import { bumpMajor, bumpMinor, bumpPatch, parseSemver, validateSemver } from '../src'
+import { bumpMajor, bumpMinor, bumpPatch, isSemver, parseSemver } from '../src'
 
-describe('validateSemver', () => {
+describe('isSemver', () => {
   it('accepts valid semver', () => {
-    expect(validateSemver('1.2.3')).toBe(true)
-    expect(validateSemver('0.0.0')).toBe(true)
-    expect(validateSemver('10.20.30')).toBe(true)
+    expect(isSemver('1.2.3')).toBe(true)
+    expect(isSemver('0.0.0')).toBe(true)
+    expect(isSemver('10.20.30')).toBe(true)
   })
 
   it('rejects invalid semver', () => {
-    expect(validateSemver('1.2')).toBe(false)
-    expect(validateSemver('1.2.3-rc.1')).toBe(false)
-    expect(validateSemver('v1.2.3')).toBe(false)
-    expect(validateSemver('foo')).toBe(false)
+    expect(isSemver('1.2')).toBe(false)
+    expect(isSemver('1.2.3-rc.1')).toBe(false)
+    expect(isSemver('v1.2.3')).toBe(false)
+    expect(isSemver('foo')).toBe(false)
   })
 })
 

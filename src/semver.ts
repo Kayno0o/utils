@@ -1,6 +1,6 @@
 const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)$/
 
-export function validateSemver(version: string): boolean {
+export function isSemver(version: string): boolean {
   return SEMVER_RE.test(version)
 }
 

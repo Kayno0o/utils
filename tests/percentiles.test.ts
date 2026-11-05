@@ -34,4 +34,19 @@ describe('sortBy function', () => {
     expect(sortBy(['b', 'a', 'c'], s => s)).toEqual(['a', 'b', 'c'])
     expect(sortBy([{ n: 2 }, { n: 3 }, { n: 1 }], o => o.n, 'desc').map(o => o.n)).toEqual([3, 2, 1])
   })
+
+  it('returns a new array and leaves the input untouched', () => {
+    const items = [3, 1, 2]
+
+    expect(sortBy(items, x => x)).toEqual([1, 2, 3])
+    expect(items).toEqual([3, 1, 2])
+  })
+
+  it('orders mixed key types deterministically, numbers first', () => {
+    const items: (string | number)[] = ['b', 2, 'a', 1]
+
+    expect(sortBy(items, x => x)).toEqual([1, 2, 'a', 'b'])
+    expect(sortBy([...items].reverse(), x => x)).toEqual([1, 2, 'a', 'b'])
+    expect(sortBy(items, x => x, 'desc')).toEqual(['b', 'a', 2, 1])
+  })
 })

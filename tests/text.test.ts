@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { base64Decode, base64DecodeBytes, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, cryptoRandom, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, splitList, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
+import { base64Decode, base64DecodeBytes, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, cryptoRandom, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUUIDFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, randomString, removeComments, renderProgressBar, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, splitList, splitWords, toCamel, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -466,53 +466,53 @@ describe('closestMatch function', () => {
   })
 })
 
-describe('getUuidFromIri function', () => {
+describe('getUUIDFromIri function', () => {
   it('should extract UUID from IRI', () => {
-    const result = getUuidFromIri('https://example.com/resource/123e4567-e89b-12d3-a456-426614174000')
+    const result = getUUIDFromIri('https://example.com/resource/123e4567-e89b-12d3-a456-426614174000')
 
     expect(result).toEqual('123e4567-e89b-12d3-a456-426614174000')
   })
 
   it('should return null if no UUID found', () => {
-    const result = getUuidFromIri('https://example.com/resource/')
+    const result = getUUIDFromIri('https://example.com/resource/')
 
     expect(result).toBeNull()
   })
 })
 
-describe('progressBar function', () => {
+describe('renderProgressBar function', () => {
   it('should return a full bar if value is equal to max and min equals max', () => {
-    const result = progressBar(100, 100, 100)
+    const result = renderProgressBar(100, 100, 100)
 
     expect(result).toEqual('[========================================]')
   })
 
   it('should return an empty bar if value is less than max and min equals max', () => {
-    const result = progressBar(50, 100, 100)
+    const result = renderProgressBar(50, 100, 100)
 
     expect(result).toEqual('[                                        ]')
   })
 
   it('should return a full bar if value is max', () => {
-    const result = progressBar(100, 0, 100)
+    const result = renderProgressBar(100, 0, 100)
 
     expect(result).toEqual('[========================================]')
   })
 
   it('should return an empty bar if value is min', () => {
-    const result = progressBar(0, 0, 100)
+    const result = renderProgressBar(0, 0, 100)
 
     expect(result).toEqual('[                                        ]')
   })
 
   it('should return a partial bar for intermediate values', () => {
-    const result = progressBar(50, 0, 100)
+    const result = renderProgressBar(50, 0, 100)
 
     expect(result).toEqual('[====================                    ]')
   })
 
   it('should handle tip character correctly', () => {
-    const result = progressBar(50, 0, 100, { tipChar: '>' })
+    const result = renderProgressBar(50, 0, 100, { tipChar: '>' })
 
     expect(result).toEqual('[===================>                    ]')
   })
@@ -634,52 +634,52 @@ describe('minifyUUID & expandUUID functions', () => {
   })
 })
 
-describe('toCase function', () => {
+describe('splitWords function', () => {
   it('converts camelCase', () => {
-    expect(toCase('someVariableName')).toEqual(['some', 'variable', 'name'])
+    expect(splitWords('someVariableName')).toEqual(['some', 'variable', 'name'])
   })
 
   it('converts PascalCase', () => {
-    expect(toCase('SomeVariableName')).toEqual(['some', 'variable', 'name'])
+    expect(splitWords('SomeVariableName')).toEqual(['some', 'variable', 'name'])
   })
 
   it('converts kebab-case', () => {
-    expect(toCase('kebab-case-input')).toEqual(['kebab', 'case', 'input'])
+    expect(splitWords('kebab-case-input')).toEqual(['kebab', 'case', 'input'])
   })
 
   it('converts snake_case', () => {
-    expect(toCase('snake_case_input')).toEqual(['snake', 'case', 'input'])
+    expect(splitWords('snake_case_input')).toEqual(['snake', 'case', 'input'])
   })
 
   it('handles space-separated input', () => {
-    expect(toCase('already spaced out')).toEqual(['already', 'spaced', 'out'])
+    expect(splitWords('already spaced out')).toEqual(['already', 'spaced', 'out'])
   })
 
   it('handles multiple separators and extra whitespace', () => {
-    expect(toCase(' messy___input--With   Stuff')).toEqual(['messy', 'input', 'with', 'stuff'])
+    expect(splitWords(' messy___input--With   Stuff')).toEqual(['messy', 'input', 'with', 'stuff'])
   })
 
   it('returns lowercase words from array input', () => {
-    expect(toCase(['One', 'TWO', 'Three'])).toEqual(['one', 'two', 'three'])
+    expect(splitWords(['One', 'TWO', 'Three'])).toEqual(['one', 'two', 'three'])
   })
 
   it('returns empty array on empty string', () => {
-    expect(toCase('')).toEqual([])
+    expect(splitWords('')).toEqual([])
   })
 
   it('returns empty array on string with no words', () => {
-    expect(toCase('---__  ')).toEqual([])
+    expect(splitWords('---__  ')).toEqual([])
   })
 
   it('keeps letters outside ASCII instead of dropping them', () => {
-    expect(toCase('José Álvarez')).toEqual(['josé', 'álvarez'])
-    expect(toCase('Ünal')).toEqual(['ünal'])
-    expect(toCase('Пётр Ильич')).toEqual(['пётр', 'ильич'])
-    expect(toCase('Ελένη')).toEqual(['ελένη'])
+    expect(splitWords('José Álvarez')).toEqual(['josé', 'álvarez'])
+    expect(splitWords('Ünal')).toEqual(['ünal'])
+    expect(splitWords('Пётр Ильич')).toEqual(['пётр', 'ильич'])
+    expect(splitWords('Ελένη')).toEqual(['ελένη'])
   })
 
   it('splits camelCase on non-ASCII boundaries', () => {
-    expect(toCase('éclairAuChocolat')).toEqual(['éclair', 'au', 'chocolat'])
+    expect(splitWords('éclairAuChocolat')).toEqual(['éclair', 'au', 'chocolat'])
   })
 })
 
@@ -1226,8 +1226,8 @@ describe('search options', () => {
 
 describe('closestMatch options', () => {
   it('matches case-insensitively, returning the candidate as written', () => {
-    expect(closestMatch('README', ['readme.md', 'Readme'])).toBeUndefined()
-    expect(closestMatch('README', ['readme.md', 'Readme'], { caseSensitive: false })).toBe('Readme')
+    expect(closestMatch('README', ['readme.md', 'Readme'])).toBe('Readme')
+    expect(closestMatch('README', ['readme.md', 'Readme'], { caseSensitive: true })).toBeUndefined()
     expect(closestMatch('helo', ['hello'], { maxDistance: 0 })).toBeUndefined()
   })
 })

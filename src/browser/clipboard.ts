@@ -2,7 +2,7 @@
 export { htmlToMarkdown } from './markdown'
 
 /** Copies `text`, with an `html` version alongside for apps that paste rich text, such as documents and mail. */
-export async function copy(text: string, options: { html?: string } = {}) {
+export async function copyToClipboard(text: string, options: { html?: string } = {}) {
   const formats: Record<string, Blob> = { 'text/plain': new Blob([text], { type: 'text/plain' }) }
 
   if (options.html)
@@ -21,7 +21,7 @@ export interface ClipboardEntry {
 }
 
 // DataTransfer is only valid synchronously during the paste event, so read every format before any await.
-export function entriesFromDataTransfer(data: DataTransfer): ClipboardEntry[] {
+export function readDataTransferEntries(data: DataTransfer): ClipboardEntry[] {
   const entries: ClipboardEntry[] = []
 
   for (const type of data.types) {
@@ -62,7 +62,7 @@ export async function readClipboardEntries(): Promise<ClipboardEntry[]> {
   return out
 }
 
-export function pickHtml(entries: ClipboardEntry[]): string {
+export function getHtmlOrText(entries: ClipboardEntry[]): string {
   return entries.find(e => e.type === 'text/html')?.text
     ?? entries.find(e => e.type === 'text/plain')?.text
     ?? ''

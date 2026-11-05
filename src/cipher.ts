@@ -12,7 +12,7 @@ export function uniqueSymbols(chars: string): string {
   return [...new Set(chars)].join('')
 }
 
-export function alphabetOf(chars: string): Alphabet {
+export function createAlphabet(chars: string): Alphabet {
   const symbols = [...uniqueSymbols(chars)]
 
   return { symbols, width: symbols.length < 2 ? 0 : Math.ceil(Math.log(256) / Math.log(symbols.length)) }

@@ -321,7 +321,7 @@ export function addYears(date: Date, years: number): Date {
 }
 
 /** Whole days from `a` to `b` (positive when `b` is later), computed on local calendar days (DST-safe). */
-export function diffInDays(a: Date, b: Date): number {
+export function getDaysBetween(a: Date, b: Date): number {
   return Math.round((startOfDay(b).getTime() - startOfDay(a).getTime()) / DAY_MS)
 }
 
@@ -394,7 +394,7 @@ export function dateDifference(from: string, to: string, options: BusinessDayOpt
 }
 
 /** Whole hours from `a` to `b` (positive when `b` is later). */
-export function diffInHours(a: Date, b: Date): number {
+export function getHoursBetween(a: Date, b: Date): number {
   return Math.trunc((b.getTime() - a.getTime()) / HOUR_MS)
 }
 
@@ -464,7 +464,7 @@ export function getQuarter(date: Date): number {
 }
 
 /** Full years elapsed from `birth` to `at` (defaults to now). */
-export function age(birth: Date, at: Date = new Date()): number {
+export function getAge(birth: Date, at: Date = new Date()): number {
   let years = at.getFullYear() - birth.getFullYear()
   const monthDiff = at.getMonth() - birth.getMonth()
 
@@ -503,7 +503,7 @@ export interface FormatSessionTimeOptions extends Pick<Intl.DateTimeFormatOption
 /** Relative session label: time today, "Yesterday", weekday within a week, else short date; days are counted on the calendar. */
 export function formatSessionTime(date: Date, localeOrOptions?: string | string[] | FormatSessionTimeOptions): string {
   const [locale, { labels = {}, now = Date.now(), ...clock }] = resolveLocale<FormatSessionTimeOptions>(localeOrOptions)
-  const diffDays = diffInDays(date, new Date(now))
+  const diffDays = getDaysBetween(date, new Date(now))
 
   if (diffDays === 0)
     return formatDateTime(date, locale, { hour: '2-digit', minute: '2-digit', ...clock })

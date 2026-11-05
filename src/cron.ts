@@ -1,9 +1,8 @@
+import { DAYS, MONTHS } from './date'
+
 const WHITESPACE_RUN_REGEX = /\s+/
 const STEP_REGEX = /^(\*|\d+(?:-\d+)?)\/(\d+)$/
 const SLASH_REGEX = /\//
-
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 const MONTH_ALIASES: Record<string, number> = {
   jan: 1,
@@ -203,13 +202,17 @@ function computeRuns(fields: ReturnType<typeof parseExpression>, from: Date, cou
   return runs
 }
 
-function toExpression(input: string): string {
+function splitInput(input: string): { expression: string, command: string | undefined } {
   const tokens = input.trim().split(WHITESPACE_RUN_REGEX)
 
   if (tokens.length < 5)
     throw new Error(`Invalid cron expression: expected at least 5 fields, got ${tokens.length}`)
 
-  return tokens.slice(0, 5).join(' ')
+  return { expression: tokens.slice(0, 5).join(' '), command: tokens.length > 5 ? tokens.slice(5).join(' ') : undefined }
+}
+
+function toExpression(input: string): string {
+  return splitInput(input).expression
 }
 
 function humanizeList(field: CronField, name?: (value: number) => string, aliases?: Record<string, number>): string {
@@ -255,10 +258,10 @@ function describe(fields: ReturnType<typeof parseExpression>): string {
     parts.push(`on day ${humanizeList(dayOfMonth)} of the month`)
 
   if (month.restricted)
-    parts.push(`in ${humanizeList(month, value => MONTH_NAMES[value - 1]!, MONTH_ALIASES)}`)
+    parts.push(`in ${humanizeList(month, value => MONTHS[value - 1]!, MONTH_ALIASES)}`)
 
   if (dayOfWeek.restricted)
-    parts.push(`on ${humanizeList(dayOfWeek, value => DAY_NAMES[value % 7]!, DAY_ALIASES)}`)
+    parts.push(`on ${humanizeList(dayOfWeek, value => DAYS[value % 7]!, DAY_ALIASES)}`)
 
   if (parts.length === 0)
     return 'Every minute'
@@ -294,14 +297,7 @@ function describe(fields: ReturnType<typeof parseExpression>): string {
 export function cronExpressionExplainer(input: string, options: CronExpressionExplainerOptions = {}): CronExplanation {
   const { count = 5, from = new Date() } = options
 
-  const tokens = input.trim().split(WHITESPACE_RUN_REGEX)
-
-  if (tokens.length < 5)
-    throw new Error(`Invalid cron expression: expected at least 5 fields, got ${tokens.length}`)
-
-  const expression = tokens.slice(0, 5).join(' ')
-  const command = tokens.length > 5 ? tokens.slice(5).join(' ') : undefined
-
+  const { expression, command } = splitInput(input)
   const fields = parseExpression(expression)
   const description = command ? `${describe(fields)}, running \`${command}\`` : describe(fields)
   const nextRuns = computeRuns(fields, from, count, true)
@@ -316,7 +312,7 @@ export function cronExpressionExplainer(input: string, options: CronExpressionEx
  * @param options - Controls how many runs to compute and the reference date.
  * @returns The next execution dates, in chronological order, after `from`.
  */
-export function cronNextRuns(expression: string, options: CronExpressionExplainerOptions = {}): Date[] {
+export function getNextCronRuns(expression: string, options: CronExpressionExplainerOptions = {}): Date[] {
   const { count = 5, from = new Date() } = options
 
   return computeRuns(parseExpression(toExpression(expression)), from, count, true)
@@ -329,7 +325,7 @@ export function cronNextRuns(expression: string, options: CronExpressionExplaine
  * @param options - Controls how many runs to compute and the reference date.
  * @returns The previous execution dates, most recent first, before `from`.
  */
-export function cronPreviousRuns(expression: string, options: CronExpressionExplainerOptions = {}): Date[] {
+export function getPreviousCronRuns(expression: string, options: CronExpressionExplainerOptions = {}): Date[] {
   const { count = 5, from = new Date() } = options
 
   return computeRuns(parseExpression(toExpression(expression)), from, count, false)
@@ -340,10 +336,10 @@ export function cronPreviousRuns(expression: string, options: CronExpressionExpl
  *
  * Matching is done at minute granularity (seconds and milliseconds are ignored).
  *
- * @param date - The date to test.
  * @param expression - A cron expression (a trailing command is ignored).
+ * @param date - The date to test.
  * @returns `true` when the cron would fire during the date's minute.
  */
-export function cronMatches(date: Date, expression: string): boolean {
+export function cronMatches(expression: string, date: Date): boolean {
   return matchesFields(parseExpression(toExpression(expression)), date)
 }

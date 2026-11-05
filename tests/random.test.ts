@@ -68,11 +68,11 @@ describe('seeded source in shuffle and sample', () => {
     const a = [1, 2, 3, 4, 5, 6, 7, 8]
     const b = [...a]
 
-    shuffle(a, sfc32(1, 2, 3, 4))
-    shuffle(b, sfc32(1, 2, 3, 4))
+    const shuffledA = shuffle(a, sfc32(1, 2, 3, 4))
+    const shuffledB = shuffle(b, sfc32(1, 2, 3, 4))
 
-    expect(a).toEqual(b)
-    expect(a.toSorted((x, y) => x - y)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(shuffledA).toEqual(shuffledB)
+    expect(shuffledA.toSorted((x, y) => x - y)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
   })
 
   it('samples identically for identical seeds', () => {
@@ -84,9 +84,8 @@ describe('seeded source in shuffle and sample', () => {
   it('shuffle with a constant 0 source rotates left', () => {
     const items = [1, 2, 3]
 
-    shuffle(items, () => 0)
-
-    expect(items).toEqual([2, 3, 1])
+    expect(shuffle(items, () => 0)).toEqual([2, 3, 1])
+    expect(items).toEqual([1, 2, 3])
   })
 })
 
@@ -101,8 +100,7 @@ describe('crypto randomness in shuffle and sample', () => {
     const cryptoSpy = spyOn(crypto, 'getRandomValues')
     const arr = [1, 2, 3, 4, 5]
 
-    shuffle(arr, cryptoRandom)
-    expect(arr.toSorted()).toEqual([1, 2, 3, 4, 5])
+    expect(shuffle(arr, cryptoRandom).toSorted()).toEqual([1, 2, 3, 4, 5])
     expect(sample(arr, 3, cryptoRandom)).toHaveLength(3)
 
     expect(mathRandom).not.toHaveBeenCalled()

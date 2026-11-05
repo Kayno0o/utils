@@ -99,7 +99,7 @@ export function slugify(str: string, {
 }
 
 /**
- * Initials of a name, for avatars and monograms. Words are split by {@link toCase}, so
+ * Initials of a name, for avatars and monograms. Words are split by {@link splitWords}, so
  * separators, camelCase and non-Latin scripts all work. Accents are kept - an initial is the
  * name as written, not a slug of it; reach for {@link slugify} when you want it folded to ASCII.
  * @param {string|string[]} name one string (`'Ada Lovelace'`) or its parts (`['Ada', 'Lovelace']`)
@@ -121,8 +121,8 @@ export function getInitials(name: string | string[], {
   max?: number
   pad?: boolean
 } = {}): string {
-  // Joined, not handed to toCase as an array: its array branch lowercases parts without splitting them.
-  const words = toCase(Array.isArray(name) ? name.join(' ') : name)
+  // Joined, not handed to splitWords as an array: its array branch lowercases parts without splitting them.
+  const words = splitWords(Array.isArray(name) ? name.join(' ') : name)
 
   if (!words.length || max < 1)
     return ''
@@ -433,13 +433,13 @@ function toComparable(str: string): ArrayLike<string> {
 export interface ClosestMatchOptions {
   /** Most edits a match may be away. Defaults to a third of the query, at least 1. */
   maxDistance?: number
-  /** Tells `A` from `a`. Defaults to true. */
+  /** Tells `A` from `a`. Defaults to false, like `searchOne`. */
   caseSensitive?: boolean
 }
 
 /** the candidate nearest the query, for a "did you mean", or undefined when none is within `maxDistance` edits (a third of the query by default) */
 export function closestMatch(query: string, candidates: Iterable<string>, maxDistanceOrOptions: number | ClosestMatchOptions = {}): string | undefined {
-  const { maxDistance = Math.max(1, Math.floor([...query].length / 3)), caseSensitive = true } = typeof maxDistanceOrOptions === 'number' ? { maxDistance: maxDistanceOrOptions } : maxDistanceOrOptions
+  const { maxDistance = Math.max(1, Math.floor([...query].length / 3)), caseSensitive = false } = typeof maxDistanceOrOptions === 'number' ? { maxDistance: maxDistanceOrOptions } : maxDistanceOrOptions
   const queryChars = toComparable(caseSensitive ? query : query.toLowerCase())
 
   let best: string | undefined
@@ -463,13 +463,13 @@ export function closestMatch(query: string, candidates: Iterable<string>, maxDis
   return best
 }
 
-export function getUuidFromIri(iri: string): string | null {
+export function getUUIDFromIri(iri: string): string | null {
   const match = UUID_REGEX.exec(iri)
 
   return match ? match[0] : null
 }
 
-export function progressBar(value: number, min: number, max: number, { emptyChar = ' ', endChar = ']', fillChar = '=', startChar = '[', tipChar = '', totalChars = 40 } = {}) {
+export function renderProgressBar(value: number, min: number, max: number, { emptyChar = ' ', endChar = ']', fillChar = '=', startChar = '[', tipChar = '', totalChars = 40 } = {}) {
   if (min === max)
     return value >= max ? startChar + fillChar.repeat(totalChars) + endChar : startChar + emptyChar.repeat(totalChars) + endChar
 
@@ -561,7 +561,7 @@ export function expandUUID(minified: string): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
-export function toCase(str: string | string[]): string[] {
+export function splitWords(str: string | string[]): string[] {
   if (Array.isArray(str))
     return str.map(s => s.toLowerCase())
 
@@ -581,30 +581,30 @@ export function toCase(str: string | string[]): string[] {
 export type CaseType = 'kebab' | 'snake' | 'camel' | 'pascal' | 'constant' | 'title'
 
 export function toCamel(input: string | string[]) {
-  return toCase(input).map((w, i) => i === 0 ? w : capitalize(w)).join('')
+  return splitWords(input).map((w, i) => i === 0 ? w : capitalize(w)).join('')
 }
 
 export function toKebab(input: string | string[]) {
-  return toCase(input).join('-')
+  return splitWords(input).join('-')
 }
 
 export function toSnake(input: string | string[]) {
-  return toCase(input).join('_')
+  return splitWords(input).join('_')
 }
 
 export function toPascal(input: string | string[]) {
-  return toCase(input).map(capitalize).join('')
+  return splitWords(input).map(capitalize).join('')
 }
 
 export function toConstant(input: string | string[]) {
-  return toCase(input).map(w => w.toUpperCase()).join('_')
+  return splitWords(input).map(w => w.toUpperCase()).join('_')
 }
 
 export function toTitle(input: string | string[]) {
-  return toCase(input).map(capitalize).join(' ')
+  return splitWords(input).map(capitalize).join(' ')
 }
 
-export function frRankLabel(rank: string) {
+export function getFrenchOrdinalSuffix(rank: string) {
   if (rank === '1')
     return 'er'
 

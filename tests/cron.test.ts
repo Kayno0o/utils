@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { cronExpressionExplainer, cronMatches, cronNextRuns, cronPreviousRuns } from '../src'
+import { cronExpressionExplainer, cronMatches, getNextCronRuns, getPreviousCronRuns } from '../src'
 
 describe('cronExpressionExplainer', () => {
   it('parses the schedule, command and description', () => {
@@ -86,9 +86,9 @@ describe('cronExpressionExplainer', () => {
   })
 })
 
-describe('cronNextRuns / cronPreviousRuns', () => {
+describe('getNextCronRuns / getPreviousCronRuns', () => {
   it('returns upcoming runs ignoring a trailing command', () => {
-    const runs = cronNextRuns('0 0 * * * /bin/bash', { from: new Date(2026, 5, 8, 12), count: 2 })
+    const runs = getNextCronRuns('0 0 * * * /bin/bash', { from: new Date(2026, 5, 8, 12), count: 2 })
 
     expect(runs).toEqual([
       new Date(2026, 5, 9, 0, 0),
@@ -97,7 +97,7 @@ describe('cronNextRuns / cronPreviousRuns', () => {
   })
 
   it('returns past runs, most recent first', () => {
-    const runs = cronPreviousRuns('0 0 * * *', { from: new Date(2026, 5, 8, 12), count: 3 })
+    const runs = getPreviousCronRuns('0 0 * * *', { from: new Date(2026, 5, 8, 12), count: 3 })
 
     expect(runs).toEqual([
       new Date(2026, 5, 8, 0, 0),
@@ -107,7 +107,7 @@ describe('cronNextRuns / cronPreviousRuns', () => {
   })
 
   it('steps backwards across month boundaries', () => {
-    const runs = cronPreviousRuns('0 0 1 * *', { from: new Date(2026, 2, 15), count: 3 })
+    const runs = getPreviousCronRuns('0 0 1 * *', { from: new Date(2026, 2, 15), count: 3 })
 
     // 1st of March, February, January 2026.
     expect(runs).toEqual([
@@ -118,7 +118,7 @@ describe('cronNextRuns / cronPreviousRuns', () => {
   })
 
   it('previous runs are leap-year aware', () => {
-    const runs = cronPreviousRuns('0 0 29 2 *', { from: new Date(2030, 0, 1), count: 2 })
+    const runs = getPreviousCronRuns('0 0 29 2 *', { from: new Date(2030, 0, 1), count: 2 })
 
     expect(runs).toEqual([
       new Date(2028, 1, 29, 0, 0),
@@ -130,37 +130,37 @@ describe('cronNextRuns / cronPreviousRuns', () => {
 describe('cronMatches day fields', () => {
   it('ANDs the day fields when one starts with a star, as Vixie cron does', () => {
     // 2026-06-15 is a Monday, the 15th: odd, so `*/2` (1, 3, 5...) matches it.
-    expect(cronMatches(new Date(2026, 5, 15, 0, 0), '0 0 */2 * 1')).toBe(true)
+    expect(cronMatches('0 0 */2 * 1', new Date(2026, 5, 15, 0, 0))).toBe(true)
     // 2026-06-16 is a Tuesday, the 16th: neither an odd day nor a Monday.
-    expect(cronMatches(new Date(2026, 5, 16, 0, 0), '0 0 */2 * 1')).toBe(false)
+    expect(cronMatches('0 0 */2 * 1', new Date(2026, 5, 16, 0, 0))).toBe(false)
     // 2026-06-17 is a Wednesday, the 17th: an odd day, not a Monday.
-    expect(cronMatches(new Date(2026, 5, 17, 0, 0), '0 0 */2 * 1')).toBe(false)
+    expect(cronMatches('0 0 */2 * 1', new Date(2026, 5, 17, 0, 0))).toBe(false)
   })
 
   it('ORs two restricted day fields', () => {
-    expect(cronMatches(new Date(2026, 5, 17, 0, 0), '0 0 17 * 1')).toBe(true)
-    expect(cronMatches(new Date(2026, 5, 15, 0, 0), '0 0 17 * 1')).toBe(true)
+    expect(cronMatches('0 0 17 * 1', new Date(2026, 5, 17, 0, 0))).toBe(true)
+    expect(cronMatches('0 0 17 * 1', new Date(2026, 5, 15, 0, 0))).toBe(true)
   })
 })
 
 describe('cronMatches', () => {
   it('returns true when the date satisfies the expression', () => {
-    expect(cronMatches(new Date(2026, 5, 14, 0, 0), '0 * * * 0')).toBe(true) // Sunday, minute 0
-    expect(cronMatches(new Date(2026, 5, 14, 3, 0), '0 * * * 0')).toBe(true)
+    expect(cronMatches('0 * * * 0', new Date(2026, 5, 14, 0, 0))).toBe(true) // Sunday, minute 0
+    expect(cronMatches('0 * * * 0', new Date(2026, 5, 14, 3, 0))).toBe(true)
   })
 
   it('returns false when any field does not match', () => {
-    expect(cronMatches(new Date(2026, 5, 14, 0, 30), '0 * * * 0')).toBe(false) // minute 30
-    expect(cronMatches(new Date(2026, 5, 13, 0, 0), '0 * * * 0')).toBe(false) // Saturday
+    expect(cronMatches('0 * * * 0', new Date(2026, 5, 14, 0, 30))).toBe(false) // minute 30
+    expect(cronMatches('0 * * * 0', new Date(2026, 5, 13, 0, 0))).toBe(false) // Saturday
   })
 
   it('ignores seconds and a trailing command', () => {
-    expect(cronMatches(new Date(2026, 5, 14, 0, 0, 42), '0 * * * 0 /bin/bash')).toBe(true)
+    expect(cronMatches('0 * * * 0 /bin/bash', new Date(2026, 5, 14, 0, 0, 42))).toBe(true)
   })
 
-  it('agrees with cronNextRuns', () => {
-    const [next] = cronNextRuns('*/15 9-17 * * mon-fri', { from: new Date(2026, 5, 8), count: 1 })
+  it('agrees with getNextCronRuns', () => {
+    const [next] = getNextCronRuns('*/15 9-17 * * mon-fri', { from: new Date(2026, 5, 8), count: 1 })
 
-    expect(cronMatches(next!, '*/15 9-17 * * mon-fri')).toBe(true)
+    expect(cronMatches('*/15 9-17 * * mon-fri', next!)).toBe(true)
   })
 })

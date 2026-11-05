@@ -82,23 +82,23 @@ function cloneValue(value: unknown): unknown {
   return copy
 }
 
-/** `framesNb + 1` frames from `start` to `end`, numbers and number arrays eased linearly; zero frames gives `end` alone. */
-export function interpolate<T extends number>(start: T, end: T, framesNb: number): T[]
-export function interpolate<T extends object>(start: RecursivePartial<T>, end: RecursivePartial<T>, framesNb: number): T[]
-export function interpolate<T extends object | number>(start: RecursivePartial<T>, end: RecursivePartial<T>, framesNb: number): T[] {
+/** `frameCount + 1` frames from `start` to `end`, numbers and number arrays eased linearly; zero frames gives `end` alone. */
+export function interpolate<T extends number>(start: T, end: T, frameCount: number): T[]
+export function interpolate<T extends object>(start: RecursivePartial<T>, end: RecursivePartial<T>, frameCount: number): T[]
+export function interpolate<T extends object | number>(start: RecursivePartial<T>, end: RecursivePartial<T>, frameCount: number): T[] {
   const frames: any[] = []
   // A missing start value holds at the end value.
-  const step = (i: number, from: number | undefined, to: number): number => framesNb === 0 || typeof from !== 'number' ? to : mapRange(i, 0, framesNb, from, to)
+  const step = (i: number, from: number | undefined, to: number): number => frameCount === 0 || typeof from !== 'number' ? to : mapRange(i, 0, frameCount, from, to)
 
   if (typeof start === 'number' && typeof end === 'number') {
-    for (let i = 0; i <= framesNb; i++)
+    for (let i = 0; i <= frameCount; i++)
       frames.push(step(i, start, end))
 
     return frames
   }
 
   if (typeof start === 'object' && typeof end === 'object') {
-    for (let i = 0; i <= framesNb; i++) {
+    for (let i = 0; i <= frameCount; i++) {
       const interpolatedFrame: T = {} as T
 
       for (const key in end) {

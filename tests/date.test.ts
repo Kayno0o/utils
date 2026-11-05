@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { addDays, addMonths, addYears, age, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, diffInDays, diffInHours, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, formatTime, fromISODate, getFrenchHolidays, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, parseDateLabel, parseDuration, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, WEEK_MS } from '../src'
+import { addDays, addMonths, addYears, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, formatTime, fromISODate, getAge, getDaysBetween, getFrenchHolidays, getHoursBetween, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, parseDateLabel, parseDuration, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, WEEK_MS } from '../src'
 
 describe('formatRelativeTime function', () => {
   it('takes a bare locale', () => {
@@ -306,16 +306,16 @@ describe('date arithmetic', () => {
 })
 
 describe('date diffs', () => {
-  it('diffInDays counts whole calendar days', () => {
-    expect(diffInDays(new Date(2024, 0, 1), new Date(2024, 0, 4))).toBe(3)
-    expect(diffInDays(new Date(2024, 0, 4), new Date(2024, 0, 1))).toBe(-3)
+  it('getDaysBetween counts whole calendar days', () => {
+    expect(getDaysBetween(new Date(2024, 0, 1), new Date(2024, 0, 4))).toBe(3)
+    expect(getDaysBetween(new Date(2024, 0, 4), new Date(2024, 0, 1))).toBe(-3)
   })
 
-  it('diffInHours truncates toward zero', () => {
+  it('getHoursBetween truncates toward zero', () => {
     const a = new Date(2024, 0, 1, 0, 0)
     const b = new Date(2024, 0, 1, 5, 30)
 
-    expect(diffInHours(a, b)).toBe(5)
+    expect(getHoursBetween(a, b)).toBe(5)
   })
 })
 
@@ -377,9 +377,9 @@ describe('week / quarter / age', () => {
   it('age computes full years', () => {
     const birth = new Date(2000, 5, 15)
 
-    expect(age(birth, new Date(2024, 5, 15))).toBe(24)
-    expect(age(birth, new Date(2024, 5, 14))).toBe(23)
-    expect(age(birth, new Date(2024, 6, 1))).toBe(24)
+    expect(getAge(birth, new Date(2024, 5, 15))).toBe(24)
+    expect(getAge(birth, new Date(2024, 5, 14))).toBe(23)
+    expect(getAge(birth, new Date(2024, 6, 1))).toBe(24)
   })
 })
 

@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { alphabetOf, base64Decode, base64Encode, closestMatch, decodeCipher, editDistance, encodeCipher, isHoliday, mask, median, mergeSpans, parseCsv, percentile, percentiles, removeComments, stringifyCsv } from '../src'
+import { base64Decode, base64Encode, closestMatch, createAlphabet, decodeCipher, editDistance, encodeCipher, isHoliday, mask, median, mergeSpans, parseCsv, percentile, percentiles, removeComments, stringifyCsv } from '../src'
 
 describe('mergeSpans trimmed length bookkeeping', () => {
   const naive = (spans: { text: string, offset: number }[], min: number) => {
@@ -79,13 +79,13 @@ describe('cipher round trip', () => {
     const text = 'héllo ✓ 😀'
 
     for (const chars of ['0123456789abcdef', '😀😁😂🤣😃😄😅😆😉😊😋😎😍😘🥰😗', 'ab']) {
-      const alphabet = alphabetOf(chars)
+      const alphabet = createAlphabet(chars)
 
       expect(decodeCipher(encodeCipher(text, alphabet), alphabet)).toBe(text)
     }
 
-    expect(() => decodeCipher('zz', alphabetOf('0123456789abcdef'))).toThrow('"z" is not in this dictionary.')
-    expect(() => decodeCipher('abc', alphabetOf('0123456789abcdef'))).toThrow('multiple of 2')
+    expect(() => decodeCipher('zz', createAlphabet('0123456789abcdef'))).toThrow('"z" is not in this dictionary.')
+    expect(() => decodeCipher('abc', createAlphabet('0123456789abcdef'))).toThrow('multiple of 2')
   })
 })
 

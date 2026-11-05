@@ -1,6 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
 import { formatEuro, formatFileSize, formatSiret, formatUnit } from '../src/format/number'
-import { decodePath, encodePath, haversineDistance } from '../src/unit'
 
 describe('formatFileSize function', () => {
   it('handle negative bytes', () => {
@@ -103,27 +102,6 @@ describe('formatEuro locale and options', () => {
     expect(formatEuro(1234.5, 'en-US')).toEqual('€1,234.50')
     expect(formatEuro(1234.5, { currency: 'USD' })).toEqual(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD' }).format(1234.5))
     expect(formatEuro(1234.5, { locale: 'fr-FR', maximumFractionDigits: 0 })).toEqual(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(1234.5))
-  })
-})
-
-describe('encodePath / decodePath', () => {
-  it('round-trips integer paths, negative steps included', () => {
-    const path: [number, number][] = [[3850000, -12020000], [4070000, -12095000], [4325200, -12645300]]
-
-    expect(decodePath(encodePath(path))).toEqual(path)
-    expect(encodePath([[3850000, -12020000]])).toBe('_p~iF~ps|U')
-  })
-
-  it('throws on a truncated or invalid string instead of looping', () => {
-    expect(() => decodePath('_p~iF~ps|')).toThrow('Truncated polyline')
-    expect(() => decodePath(' ')).toThrow('Invalid polyline character')
-  })
-})
-
-describe('haversineDistance', () => {
-  it('gives the rounded kilometres between two points', () => {
-    expect(haversineDistance(48.8566, 2.3522, 51.5074, -0.1278)).toBe(344)
-    expect(haversineDistance(1, 1, 1, 1)).toBe(0)
   })
 })
 

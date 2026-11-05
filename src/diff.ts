@@ -126,7 +126,7 @@ export function diffWords(source: string, corrected: string): TextEdit[] {
   return edits
 }
 
-/** Runs of lines that differ, as index ranges over each side's [tokenizeLines] spans. */
+/** Runs of lines that differ, as index ranges over each side's [tokenizeLines] spans (hunks, unlike `diffWords`' ready-to-apply edits, because a line diff is read against both sides, not applied). */
 export function diffLines(before: string, after: string): DiffHunk[] {
   return diffTokens(tokenizeLines(before), tokenizeLines(after))
 }

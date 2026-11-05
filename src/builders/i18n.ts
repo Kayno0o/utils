@@ -1,4 +1,5 @@
 import type { DotNotation, ExtractVariables } from '../types'
+import { getObjectValue } from '../object'
 import { renderTemplate } from '../text'
 
 export interface TranslationObject {
@@ -48,16 +49,6 @@ export function declareI18n<
       : never
   }[I18nKey]
 
-  function getNestedValue<T, K extends string>(obj: T, key: K): GetNestedValue<T, K> {
-    const keys = key.split('.')
-    let current: any = obj
-
-    for (const k of keys)
-      current = current?.[k]
-
-    return current
-  }
-
   // keys that have NO variables - third parameter forbidden
   function t<K extends KeysWithoutVariables>(
     locale: LocaleType,
@@ -74,7 +65,7 @@ export function declareI18n<
   function t<K extends I18nKey>(locale: LocaleType, key: K, variables?: Record<string, string | number>): string {
     const localeTranslations = translations[locale]
 
-    const template = getNestedValue(localeTranslations, key) as string
+    const template = getObjectValue(localeTranslations, key) as string
 
     if (!template) {
       console.warn(`Translation key "${key}" not found for locale "${locale}"`)

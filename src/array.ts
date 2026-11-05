@@ -35,13 +35,17 @@ export function isEmpty(value: any): boolean {
   return false
 }
 
-/** Shuffles `array` in place. */
-export function shuffle(array: any[], random: RandomSource = Math.random) {
-  for (let i = array.length - 1; i > 0; i--) {
+/** A shuffled copy of `items`, leaving `items` untouched. */
+export function shuffle<T>(items: readonly T[], random: RandomSource = Math.random): T[] {
+  const result = [...items]
+
+  for (let i = result.length - 1; i > 0; i--) {
     const j = randomInt(0, i + 1, random);
 
-    [array[i], array[j]] = [array[j], array[i]]
+    [result[i], result[j]] = [result[j]!, result[i]!]
   }
+
+  return result
 }
 
 /**
@@ -185,17 +189,20 @@ export function partition<T>(items: T[], getGroup: (item: T) => boolean): [T[], 
   return result
 }
 
-export function sortBy<T>(items: T[], getKey: (item: T) => string | number, order: 'asc' | 'desc' = 'asc'): T[] {
-  return items.sort((a, b) => {
+/** A sorted copy of `items`, leaving `items` untouched; with mixed key types the numbers come before the strings (after them when `desc`). */
+export function sortBy<T>(items: readonly T[], getKey: (item: T) => string | number, order: 'asc' | 'desc' = 'asc'): T[] {
+  const direction = order === 'asc' ? 1 : -1
+
+  return items.toSorted((a, b) => {
     const aKey = getKey(a)
     const bKey = getKey(b)
 
     if (typeof aKey === 'string' && typeof bKey === 'string')
-      return order === 'asc' ? aKey.localeCompare(bKey) : bKey.localeCompare(aKey)
+      return direction * aKey.localeCompare(bKey)
 
     if (typeof aKey === 'number' && typeof bKey === 'number')
-      return order === 'asc' ? aKey - bKey : bKey - aKey
+      return direction * (aKey - bKey)
 
-    return 0
+    return direction * (typeof aKey === 'number' ? -1 : 1)
   })
 }

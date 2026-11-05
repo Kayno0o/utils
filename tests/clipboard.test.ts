@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'bun:test'
-import { copy, htmlToMarkdown } from '../src/browser/clipboard'
+import { copyToClipboard, htmlToMarkdown } from '../src/browser/clipboard'
 
 const globals = globalThis as Record<string, unknown>
 const original = { navigator: globals.navigator, ClipboardItem: globals.ClipboardItem }
@@ -35,11 +35,11 @@ afterEach(() => {
   globals.ClipboardItem = original.ClipboardItem
 })
 
-describe('copy', () => {
+describe('copyToClipboard', () => {
   it('writes plain text alone', async () => {
     const writes = fakeClipboard()
 
-    await copy('hello')
+    await copyToClipboard('hello')
 
     expect(writes).toEqual([{ 'text/plain': 'hello' }])
   })
@@ -47,7 +47,7 @@ describe('copy', () => {
   it('writes an html version alongside when given one', async () => {
     const writes = fakeClipboard()
 
-    await copy('**hi**', { html: '<strong>hi</strong>' })
+    await copyToClipboard('**hi**', { html: '<strong>hi</strong>' })
 
     expect(writes).toEqual([{ 'text/plain': '**hi**', 'text/html': '<strong>hi</strong>' }])
   })
@@ -57,7 +57,7 @@ describe('copy', () => {
     const entry = join(dir, 'entry.ts')
 
     try {
-      writeFileSync(entry, `import { copy } from '${join(import.meta.dir, '../src/browser/clipboard')}'\ncopy('x')\n`)
+      writeFileSync(entry, `import { copyToClipboard } from '${join(import.meta.dir, '../src/browser/clipboard')}'\ncopyToClipboard('x')\n`)
       const { outputs } = await Bun.build({ entrypoints: [entry], target: 'browser', minify: true })
       const code = await outputs[0]!.text()
 

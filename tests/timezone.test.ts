@@ -1,24 +1,24 @@
 import { describe, expect, test } from 'bun:test'
 import { alphaHex } from '../src/colors'
 import { inDays } from '../src/format'
-import { knownZone, localDate, localDayRange, localDayStart, localInstant, wallClock } from '../src/timezone'
+import { formatLocalDate, getWallClock, localDayRange, localDayStart, localInstant, resolveTimeZone } from '../src/timezone'
 
 const PARIS = 'Europe/Paris'
 
-describe('knownZone', () => {
+describe('resolveTimeZone', () => {
   test('keeps a zone the runtime knows', () => {
-    expect(knownZone('Asia/Tokyo', PARIS)).toBe('Asia/Tokyo')
+    expect(resolveTimeZone('Asia/Tokyo', PARIS)).toBe('Asia/Tokyo')
   })
 
   test('falls back for a name it does not', () => {
-    expect(knownZone('Mars/Olympus', PARIS)).toBe(PARIS)
-    expect(knownZone(undefined, PARIS)).toBe(PARIS)
+    expect(resolveTimeZone('Mars/Olympus', PARIS)).toBe(PARIS)
+    expect(resolveTimeZone(undefined, PARIS)).toBe(PARIS)
   })
 })
 
-describe('wallClock', () => {
+describe('getWallClock', () => {
   test('reads the zone rather than the host clock', () => {
-    expect(wallClock(new Date('2026-01-15T23:30:00Z'), 'Asia/Tokyo')).toEqual({
+    expect(getWallClock(new Date('2026-01-15T23:30:00Z'), 'Asia/Tokyo')).toEqual({
       year: 2026,
       month: 1,
       day: 16,
@@ -29,10 +29,10 @@ describe('wallClock', () => {
   })
 })
 
-describe('localDate', () => {
+describe('formatLocalDate', () => {
   test('an instant belongs to the local day, not the UTC one', () => {
-    expect(localDate(new Date('2026-01-15T23:30:00Z'), PARIS)).toBe('2026-01-16')
-    expect(localDate(new Date('2026-01-15T23:30:00Z'), 'UTC')).toBe('2026-01-15')
+    expect(formatLocalDate(new Date('2026-01-15T23:30:00Z'), PARIS)).toBe('2026-01-16')
+    expect(formatLocalDate(new Date('2026-01-15T23:30:00Z'), 'UTC')).toBe('2026-01-15')
   })
 })
 
