@@ -61,6 +61,9 @@ No alias is kept: the type checker flags each call site.
 | `knownZone`, `wallClock`, `localDayHour`, `localDate`, `zoneOffsetMs` | `resolveTimeZone`, `getWallClock`, `getLocalDayHour`, `formatLocalDate`, `getZoneOffsetMs` |
 | `age`, `diffInDays`, `diffInHours` | `getAge`, `getDaysBetween`, `getHoursBetween` |
 | `copy`, `entriesFromDataTransfer`, `pickHtml` (`@kaynooo/utils/browser`) | `copyToClipboard`, `readDataTransferEntries`, `getHtmlOrText` |
+| `getRandomElement(values)` typed `T` | typed `T \| undefined`, `undefined` for `[]` |
+| `UnitConverter` `'kB'` to `'YB'` as powers of 1024 | `'KiB'` to `'YiB'`; `'kB'` to `'YB'` are now powers of 1000, as in `formatFileSize(..., { units: 'si' })` |
+| `UnitConverter.value` holding the base-unit value | `value` holds the input, in `unit` |
 
 `formatDayMonth`, `formatMonthYear`, `formatMonthShort`, `formatTime`, `formatRelativeTime` and `formatSessionTime` take `locale | { locale, ...Intl options }` as their second parameter, so a bare locale keeps working; `formatTime` also takes a Date, and `formatFileSize` and `formatUnit` gain `locale`.
 
@@ -80,6 +83,12 @@ No alias is kept: the type checker flags each call site.
 - `randomString` reads `charset` by code point, so an emoji counts as one character.
 - `closestMatch` ignores case by default, like `searchOne`, `searchAll` and `searchFuzzy`; pass `{ caseSensitive: true }` for the old behaviour.
 - `sortBy` orders numbers before strings when keys mix both types, instead of leaving their order unspecified.
+- `mean`, `median`, `percentile` and `percentiles` of no values return `NaN` instead of `0`.
+- `UnitConverter` factors for km/h, oz, psi, acre, ft2, yd2, mmHg and BTU are exact, so results move in the 5th to 7th significant digit.
+- `renderProgressBar` throws a `RangeError` for a NaN `value`, a non-finite `min` or `max`, or a `totalChars` that is not a non-negative integer; `applyLowQuality` throws one for `levels` below 2.
+- `groupBy`, `keyBy` and `countBy` keep a `__proto__` key as an own key, and no longer read inherited names such as `toString` as existing keys.
+- `tokenizeLines` drops the `\r` of a `\r\n` ending, so `diffLines` ignores mixed line endings.
+- `diffTokens`, `diffLines` and `diffWords` throw a `RangeError` past `MAX_DIFF_CELLS` (25 million table cells) instead of allocating without bound; `diffTokens` and `diffLines` take `{ maxCells }` to raise it.
 - `formatDuration` keeps the sign (`-1h`, not `1h`) and takes `y`, `M` and `w` in `units`; `parseDuration` reads a leading `-`.
 - `fromISODate` returns `null` for anything but a real `YYYY-MM-DD` day (`2024-02-30`, `2024-3-1`, `2024-03`) instead of an overflowed Date, and `localDayRange` throws a `RangeError` on such a date.
 - `sendDiscordWebhook` and `sendGotify` time out after 15 s unless given a `timeout`, and `sendDiscordWebhook` takes `retry`.
