@@ -21,7 +21,9 @@ const TRAILING_SLASH_REGEX = /\/$/
 const DOMAIN_REGEX = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i
 
 function normalizeDomain(domainName: string): string {
-  const domain = String(domainName.replace(PROTOCOL_PREFIX_REGEX, '').replace(TRAILING_SLASH_REGEX, '').split('/')[0])
+  const withoutProtocol = domainName.replace(PROTOCOL_PREFIX_REGEX, '').replace(TRAILING_SLASH_REGEX, '')
+  const slash = withoutProtocol.indexOf('/')
+  const domain = slash < 0 ? withoutProtocol : withoutProtocol.slice(0, slash)
 
   if (!DOMAIN_REGEX.test(domain))
     throw new Error(`Domain is invalid: ${domain}`)

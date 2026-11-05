@@ -43,7 +43,10 @@ export function queryToNestedObject(query: Record<string, string>): Record<strin
 
     const matches = key.matchAll(BRACKET_KEY_REGEX).toArray()
 
-    key = key.split('[')[0]!
+    const bracket = key.indexOf('[')
+
+    if (bracket >= 0)
+      key = key.slice(0, bracket)
 
     queryObj[key] ??= {}
     let currentObj = queryObj[key]

@@ -264,7 +264,7 @@ describe('createWsClient options', () => {
       path: '/ws',
       authMessage: () => ({ token: 't' }),
       readyType: 'welcome',
-      parse: data => ({ type: String(data).split(':')[0]! }),
+      parse: data => ({ type: String(data).slice(0, String(data).indexOf(':')) }),
       serialize: data => `json:${JSON.stringify(data)}`,
       onMessage: msg => received.push(msg),
       onClose: event => closes.push(event),

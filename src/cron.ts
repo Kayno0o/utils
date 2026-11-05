@@ -88,7 +88,11 @@ function parseField(raw: string, min: number, max: number, aliases?: Record<stri
       const [from, to] = rangePart!.split('-')
 
       start = resolve(from!)
-      end = to === undefined ? (stepPart === undefined ? start : max) : resolve(to)
+
+      if (to !== undefined)
+        end = resolve(to)
+      else if (stepPart === undefined)
+        end = start
     }
 
     for (let value = start; value <= end; value += step)

@@ -1129,7 +1129,8 @@ function maskEnvValue(raw: string, options: MaskOptions, char: string): string {
     return raw
 
   const { ranges, result } = mask(inner, options)
-  const value = ranges.length ? result : options.mode === 'redact' ? '[REDACTED]' : char.repeat(inner.length)
+  const fallback = options.mode === 'redact' ? '[REDACTED]' : char.repeat(inner.length)
+  const value = ranges.length ? result : fallback
 
   return quoted ? `${quote}${value}${quote}` : value
 }

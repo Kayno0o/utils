@@ -17,9 +17,12 @@ export function mergeHeaders(...sources: (HeadersInput | undefined)[]): Headers 
     if (!source)
       continue
 
-    const entries = source instanceof Headers
-      ? [...source]
-      : Array.isArray(source) ? source : Object.entries(source)
+    let entries: Iterable<[string, HeaderValue]>
+
+    if (source instanceof Headers)
+      entries = [...source]
+    else
+      entries = Array.isArray(source) ? source : Object.entries(source)
 
     for (const [key, value] of entries) {
       if (value !== undefined)
@@ -236,6 +239,13 @@ interface PreparedJsonRequest {
   signal?: AbortSignal | null | undefined
 }
 
+function serializeBody(body: FetchJsonOptions['body'], jsonBody: boolean, serialize: (body: Record<string, unknown> | unknown[]) => string): BodyInit | null {
+  if (body === undefined || body === null)
+    return null
+
+  return jsonBody ? serialize(body as Record<string, unknown> | unknown[]) : body as BodyInit
+}
+
 // Built once, outside the retries, so a bad body or a throwing `serialize` fails at once instead of being retried.
 function prepareJsonRequest(url: string, options: Omit<FetchJsonOptions, 'retry' | 'onError'>): PreparedJsonRequest {
   const { baseUrl, token, query, body, headers, timeout, signal, onResponse, fetch: fetcher = fetch, parse = JSON.parse, serialize = JSON.stringify, ...init } = options
@@ -261,9 +271,7 @@ function prepareJsonRequest(url: string, options: Omit<FetchJsonOptions, 'retry'
     init: {
       ...init,
       headers: finalHeaders,
-      body: body === undefined || body === null
-        ? null
-        : jsonBody ? serialize(body as Record<string, unknown> | unknown[]) : body as BodyInit,
+      body: serializeBody(body, jsonBody, serialize),
     },
     fetcher,
     parse,

@@ -18,10 +18,14 @@ function readAsDataUrl(file: Blob): Promise<string> {
   })
 }
 
+function defaultCrossOrigin(src: string): 'anonymous' | null {
+  return REMOTE_URL.test(src) ? 'anonymous' : null
+}
+
 function loadImageElement(src: string, options: LoadImageOptions = {}): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    const crossOrigin = options.crossOrigin === undefined ? (REMOTE_URL.test(src) ? 'anonymous' : null) : options.crossOrigin
+    const crossOrigin = options.crossOrigin === undefined ? defaultCrossOrigin(src) : options.crossOrigin
 
     if (crossOrigin)
       img.crossOrigin = crossOrigin
@@ -157,7 +161,10 @@ export function dataUrlToBlob(src: string): Blob {
   const head = comma < 0 ? src : src.slice(0, comma)
   const bytes = base64DecodeBytes(comma < 0 ? '' : src.slice(comma + 1))
 
-  return new Blob([bytes], { type: head.slice(head.indexOf(':') + 1).split(';')[0] || 'application/octet-stream' })
+  const mime = head.slice(head.indexOf(':') + 1)
+  const semicolon = mime.indexOf(';')
+
+  return new Blob([bytes], { type: (semicolon < 0 ? mime : mime.slice(0, semicolon)) || 'application/octet-stream' })
 }
 
 /** Reads a File into a data URL; resolves `null` for a missing file and rejects with an `Error` when the read fails. */

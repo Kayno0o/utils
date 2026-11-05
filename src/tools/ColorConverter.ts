@@ -200,7 +200,7 @@ const linearOfChannel = (channel: number) => Number.isInteger(channel) && channe
 const linearToSrgb = (c: number) => c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055
 
 function roundTo(n: number, p: number): number {
-  const scale = p === 4 ? 10_000 : p === 2 ? 100 : 10 ** p
+  const scale = 10 ** p
 
   return Math.round(n * scale) / scale
 }

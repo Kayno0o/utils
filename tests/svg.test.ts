@@ -83,7 +83,10 @@ describe('cropSvg', () => {
 
     globals.DOMParser = class {
       parseFromString() {
-        return { querySelector: (selector: string) => (selector === 'parsererror' ? (parseError ? {} : null) : (hasSvg ? svg : null)) }
+        const svgNode = hasSvg ? svg : null
+        const errorNode = parseError ? {} : null
+
+        return { querySelector: (selector: string) => (selector === 'parsererror' ? errorNode : svgNode) }
       }
     }
     globals.document = { body: { appendChild: () => log.push('attach'), removeChild: () => log.push('detach') } }

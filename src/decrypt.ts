@@ -6,7 +6,12 @@ const WHITESPACE_CHAR_REGEX = /\s/
 /** Shifts a Latin letter by `shift` places, any sign, keeping its case; anything else is returned as is. */
 function shiftLetter(c: string, shift: number): string {
   const x = c.charCodeAt(0)
-  const base = x >= A_CODE && x < A_CODE + ALPHABET_LENGTH ? A_CODE : x >= LOWER_A_CODE && x < LOWER_A_CODE + ALPHABET_LENGTH ? LOWER_A_CODE : undefined
+  let base: number | undefined
+
+  if (x >= A_CODE && x < A_CODE + ALPHABET_LENGTH)
+    base = A_CODE
+  else if (x >= LOWER_A_CODE && x < LOWER_A_CODE + ALPHABET_LENGTH)
+    base = LOWER_A_CODE
 
   if (base === undefined)
     return c

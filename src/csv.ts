@@ -117,7 +117,13 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
   endField()
   endRow(true)
 
-  const columns = headers === true ? rows.shift() : headers && headers.length ? headers : undefined
+  let columns: string[] | undefined
+
+  if (headers === true)
+    columns = rows.shift()
+  else if (headers && headers.length)
+    columns = headers
+
   const result: T[] = []
 
   for (const values of rows) {
