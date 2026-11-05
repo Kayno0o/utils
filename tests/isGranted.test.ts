@@ -56,3 +56,14 @@ describe('declareIsGranted function', () => {
     expect(isGrantedExtended('ROLE_SUPERADMIN', ['ROLE_ADMIN'])).toBe(false)
   })
 })
+
+describe('declareIsGranted cycles and diamonds', () => {
+  it('terminates on a cyclic hierarchy and finds roles through a diamond', () => {
+    const hierarchy: Record<string, string[]> = { A: ['B'], B: ['A', 'C'], C: [], D: ['B', 'C'] }
+    const isGranted = declareIsGranted<string, typeof hierarchy>(hierarchy)
+
+    expect(isGranted('C', ['D'])).toBe(true)
+    expect(isGranted('D', ['A'])).toBe(false)
+    expect(isGranted('Z', ['A'])).toBe(false)
+  })
+})

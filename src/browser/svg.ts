@@ -2,7 +2,10 @@ import { round } from '../number'
 
 const VIEWBOX_RE = /viewBox=["']\s*([\d\-.]+)[\s,]+([\d\-.]+)[\s,]+([\d\-.]+)[\s,]+([\d\-.]+)\s*["']/
 const VIEWBOX_VALUE_RE = /viewBox=["'][^"']*["']/
-const SVG_DIM_RE = (attr: string) => new RegExp(`<svg[^>]+${attr}=["']([\\d.]+)(?:px)?["']`)
+const SVG_DIM_RES = {
+  height: /<svg[^>]+height=["']([\d.]+)(?:px)?["']/,
+  width: /<svg[^>]+width=["']([\d.]+)(?:px)?["']/,
+}
 
 /** Parses the `viewBox` attribute from an SVG string. Returns `null` when absent. */
 export function getViewBox(svg: string): { x: number, y: number, w: number, h: number } | null {
@@ -13,7 +16,7 @@ export function getViewBox(svg: string): { x: number, y: number, w: number, h: n
 
 /** Reads a `width` or `height` attribute value from the root `<svg>` element. */
 export function getSvgDimension(svg: string, attr: 'width' | 'height'): number | null {
-  const m = svg.match(SVG_DIM_RE(attr))
+  const m = svg.match(SVG_DIM_RES[attr])
 
   return m ? Number(m[1]) : null
 }

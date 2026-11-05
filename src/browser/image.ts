@@ -154,8 +154,9 @@ export async function transformImage(src: string, transform: ImageTransform, opt
 
 /** Decodes a base64 data URL into a Blob, for sending bytes where a long base64 string would go. */
 export function dataUrlToBlob(src: string): Blob {
-  const [head = '', data = ''] = src.split(',')
-  const binary = atob(data)
+  const comma = src.indexOf(',')
+  const head = comma < 0 ? src : src.slice(0, comma)
+  const binary = atob(comma < 0 ? '' : src.slice(comma + 1))
   const bytes = new Uint8Array(binary.length)
 
   for (let i = 0; i < binary.length; i++)
