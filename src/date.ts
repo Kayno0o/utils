@@ -289,8 +289,6 @@ export function fromISODate(iso: string): Date {
 }
 
 /** ISO week start (Monday) of the given date, as `YYYY-MM-DD`. DST-proof via local arithmetic. */
-/** @deprecated use `startOfWeekISO` */
-export const weekStartISO = startOfWeekISO
 export function startOfWeekISO(d: Date): string {
   const date = new Date(d.getFullYear(), d.getMonth(), d.getDate())
 

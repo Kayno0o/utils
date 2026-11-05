@@ -189,8 +189,6 @@ export function omit<T extends object, K extends keyof T>(object: T, keys: K[]):
   return result
 }
 
-/** @deprecated use `resolveValue` */
-export const unfunction = resolveValue
 export function resolveValue<T>(c: T | (() => T)): T {
   return typeof c === 'function' ? (c as () => T)() : c
 }
@@ -200,20 +198,14 @@ export function resolveValue<T>(c: T | (() => T)): T {
 // mirror that runtime behaviour rather than blindly reusing `keyof Obj`.
 type EnumerableKey<Obj> = Extract<keyof Obj, string | number>
 
-/** @deprecated use `typedObjectEntries` */
-export const ObjectEntries = typedObjectEntries
 export function typedObjectEntries<Obj extends object>(record: Obj): { [K in EnumerableKey<Obj>]: [`${K}`, Obj[K]] }[EnumerableKey<Obj>][] {
   return Object.entries(record) as { [K in EnumerableKey<Obj>]: [`${K}`, Obj[K]] }[EnumerableKey<Obj>][]
 }
 
-/** @deprecated use `typedObjectKeys` */
-export const ObjectKeys = typedObjectKeys
 export function typedObjectKeys<Obj extends object>(record: Obj): `${EnumerableKey<Obj>}`[] {
   return Object.keys(record) as `${EnumerableKey<Obj>}`[]
 }
 
-/** @deprecated use `typedObjectValues` */
-export const ObjectValues = typedObjectValues
 export function typedObjectValues<Obj extends object>(record: Obj): Obj[EnumerableKey<Obj>][] {
   return Object.values(record) as Obj[EnumerableKey<Obj>][]
 }

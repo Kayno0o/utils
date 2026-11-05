@@ -18,14 +18,6 @@ class SpawnError extends Error {
   }
 }
 
-/** The `(cmd, args)` form predates the argv array, so both resolve to one argv and its options. */
-function resolveArgs(argvOrCmd: string[] | string, optsOrArgs?: SpawnOptions | string[]): [string[], SpawnOptions] {
-  if (typeof argvOrCmd === 'string')
-    return [[argvOrCmd, ...(optsOrArgs as string[] | undefined ?? [])], {}]
-
-  return [argvOrCmd, optsOrArgs as SpawnOptions | undefined ?? {}]
-}
-
 async function feed(sink: Bun.FileSink | number | undefined, input: SpawnOptions['stdin']): Promise<void> {
   if (input === undefined || typeof sink !== 'object')
     return
@@ -51,11 +43,7 @@ async function run<T>(argv: string[], opts: SpawnOptions, read: (stdout: Readabl
 }
 
 /** Runs `argv` and resolves with trimmed stdout. Throws on non-zero exit, stderr in the message. */
-export async function spawnText(argv: string[], opts?: SpawnOptions): Promise<string>
-/** @deprecated pass the command and its args as one array: `spawnText([cmd, ...args])` */
-export async function spawnText(cmd: string, args?: string[]): Promise<string>
-export async function spawnText(argvOrCmd: string[] | string, optsOrArgs?: SpawnOptions | string[]): Promise<string> {
-  const [argv, opts] = resolveArgs(argvOrCmd, optsOrArgs)
+export async function spawnText(argv: string[], opts: SpawnOptions = {}): Promise<string> {
   const { out, err, code } = await run(argv, opts, async stdout => new Response(stdout).text())
 
   if (code !== 0)
@@ -65,11 +53,7 @@ export async function spawnText(argvOrCmd: string[] | string, optsOrArgs?: Spawn
 }
 
 /** Runs `argv` and resolves with raw stdout bytes. Throws on non-zero exit, stderr in the message. */
-export async function spawnBytes(argv: string[], opts?: SpawnOptions): Promise<Uint8Array>
-/** @deprecated pass the command and its args as one array: `spawnBytes([cmd, ...args])` */
-export async function spawnBytes(cmd: string, args?: string[]): Promise<Uint8Array>
-export async function spawnBytes(argvOrCmd: string[] | string, optsOrArgs?: SpawnOptions | string[]): Promise<Uint8Array> {
-  const [argv, opts] = resolveArgs(argvOrCmd, optsOrArgs)
+export async function spawnBytes(argv: string[], opts: SpawnOptions = {}): Promise<Uint8Array> {
   const { out, err, code } = await run(argv, opts, async stdout => new Response(stdout).arrayBuffer())
 
   if (code !== 0)
@@ -79,11 +63,7 @@ export async function spawnBytes(argvOrCmd: string[] | string, optsOrArgs?: Spaw
 }
 
 /** Runs `argv` and resolves with the exit code, never throws. */
-export async function spawnExit(argv: string[], opts?: SpawnOptions): Promise<number>
-/** @deprecated pass the command and its args as one array: `spawnExit([cmd, ...args])` */
-export async function spawnExit(cmd: string, args?: string[]): Promise<number>
-export async function spawnExit(argvOrCmd: string[] | string, optsOrArgs?: SpawnOptions | string[]): Promise<number> {
-  const [argv, opts] = resolveArgs(argvOrCmd, optsOrArgs)
+export async function spawnExit(argv: string[], opts: SpawnOptions = {}): Promise<number> {
   const { code } = await run(argv, opts, async stdout => new Response(stdout).arrayBuffer())
 
   return code

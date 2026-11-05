@@ -4,8 +4,6 @@ function escapeField(value: unknown, sep: string): string {
   return s.includes('"') || s.includes(sep) || s.includes('\n') ? `"${s.replaceAll('"', '""')}"` : s
 }
 
-/** @deprecated use `parseCsv` */
-export const csvParse = parseCsv
 export function parseCsv<T extends Record<string, string>>(str: string, { separator = ',' }: { separator?: string } = {}): T[] {
   const rows: string[][] = []
   let cur = ''
@@ -101,8 +99,6 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
   return result
 }
 
-/** @deprecated use `stringifyCsv` */
-export const csvStringify = stringifyCsv
 export function stringifyCsv(rows: Record<string, unknown>[], { separator = ',', headers }: { separator?: string, headers?: string[] } = {}): string {
   if (!rows.length)
     return headers ? headers.join(separator) : ''

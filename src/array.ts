@@ -6,8 +6,6 @@ export function getRandomElement<T>(values: T[], isCrypto = false): T {
   return values[index]!
 }
 
-/** @deprecated use `unique` */
-export const uniqueArray = unique
 export function unique<T extends string | number | symbol | boolean | null | undefined>(arr: T[]): T[] {
   return [...new Set(arr)]
 }
@@ -36,8 +34,6 @@ export function isEmpty(value: any): boolean {
   return false
 }
 
-/** @deprecated use `shuffle` */
-export const shuffleArray = shuffle
 export function shuffle(array: any[], isCrypto = false) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = randomInt(0, i + 1, isCrypto);
@@ -86,8 +82,6 @@ export function toArray<T>(value: T | T[]): T[] {
   return Array.isArray(value) ? value : [value]
 }
 
-/** @deprecated use `splitIntoParts` */
-export const chunkArray = splitIntoParts
 export function splitIntoParts<T>(array: T[], parts: number): T[][] {
   if (parts <= 0)
     throw new Error('Parts must be greater than 0')

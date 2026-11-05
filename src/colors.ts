@@ -7,8 +7,6 @@ export function randomHex(isCrypto = false) {
   return `#${Math.floor(randomInt(0, 16777215, isCrypto)).toString(16).padStart(6, '0')}`.toUpperCase()
 }
 
-/** @deprecated use `blendRgb` */
-export const opacityColor = blendRgb
 export function blendRgb(rgb1: RgbArrayType, rgb2: RgbArrayType, a1: number): RgbArrayType {
   const [r1, g1, b1] = rgb1
   const [r2, g2, b2] = rgb2

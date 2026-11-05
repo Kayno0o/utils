@@ -33,11 +33,6 @@ describe('spawnText', () => {
   it('finishes when stderr outgrows the pipe buffer', async () => {
     expect(await spawnText(['sh', '-c', 'head -c 200000 /dev/zero >&2; echo ok'], { timeoutMs: 5000 })).toBe('ok')
   })
-
-  it('still takes the deprecated command and args form', async () => {
-    expect(await spawnText('echo', ['legacy'])).toBe('legacy')
-    expect(await spawnText('true')).toBe('')
-  })
 })
 
 describe('spawnBytes', () => {
@@ -67,9 +62,5 @@ describe('spawnExit', () => {
   it('resolves non-zero without throwing', async () => {
     expect(await spawnExit(['false'])).toBe(1)
     expect(await spawnExit(['sleep', '5'], { timeoutMs: 100 })).toBe(143)
-  })
-
-  it('still takes the deprecated command and args form', async () => {
-    expect(await spawnExit('sh', ['-c', 'exit 3'])).toBe(3)
   })
 })

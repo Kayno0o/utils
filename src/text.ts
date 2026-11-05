@@ -134,8 +134,6 @@ export function getInitials(name: string | string[], {
   return [...letters.join('').toLocaleUpperCase()].slice(0, max).join('')
 }
 
-/** @deprecated use `capitalize` */
-export const firstUpper = capitalize
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
@@ -315,8 +313,6 @@ export function escapeCSV(value: string | number): string {
   return stringValue
 }
 
-/** @deprecated use `commonPrefixLength` */
-export const matchLength = commonPrefixLength
 export function commonPrefixLength(str1: string, str2: string): number {
   let length = 0
   const minLength = Math.min(str1.length, str2.length)
@@ -331,8 +327,6 @@ export function commonPrefixLength(str1: string, str2: string): number {
   return length
 }
 
-/** @deprecated use `commonPrefix` */
-export const matchingSubstring = commonPrefix
 export function commonPrefix(str1: string, str2: string): string {
   const length = commonPrefixLength(str1, str2)
 
@@ -556,8 +550,6 @@ export function stripHtml(str: string): string {
   return str.replace(/<[^>]+>/g, '')
 }
 
-/** @deprecated use `renderTemplate` */
-export const strTemplate = renderTemplate
 export function renderTemplate<T extends string>(str: T, variables: ExtractParams<T>): string {
   for (const [key, value] of typedObjectEntries(variables)) {
     str = str.replaceAll(`{${key}}`, value) as T

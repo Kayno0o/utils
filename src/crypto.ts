@@ -123,9 +123,6 @@ export function sfc32(a: number, b: number, c: number, d: number): () => number 
   }
 }
 
-/** @deprecated use `hashString` */
-export const hashStr = hashString
-
 /**
  * Hashes a string to a normalized float in the range [0, 1].
  *

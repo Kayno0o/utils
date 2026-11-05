@@ -11,8 +11,6 @@ export function downloadFile(blob: Blob, name: string) {
   document.body.removeChild(a)
 }
 
-/** @deprecated use `downloadFromUrl` */
-export const downloadFromURL = downloadFromUrl
 export function downloadFromUrl(url: string, name: string) {
   const a = document.createElement('a')
 

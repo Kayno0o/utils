@@ -40,8 +40,6 @@ export function randomBool(probability = 0.5, isCrypto = false): boolean {
 }
 
 /** @see https://processing.org/reference/map_.html */
-/** @deprecated use `mapRange` */
-export const map = mapRange
 export function mapRange(
   value: number,
   start1: number,
@@ -74,9 +72,6 @@ export function clamp(value: number, min: number, max: number, modulo = false): 
 
   return Math.min(Math.max(value, min), max)
 }
-
-/** @deprecated use `mapRange(hashString(str), 0, 1, min, max)` instead */
-export const numberFromString = (nb: number, min: number, max: number) => mapRange(nb, 0, 1, min, max)
 
 /** Format a number with locale grouping separators, e.g. `1234567` -> `"1,234,567"`. */
 export function formatNumber(value: number, locale?: string | string[], options?: Intl.NumberFormatOptions): string {
