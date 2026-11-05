@@ -10,9 +10,10 @@ export function getPlaceholderUrl(props: {
   text?: string
   width?: number
 }): string {
+  // placehold.co reads a literal `\n` as a line break; buildUrlQuery encodes the rest, a `+` or `&` in the text included.
   const queryString = buildUrlQuery({
-    font: props.font ? encodeURI(props.font) : undefined,
-    text: props.text ? encodeURI(props.text.replaceAll(' ', '+').replaceAll('\n', '\\n')) : undefined,
+    font: props.font,
+    text: props.text?.replaceAll('\n', '\\n'),
   })
 
   const path = [props.backgroundColor, props.color, props.format].filter(v => Boolean(v)).join('/')

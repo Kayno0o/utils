@@ -2,13 +2,13 @@ import { notNullish } from './array'
 import { typedObjectEntries } from './object'
 
 export interface BuildUrlQueryOptions {
-  /** URL-encode keys and values. Off by default to keep the raw output; it becomes the default in the next major. */
+  /** URL-encode keys and values. Defaults to true; `false` writes them raw. */
   encode?: boolean
   /** `comma` writes `tags=a,b`, `repeat` writes `tags=a&tags=b` like `fetchJson`'s `query`. */
   arrayFormat?: 'comma' | 'repeat'
 }
 
-export function buildUrlQuery(query?: object | null, { encode = false, arrayFormat = 'comma' }: BuildUrlQueryOptions = {}) {
+export function buildUrlQuery(query?: object | null, { encode = true, arrayFormat = 'comma' }: BuildUrlQueryOptions = {}) {
   const format = encode ? encodeURIComponent : String
   const pairs: string[] = []
 

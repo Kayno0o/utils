@@ -35,7 +35,11 @@ describe('getPlaceholderUrl function', () => {
       width: 150,
     })
 
-    expect(result).toEqual('https://placehold.co/150x150/png?font=roboto&text=Hello+World')
+    expect(result).toEqual('https://placehold.co/150x150/png?font=roboto&text=Hello%20World')
+  })
+
+  it('keeps a + or & in the text as written', () => {
+    expect(getPlaceholderUrl({ text: 'A+B & C' })).toBe('https://placehold.co/100x100?text=A%2BB%20%26%20C')
   })
 
   it('should encode text with spaces and newlines correctly', () => {

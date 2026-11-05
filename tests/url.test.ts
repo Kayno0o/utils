@@ -37,9 +37,9 @@ describe('buildUrlQuery function', () => {
 
   it('should handle a query with special characters', () => {
     const query = { 'city!': 'New York', 'name': 'John Doe' }
-    const result = buildUrlQuery(query)
 
-    expect(result).toBe('?city!=New York&name=John Doe')
+    expect(buildUrlQuery(query)).toBe('?city!=New%20York&name=John%20Doe')
+    expect(buildUrlQuery(query, { encode: false })).toBe('?city!=New York&name=John Doe')
   })
 
   it('joins arrays with commas by default', () => {

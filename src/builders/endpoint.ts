@@ -29,14 +29,14 @@ type OnlyAllowedKeys<T, AllowedKeys extends Key> = {
 }
 
 export interface GetEndpointOptions {
-  /** URL-encode each param. Off by default to keep the raw output; it becomes the default in the next major. */
+  /** URL-encode each param. Defaults to true; `false` inserts them raw. */
   encode?: boolean
 }
 
 export function declareGetEndpoint<
   EndpointsConst extends Record<Key, string>,
   CustomTypes extends OnlyAllowedKeys<CustomTypes, KeysWithVariablesType<EndpointsConst>> = {},
->(ENDPOINTS: EndpointsConst, { encode = false }: GetEndpointOptions = {}) {
+>(ENDPOINTS: EndpointsConst, { encode = true }: GetEndpointOptions = {}) {
   type KeysWithoutVariables = KeysWithoutVariablesType<EndpointsConst>
   type KeysWithVariables = KeysWithVariablesType<EndpointsConst>
 

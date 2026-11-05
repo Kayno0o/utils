@@ -44,15 +44,16 @@ describe('declareGetEndpoint function', () => {
     expect(result2).toBe('/api/test/path')
   })
 
-  it('inserts params raw by default, `$` patterns included', () => {
-    expect(getEndpoint('project', { uuid: 'a/b?c' })).toBe('/api/projects/a/b?c')
-    expect(getEndpoint('project', { uuid: '$&' })).toBe('/api/projects/$&')
+  it('inserts params raw with `encode: false`, `$` patterns included', () => {
+    const getRawEndpoint = declareGetEndpoint(endpoints, { encode: false })
+
+    expect(getRawEndpoint('project', { uuid: 'a/b?c' })).toBe('/api/projects/a/b?c')
+    expect(getRawEndpoint('project', { uuid: '$&' })).toBe('/api/projects/$&')
   })
 
-  it('encodes params with `encode`', () => {
-    const getEncodedEndpoint = declareGetEndpoint(endpoints, { encode: true })
-
-    expect(getEncodedEndpoint('project', { uuid: 'a/b?c#d é' })).toBe('/api/projects/a%2Fb%3Fc%23d%20%C3%A9')
+  it('encodes params by default', () => {
+    expect(getEndpoint('project', { uuid: 'a/b?c#d é' })).toBe('/api/projects/a%2Fb%3Fc%23d%20%C3%A9')
+    expect(getEndpoint('project', { uuid: '$&' })).toBe('/api/projects/%24%26')
   })
 
   it('should return undefined if the endpoint does not exist', () => {
