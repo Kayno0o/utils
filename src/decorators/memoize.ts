@@ -1,13 +1,10 @@
-import type { Memoized, TtlCache, TtlCacheOptions } from '../cache'
+import type { Memoized, MemoizeOptions, TtlCache } from '../cache'
 import { createTtlCache, memoize } from '../cache'
 
-interface MemoizeDecoratorOptions extends TtlCacheOptions {
+/** `memoize`'s options; `key` only applies to methods, a getter has a single entry. */
+interface MemoizeDecoratorOptions extends MemoizeOptions<any[]> {
   /** Properties whose assignment invalidates this cache. */
   clearOn?: string[]
-  /** Entry lifetime in ms. Defaults to no expiry. */
-  ttl?: number
-  /** Cache key for a method call, like `memoize`'s. Defaults to `JSON.stringify(args)`. */
-  key?: (...args: any[]) => string
 }
 
 interface MemoizeState {

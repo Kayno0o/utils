@@ -126,8 +126,26 @@ describe('isHoliday function', () => {
   })
 
   it('reads a Date on its local day', () => {
-    expect(isHoliday(new Date(2026, 11, 25, 0, 30))).toBe(true)
-    expect(isHoliday(new Date(2026, 11, 24, 23, 30))).toBe(false)
+    const timezone = process.env.TZ
+
+    for (const tz of ['Europe/Paris', 'America/New_York']) {
+      process.env.TZ = tz
+
+      try {
+        expect(isHoliday(new Date(2026, 11, 25, 0, 30))).toBe(true)
+        expect(isHoliday(new Date(2026, 11, 24, 23, 30))).toBe(false)
+        expect(isHoliday('2026-12-25')).toBe(true)
+        expect(isHoliday('2026-12-24')).toBe(false)
+      }
+      finally {
+        process.env.TZ = timezone
+      }
+    }
+  })
+
+  it('returns false for an invalid date', () => {
+    expect(isHoliday('not a date')).toBe(false)
+    expect(isHoliday(new Date(Number.NaN))).toBe(false)
   })
 })
 
@@ -269,6 +287,9 @@ describe('parseDateLabel function', () => {
     expect(parseDateLabel('not a date')).toBeNull()
     expect(parseDateLabel('2026-01-15xyz')).toBeNull()
     expect(parseDateLabel('20260115x')).toBeNull()
+    expect(parseDateLabel('2026-01-15 garbage')).toBeNull()
+    expect(parseDateLabel('2026-01-15Tzzz')).toBeNull()
+    expect(parseDateLabel('2026-01-15 08:00')).toEqual(new Date(2026, 0, 15))
   })
 
   it('returns null for a day that does not exist', () => {

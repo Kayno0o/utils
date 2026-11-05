@@ -30,7 +30,7 @@ export interface StreamOllamaJsonOptions {
   /** Raw user content, stored as `rawInput` in the response metadata. */
   rawInput: string
   signal?: AbortSignal
-  /** Transport options for the Ollama call itself, e.g. `token` for an Ollama behind auth. */
+  /** Transport options for the Ollama call itself, e.g. `token` for an Ollama behind auth; `signal` stays top-level. A `timeout` bounds the whole generation, not only the first byte. */
   fetchOptions?: Omit<OllamaFetchOptions, 'signal'>
   /** Turns the accumulated raw content into the final data object (parse/transform/fallback). */
   finalize: (rawContent: string) => Record<string, unknown>

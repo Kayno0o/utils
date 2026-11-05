@@ -1,7 +1,7 @@
 import { formatDateTime, getRelativeTimeFormat } from './intlCache'
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
-const ISO_DATE_LABEL_REGEX = /^(\d{4})-(\d{2})-(\d{2})(?:[T ].*)?$/
+const ISO_DATE_LABEL_REGEX = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}.*)?$/
 const COMPACT_DATE_LABEL_REGEX = /^(\d{4})(\d{2})(\d{2})$/
 const SLASH_DATE_LABEL_REGEX = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/
 
@@ -82,7 +82,12 @@ export function getFrenchHolidays(year: number): string[] {
 
 export function isHoliday(date: Date | string): boolean {
   // a bare `YYYY-MM-DD` already names the local day; `new Date()` would read it as UTC midnight
-  const formattedDate = typeof date === 'string' && ISO_DATE_REGEX.test(date) ? date : toISODate(new Date(date))
+  const parsed = typeof date === 'string' && ISO_DATE_REGEX.test(date) ? null : new Date(date)
+
+  if (parsed && Number.isNaN(parsed.getTime()))
+    return false
+
+  const formattedDate = parsed ? toISODate(parsed) : date as string
 
   return getFrenchHolidays(Number(formattedDate.slice(0, 4))).includes(formattedDate)
 }

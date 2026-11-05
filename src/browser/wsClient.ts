@@ -6,7 +6,7 @@ export interface WsClientOptions<TMsg> {
   onReady?: () => void
   onMessage: (msg: TMsg) => void
   onError?: () => void
-  /** Fired for a frame that is not a JSON object; the frame is dropped and the client keeps running. */
+  /** Fired for a frame that is not a JSON object; the frame is dropped and the client keeps running, silently when this is unset. */
   onInvalidMessage?: (data: unknown, error: unknown) => void
   onClose?: () => void
   /** Auto-reconnect 2s after a drop. Off by default (a game socket needs a full rejoin, not a silent reconnect). */

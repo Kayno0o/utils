@@ -417,7 +417,7 @@ export function progressBar(value: number, min: number, max: number, { emptyChar
 }
 
 // the -f and -fe words that do turn into -ves: `roof`, `chef` and `safe` take a plain -s
-const F_TO_VES_REGEX = /(?:leaf|loaf|thief|wolf|half|calf|elf|sheaf)$/
+const F_TO_VES_REGEX = /(?:leaf|loaf|thief|wolf|half|calf|elf|sheaf|scarf|dwarf|hoof|wharf)$/
 const FE_TO_VES_REGEX = /(?:knife|life|wife)$/
 
 /** handle common pluralization rules */

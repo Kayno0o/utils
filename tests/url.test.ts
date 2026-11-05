@@ -46,6 +46,12 @@ describe('buildUrlQuery function', () => {
     expect(buildUrlQuery({ tags: ['x', 'y'] })).toBe('?tags=x,y')
   })
 
+  it('writes nullish array items as empty, and skips them when repeating', () => {
+    expect(buildUrlQuery({ tags: ['x', null, 'y'] })).toBe('?tags=x,,y')
+    expect(buildUrlQuery({ tags: ['x', null, 'y'] }, { encode: true })).toBe('?tags=x,,y')
+    expect(buildUrlQuery({ tags: ['x', undefined] }, { arrayFormat: 'repeat' })).toBe('?tags=x')
+  })
+
   it('repeats the key for each array item with `arrayFormat: repeat`', () => {
     expect(buildUrlQuery({ tags: ['x', 'y'], q: 'a' }, { arrayFormat: 'repeat' })).toBe('?tags=x&tags=y&q=a')
   })

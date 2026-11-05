@@ -17,11 +17,12 @@ export function buildUrlQuery(query?: object | null, { encode = false, arrayForm
       continue
 
     if (Array.isArray(value) && arrayFormat === 'repeat') {
-      for (const item of value)
+      for (const item of value.filter(notNullish))
         pairs.push(`${format(key)}=${format(item)}`)
     }
     else {
-      pairs.push(`${format(key)}=${Array.isArray(value) ? value.map(format).join(',') : format(value)}`)
+      // nullish items stay empty, as `Array.prototype.toString` writes them
+      pairs.push(`${format(key)}=${Array.isArray(value) ? value.map(item => notNullish(item) ? format(item) : '').join(',') : format(value)}`)
     }
   }
 

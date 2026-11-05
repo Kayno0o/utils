@@ -548,6 +548,8 @@ describe('plural function', () => {
     expect(plural('wolf')).toEqual('wolves')
     expect(plural('shelf')).toEqual('shelves')
     expect(plural('wife')).toEqual('wives')
+    expect(plural('scarf')).toEqual('scarves')
+    expect(plural('hoof')).toEqual('hooves')
   })
 
   it('should handle regular plurals', () => {

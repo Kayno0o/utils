@@ -22,16 +22,20 @@ export interface FormatDurationOptions {
   long?: boolean
   /** Keep only the N largest non-zero units, so a reading stays the same width as it grows. */
   maxUnits?: number
-  /** The units to write, like `msDurationToString`'s; what is smaller than the last one is dropped. */
+  /** The units to write, like `msDurationToString`'s (which also reaches `w`, `M` and `y`); what is smaller than the last one is dropped. */
   units?: DurationUnit[]
   /** What each unit is written as, for a locale that does not read them in English: `{ d: { short: 'j', one: 'jour', other: 'jours' } }`. */
   labels?: Partial<Record<DurationUnit, DurationLabel>>
 }
 
+function writeDuration(count: number, label: Required<DurationLabel>, override: DurationLabel | undefined, long: boolean): string {
+  const { short, one, other } = { ...label, ...override }
+
+  return long ? `${count} ${count === 1 ? one : other}` : `${count}${short}`
+}
+
 export function formatDuration(ms: number, { long = false, maxUnits = Infinity, units, labels }: FormatDurationOptions = {}): string {
   const selected = units ? DURATION_UNITS.filter(({ unit }) => units.includes(unit)) : DURATION_UNITS
-  const labelOf = (unit: DurationUnit, base: Required<DurationLabel>): Required<DurationLabel> => ({ ...base, ...labels?.[unit] })
-  const write = (count: number, label: Required<DurationLabel>) => long ? `${count} ${count === 1 ? label.one : label.other}` : `${count}${label.short}`
 
   let remaining = Math.abs(ms)
   const parts: string[] = []
@@ -40,7 +44,7 @@ export function formatDuration(ms: number, { long = false, maxUnits = Infinity, 
     const count = Math.floor(remaining / unitMs)
 
     if (count > 0) {
-      parts.push(write(count, labelOf(unit, label)))
+      parts.push(writeDuration(count, label, labels?.[unit], long))
       remaining -= count * unitMs
     }
 
@@ -50,7 +54,7 @@ export function formatDuration(ms: number, { long = false, maxUnits = Infinity, 
 
   const smallest = selected.at(-1) ?? DURATION_UNITS.at(-1)!
 
-  return parts.join(long ? ', ' : ' ') || write(0, labelOf(smallest.unit, smallest.label))
+  return parts.join(long ? ', ' : ' ') || writeDuration(0, smallest.label, labels?.[smallest.unit], long)
 }
 
 export interface InDaysOptions {
