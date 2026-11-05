@@ -1,15 +1,18 @@
-import type { TtlCache } from '../cache'
-import { createTtlCache } from '../cache'
+import type { Memoized, TtlCache, TtlCacheOptions } from '../cache'
+import { createTtlCache, memoize } from '../cache'
 
-interface MemoizeDecoratorOptions {
+interface MemoizeDecoratorOptions extends TtlCacheOptions {
   /** Properties whose assignment invalidates this cache. */
   clearOn?: string[]
   /** Entry lifetime in ms. Defaults to no expiry. */
   ttl?: number
+  /** Cache key for a method call, like `memoize`'s. Defaults to `JSON.stringify(args)`. */
+  key?: (...args: any[]) => string
 }
 
 interface MemoizeState {
   caches: Map<string, TtlCache<string, any>>
+  methods: Map<string, Memoized<any[], any>>
   deps: Map<string, string[]>
   patched: Set<string>
 }
@@ -22,23 +25,37 @@ function stateOf(instance: object): MemoizeState {
   let state = states.get(instance)
 
   if (!state) {
-    state = { caches: new Map(), deps: new Map(), patched: new Set() }
+    state = { caches: new Map(), methods: new Map(), deps: new Map(), patched: new Set() }
     states.set(instance, state)
   }
 
   return state
 }
 
-function cacheOf(instance: object, propertyKey: string, ttl?: number) {
+function cacheOf(instance: object, propertyKey: string, options?: MemoizeDecoratorOptions) {
   const { caches } = stateOf(instance)
   let cache = caches.get(propertyKey)
 
   if (!cache) {
-    cache = createTtlCache<string, any>(ttl)
+    cache = createTtlCache<string, any>(options?.ttl, options)
     caches.set(propertyKey, cache)
   }
 
   return cache
+}
+
+/** A method goes through `memoize`, so a rejected promise is evicted the same way. */
+function methodOf(instance: object, propertyKey: string, method: (...args: any[]) => any, options?: MemoizeDecoratorOptions) {
+  const { caches, methods } = stateOf(instance)
+  let memoized = methods.get(propertyKey)
+
+  if (!memoized) {
+    memoized = memoize(method, options)
+    methods.set(propertyKey, memoized)
+    caches.set(propertyKey, memoized.cache)
+  }
+
+  return memoized
 }
 
 function clearDependents(instance: object, changedProp: string) {
@@ -123,7 +140,7 @@ export function Memoize(options?: MemoizeDecoratorOptions) {
       descriptor.get = function () {
         register(this, propertyKey, options)
 
-        const cache = cacheOf(this, propertyKey, options?.ttl)
+        const cache = cacheOf(this, propertyKey, options)
 
         if (cache.has(GETTER_KEY))
           return cache.get(GETTER_KEY)
@@ -141,17 +158,7 @@ export function Memoize(options?: MemoizeDecoratorOptions) {
       descriptor.value = function (...args: any[]) {
         register(this, propertyKey, options)
 
-        const cache = cacheOf(this, propertyKey, options?.ttl)
-        const key = JSON.stringify(args)
-
-        if (cache.has(key))
-          return cache.get(key)
-
-        const result = originalMethod.apply(this, args)
-
-        cache.set(key, result)
-
-        return result
+        return methodOf(this, propertyKey, originalMethod, options).apply(this, args)
       }
     }
 

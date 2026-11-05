@@ -227,3 +227,76 @@ describe('Memoize decorator', () => {
     })
   })
 })
+
+describe('Memoize decorator cache options', () => {
+  it('bounds a method cache with maxEntries and lru', () => {
+    let calls = 0
+
+    class Service {
+      @Memoize({ maxEntries: 2, lru: true })
+      double(n: number): number {
+        calls++
+
+        return n * 2
+      }
+    }
+
+    const service = new Service()
+
+    service.double(1)
+    service.double(2)
+    service.double(1)
+    service.double(3)
+    expect(calls).toBe(3)
+
+    service.double(1)
+    expect(calls).toBe(3)
+
+    service.double(2)
+    expect(calls).toBe(4)
+  })
+
+  it('keys method calls with a custom key', () => {
+    let calls = 0
+
+    class Service {
+      @Memoize({ key: (user: { id: number }) => String(user.id) })
+      greet(user: { id: number, name: string }): string {
+        calls++
+
+        return `hi ${user.name}`
+      }
+    }
+
+    const service = new Service()
+
+    expect(service.greet({ id: 1, name: 'Ann' })).toBe('hi Ann')
+    expect(service.greet({ id: 1, name: 'Renamed' })).toBe('hi Ann')
+    expect(calls).toBe(1)
+  })
+})
+
+describe('Memoize decorator on async methods', () => {
+  it('evicts a rejected promise so the next call retries', async () => {
+    let calls = 0
+
+    class Service {
+      @Memoize()
+      async load(): Promise<string> {
+        calls++
+
+        if (calls === 1)
+          throw new Error('flaky')
+
+        return 'ok'
+      }
+    }
+
+    const service = new Service()
+
+    await expect(service.load()).rejects.toThrow('flaky')
+    expect(await service.load()).toBe('ok')
+    expect(await service.load()).toBe('ok')
+    expect(calls).toBe(2)
+  })
+})
