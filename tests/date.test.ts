@@ -1,49 +1,17 @@
 import { describe, expect, test as it } from 'bun:test'
-import { addDays, addMonths, addYears, age, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, diffInDays, diffInHours, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, getFrenchHolidays, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, msDurationToString, parseDateLabel, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, stringToMsDuration, WEEK_MS } from '../src'
-
-describe('msDurationToString function', () => {
-  it('decomposes a duration into the largest units first', () => {
-    expect(msDurationToString(stringToMsDuration('1d 7h 30m'))).toBe('1d 7h 30m')
-    expect(msDurationToString(90061000)).toBe('1d 1h 1m 1s')
-  })
-
-  it('keeps only the largest units with maxUnits', () => {
-    expect(msDurationToString(90061000, undefined, { maxUnits: 2 })).toBe('1d 1h')
-    expect(msDurationToString(-86_405_000, undefined, { maxUnits: 2 })).toBe('-1d 5s')
-  })
-
-  it('skips zero units', () => {
-    expect(msDurationToString(stringToMsDuration('2h'))).toBe('2h')
-  })
-
-  it('returns 0 of the smallest unit for empty durations', () => {
-    expect(msDurationToString(0)).toBe('0s')
-    expect(msDurationToString(500)).toBe('0s') // sub-second rounds down
-  })
-
-  it('round-trips with custom units', () => {
-    const units = ['y', 'w', 'd', 'h', 'm', 's']
-    const ms = stringToMsDuration('1y 2w 3d')
-
-    expect(stringToMsDuration(msDurationToString(ms, units))).toBe(ms)
-  })
-
-  it('keeps the sign for negative durations', () => {
-    expect(msDurationToString(-stringToMsDuration('1h 30m'))).toBe('-1h 30m')
-  })
-
-  it('writes the units it is given labels for, and leaves the rest', () => {
-    const labels = { d: 'j', m: 'min' }
-
-    expect(msDurationToString(stringToMsDuration('1d 7h 30m'), undefined, { labels })).toBe('1j 7h 30min')
-  })
-
-  it('labels the zero unit it falls back to', () => {
-    expect(msDurationToString(0, ['m'], { labels: { m: 'min' } })).toBe('0min')
-  })
-})
+import { addDays, addMonths, addYears, age, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, diffInDays, diffInHours, endOfDay, endOfMonth, formatDayMonth, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, formatTime, fromISODate, getFrenchHolidays, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, parseDateLabel, parseDuration, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, WEEK_MS } from '../src'
 
 describe('formatRelativeTime function', () => {
+  it('takes a bare locale', () => {
+    expect(formatRelativeTime(new Date(Date.now() - 3 * HOUR_MS), 'fr')).toBe('il y a 3 heures')
+  })
+
+  it('passes Intl options through', () => {
+    const from = new Date(2026, 5, 8, 12, 0, 0)
+
+    expect(formatRelativeTime(new Date(2026, 5, 8, 9, 0, 0), { from, locale: 'en', style: 'narrow' })).toBe('3h ago')
+  })
+
   const from = new Date(2026, 5, 8, 12, 0, 0)
 
   it('formats past dates', () => {
@@ -153,69 +121,69 @@ describe('isHoliday function', () => {
   })
 })
 
-describe('stringToMsDuration function', () => {
+describe('parseDuration function', () => {
   it('should handle durations specified in seconds', () => {
-    const result = stringToMsDuration('10s')
+    const result = parseDuration('10s')
 
     expect(result).toBe(10000) // 10 seconds in milliseconds
   })
 
   it('should handle durations specified in minutes', () => {
-    const result = stringToMsDuration('5m')
+    const result = parseDuration('5m')
 
     expect(result).toBe(300000) // 5 minutes in milliseconds
   })
 
   it('should handle durations specified in hours', () => {
-    const result = stringToMsDuration('2h')
+    const result = parseDuration('2h')
 
     expect(result).toBe(7200000) // 2 hours in milliseconds
   })
 
   it('should handle durations specified in days', () => {
-    const result = stringToMsDuration('1d')
+    const result = parseDuration('1d')
 
     expect(result).toBe(86400000) // 1 day in milliseconds
   })
 
   it('should handle durations specified in weeks', () => {
-    const result = stringToMsDuration('1w')
+    const result = parseDuration('1w')
 
     expect(result).toBe(604800000) // 1 week in milliseconds
   })
 
   it('should handle durations specified in months', () => {
-    const result = stringToMsDuration('1M')
+    const result = parseDuration('1M')
 
     expect(result).toBe(2592000000) // 1 month in milliseconds
   })
 
   it('should handle durations specified in years', () => {
-    const result = stringToMsDuration('1y')
+    const result = parseDuration('1y')
 
     expect(result).toBe(31536000000) // 1 year in milliseconds
   })
 
   it('should handle compound durations', () => {
-    expect(stringToMsDuration('1d 7h')).toBe(86400000 + 7 * 3600000)
-    expect(stringToMsDuration('1d7h30m')).toBe(86400000 + 7 * 3600000 + 30 * 60000)
-    expect(stringToMsDuration('2w 3d 4h 5m 6s')).toBe(
+    expect(parseDuration('1d 7h')).toBe(86400000 + 7 * 3600000)
+    expect(parseDuration('1d7h30m')).toBe(86400000 + 7 * 3600000 + 30 * 60000)
+    expect(parseDuration('2w 3d 4h 5m 6s')).toBe(
       2 * 604800000 + 3 * 86400000 + 4 * 3600000 + 5 * 60000 + 6 * 1000,
     )
   })
 
   it('should distinguish minutes from months by case', () => {
-    expect(stringToMsDuration('1m')).toBe(60000) // minute
-    expect(stringToMsDuration('1M')).toBe(2592000000) // month
+    expect(parseDuration('1m')).toBe(60000) // minute
+    expect(parseDuration('1M')).toBe(2592000000) // month
   })
 
   it('should return 0 for invalid duration formats', () => {
-    expect(stringToMsDuration('invalid')).toBe(0)
-    expect(stringToMsDuration('10')).toBe(0) // missing unit
+    expect(parseDuration('invalid')).toBe(0)
+    expect(parseDuration('10')).toBe(0) // missing unit
   })
 
   it('should return the input directly if it is a number', () => {
-    const result = stringToMsDuration(1000)
+    const result = parseDuration(1000)
 
     expect(result).toBe(1000) // should return the input as it is already a number
   })
@@ -248,6 +216,12 @@ describe('formatDayMonth function', () => {
     expect(formatDayMonth(new Date(2026, 0, 15), 'fr-FR')).toBe('15 janv.')
     expect(formatDayMonth(new Date(2026, 0, 15), 'en-US')).toBe('Jan 15')
   })
+
+  it('takes a locale in an options object with Intl options', () => {
+    expect(formatDayMonth(new Date(2026, 0, 15), { locale: 'fr-FR' })).toBe('15 janv.')
+    expect(formatDayMonth(new Date(2026, 0, 15), { month: 'long' })).toBe('15 January')
+    expect(formatDayMonth(new Date(2026, 0, 15), { locale: 'fr-FR', month: 'long' })).toBe('15 janvier')
+  })
 })
 
 describe('formatMonthYear function', () => {
@@ -255,6 +229,7 @@ describe('formatMonthYear function', () => {
     expect(formatMonthYear(new Date(2026, 0, 15))).toBe('Jan 2026')
     expect(formatMonthYear(new Date(2024, 6, 1))).toBe('Jul 2024')
     expect(formatMonthYear(new Date(2026, 0, 15), 'fr-FR')).toBe('janv. 2026')
+    expect(formatMonthYear(new Date(2026, 0, 15), { locale: 'fr-FR', month: 'long' })).toBe('janvier 2026')
   })
 })
 
@@ -263,6 +238,7 @@ describe('formatMonthShort function', () => {
     expect(formatMonthShort(new Date(2026, 0, 15))).toBe('Jan')
     expect(formatMonthShort(new Date(2026, 5, 1))).toBe('Jun')
     expect(formatMonthShort(new Date(2026, 0, 15), 'fr-FR')).toBe('janv.')
+    expect(formatMonthShort(new Date(2026, 0, 15), { month: 'long' })).toBe('January')
   })
 })
 
@@ -381,7 +357,7 @@ describe('date predicates', () => {
 
     expect(isBetween(new Date(2024, 0, 15), start, end)).toBe(true)
     expect(isBetween(start, start, end)).toBe(true)
-    expect(isBetween(start, start, end, false)).toBe(false)
+    expect(isBetween(start, start, end, { inclusive: false })).toBe(false)
     expect(isBetween(new Date(2024, 1, 1), start, end)).toBe(false)
   })
 })
@@ -441,7 +417,7 @@ describe('working-day options', () => {
 
   it('takes other weekend days', () => {
     expect(isWeekend(new Date(2024, 4, 10))).toBe(false)
-    expect(isWeekend(new Date(2024, 4, 10), [5, 6])).toBe(true)
+    expect(isWeekend(new Date(2024, 4, 10), { weekendDays: [5, 6] })).toBe(true)
     expect(businessDaysBetween(monday, nextMonday, { weekendDays: [5, 6] })).toBe(6)
   })
 
@@ -491,6 +467,40 @@ describe('formatSessionTime options', () => {
 
   it('formats in the given locale', () => {
     expect(formatSessionTime(new Date(2024, 4, 6, 12, 0), { now, locale: 'fr-FR' })).toBe('lun.')
+    expect(formatSessionTime(new Date(2024, 3, 1, 12, 0), 'en-US')).toBe('Apr 1')
+    expect(formatSessionTime(new Date(), { locale: 'en-US', hour12: false }).length).toBe(5)
     expect(formatSessionTime(new Date(2024, 3, 1, 12, 0), { now, locale: 'en-US' })).toBe('Apr 1')
+  })
+})
+
+describe('formatTime', () => {
+  const at = new Date('2026-01-15T15:04:00Z')
+
+  it('takes a Date as well as a timestamp', () => {
+    expect(formatTime(at, 'en-US')).toBe(formatTime(at.getTime(), 'en-US'))
+    expect(formatTime(at, { locale: 'en-US', timeZone: 'UTC' })).toBe('Jan 15, 03:04 PM')
+  })
+
+  it('takes a locale or options', () => {
+    expect(formatTime(at, { locale: 'en-GB', timeZone: 'UTC' })).toBe('15 Jan, 15:04')
+    expect(formatTime(at, { locale: 'en-US', hour12: false, timeZone: 'UTC' })).toBe('Jan 15, 15:04')
+  })
+})
+
+describe('fromISODate', () => {
+  it('returns null for what names no real day', () => {
+    for (const bad of ['2024-02-30', '2024-13-01', '2024-00-10', 'nope', '2024-3-1', '2024-03', ''])
+      expect(fromISODate(bad)).toBeNull()
+  })
+
+  it('keeps a real leap day', () => {
+    expect(fromISODate('2024-02-29')).toEqual(new Date(2024, 1, 29))
+  })
+})
+
+describe('parseDuration sign', () => {
+  it('reads a leading minus', () => {
+    expect(parseDuration('-1h 30m')).toBe(-5_400_000)
+    expect(parseDuration('-nothing')).toBe(0)
   })
 })

@@ -16,15 +16,15 @@ describe('formatFileSize function', () => {
   })
 
   it('metric units', () => {
-    expect(formatFileSize(1500000, true)).toEqual('1.5 MB')
+    expect(formatFileSize(1500000, { units: 'si' })).toEqual('1.5 MB')
   })
 
   it('custom decimal places', () => {
-    expect(formatFileSize(5368709120, false, 2)).toEqual('5.00 GiB')
+    expect(formatFileSize(5368709120, { dp: 2 })).toEqual('5.00 GiB')
   })
 
   it('handle very large bytes', () => {
-    expect(formatFileSize(1234567890345678, false, 2)).toEqual('1.10 PiB')
+    expect(formatFileSize(1234567890345678, { dp: 2 })).toEqual('1.10 PiB')
   })
 })
 
@@ -101,8 +101,8 @@ describe('formatUnit function', () => {
 describe('formatEuro locale and options', () => {
   it('follows the given locale and options', () => {
     expect(formatEuro(1234.5, 'en-US')).toEqual('€1,234.50')
-    expect(formatEuro(1234.5, 'fr-FR', { currency: 'USD' })).toEqual(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD' }).format(1234.5))
-    expect(formatEuro(1234.5, 'fr-FR', { maximumFractionDigits: 0 })).toEqual(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(1234.5))
+    expect(formatEuro(1234.5, { currency: 'USD' })).toEqual(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD' }).format(1234.5))
+    expect(formatEuro(1234.5, { locale: 'fr-FR', maximumFractionDigits: 0 })).toEqual(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(1234.5))
   })
 })
 

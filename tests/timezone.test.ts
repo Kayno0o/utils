@@ -91,3 +91,9 @@ describe('inDays', () => {
     expect(inDays(3, { short: true })).toBe('in 3d')
   })
 })
+
+describe('localDayRange input', () => {
+  test('throws on a date that names no real day', () => {
+    expect(() => localDayRange('2024-02-30', PARIS)).toThrow(RangeError)
+  })
+})

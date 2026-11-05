@@ -54,3 +54,16 @@ export function getRelativeTimeFormat(locale: Locale, options?: Intl.RelativeTim
 
   return cached
 }
+
+/** A locale, or an options object that names one next to the `Intl` options of the formatter. */
+export type LocaleOrOptions<O extends object> = Locale | ({ locale?: Locale } & O)
+
+/** Split a `locale | { locale, ...options }` argument into its locale and the rest, `defaultLocale` standing in when none is named. */
+export function resolveLocale<O extends object>(arg: LocaleOrOptions<O>, defaultLocale?: Locale): [locale: Locale, options: Omit<O, 'locale'>] {
+  if (arg === undefined || typeof arg === 'string' || Array.isArray(arg))
+    return [arg ?? defaultLocale, {} as Omit<O, 'locale'>]
+
+  const { locale, ...options } = arg as { locale?: Locale } & O
+
+  return [locale ?? defaultLocale, options as Omit<O, 'locale'>]
+}

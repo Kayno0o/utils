@@ -1,20 +1,25 @@
-import { getNumberFormat } from '../intlCache'
+import type { LocaleOrOptions } from '../intlCache'
+import { getNumberFormat, resolveLocale } from '../intlCache'
 
 /** `iec` is 1024 with KiB/MiB labels, `si` is 1000 with kB/MB labels, and `binary` is the mix interfaces usually mean by "GB": 1024 steps under the shorter labels. */
 export type FileSizeUnits = 'iec' | 'si' | 'binary'
 
+export interface FormatFileSizeOptions {
+  /** The unit system, `'iec'` by default. */
+  units?: FileSizeUnits
+  /** Digits after the decimal point. Defaults to `1`. */
+  dp?: number
+  /** Writes the number with this locale's separators, e.g. `1,5 MB`. Defaults to a plain `.`. */
+  locale?: string | string[]
+}
+
 /**
- * Bytes as human-readable text. The boolean form is the original one, `si` choosing metric over binary; the options form additionally reaches `binary`.
+ * Bytes as human-readable text.
  *
  * @author https://stackoverflow.com/users/65387/mpen
  * @see https://stackoverflow.com/a/14919494
  */
-export function formatFileSize(bytes: number, si?: boolean, dp?: number): string
-export function formatFileSize(bytes: number, options: { units?: FileSizeUnits, dp?: number }): string
-
-export function formatFileSize(bytes: number, siOrOptions: boolean | { units?: FileSizeUnits, dp?: number } = false, dpArg = 1) {
-  const options = typeof siOrOptions === 'object' ? siOrOptions : { units: siOrOptions ? 'si' as const : 'iec' as const, dp: dpArg }
-  const { units: unitSystem = 'iec', dp = 1 } = options
+export function formatFileSize(bytes: number, { units: unitSystem = 'iec', dp = 1, locale }: FormatFileSizeOptions = {}): string {
   const thresh = unitSystem === 'si' ? 1000 : 1024
 
   if (Math.abs(bytes) < thresh)
@@ -31,13 +36,18 @@ export function formatFileSize(bytes: number, siOrOptions: boolean | { units?: F
     ++u
   } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1)
 
-  return `${bytes.toFixed(dp)} ${units[u]}`
+  return `${locale ? getNumberFormat(locale, { minimumFractionDigits: dp, maximumFractionDigits: dp }).format(bytes) : bytes.toFixed(dp)} ${units[u]}`
+}
+
+export interface FormatUnitOptions {
+  /** Writes the number with this locale's separators, e.g. `1,5k`. Defaults to a plain `.`. */
+  locale?: string | string[]
 }
 
 /** A count shortened to one decimal and a k, M, B or T suffix, rounding up to the next unit when it would print 1000. */
-export function formatUnit(num: number): string {
+export function formatUnit(num: number, { locale }: FormatUnitOptions = {}): string {
   if (num < 0)
-    return `-${formatUnit(-num)}`
+    return `-${formatUnit(-num, { locale })}`
 
   if (num < 1000)
     return num.toString()
@@ -51,11 +61,13 @@ export function formatUnit(num: number): string {
     unitIndex++
   }
 
-  return `${scaledNum.toFixed(1)}${units[unitIndex]}`
+  return `${locale ? getNumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(scaledNum) : scaledNum.toFixed(1)}${units[unitIndex]}`
 }
 
-/** Euros in French notation by default; `locale` and `options` work like `formatNumber`'s, so `currency` can be overridden too. */
-export function formatEuro(amount: number, locale: string | string[] = 'fr-FR', options: Intl.NumberFormatOptions = {}) {
+/** Euros in French notation by default; takes a locale or `{ locale, ...Intl.NumberFormatOptions }`, so `currency` can be overridden too. */
+export function formatEuro(amount: number, localeOrOptions?: LocaleOrOptions<Intl.NumberFormatOptions>): string {
+  const [locale, options] = resolveLocale(localeOrOptions, 'fr-FR')
+
   return getNumberFormat(locale, {
     currency: 'EUR',
     style: 'currency',

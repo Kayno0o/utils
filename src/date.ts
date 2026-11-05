@@ -1,4 +1,5 @@
-import { formatDateTime, getRelativeTimeFormat } from './intlCache'
+import type { LocaleOrOptions } from './intlCache'
+import { formatDateTime, getRelativeTimeFormat, resolveLocale } from './intlCache'
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 const ISO_DATE_LABEL_REGEX = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}.*)?$/
@@ -66,17 +67,10 @@ export function getFrenchHolidays(year: number): string[] {
   }
 
   const easter = calculateEaster(year)
-  const addDays = (date: Date, days: number): string => {
-    const result = new Date(date)
 
-    result.setDate(result.getDate() + days)
-
-    return `${result.getFullYear()}-${String(result.getMonth() + 1).padStart(2, '0')}-${String(result.getDate()).padStart(2, '0')}`
-  }
-
-  holidays['Easter Monday'] = addDays(easter, 1)
-  holidays['Ascension Day'] = addDays(easter, 39)
-  holidays['Whit Monday'] = addDays(easter, 50)
+  holidays['Easter Monday'] = toISODate(addDays(easter, 1))
+  holidays['Ascension Day'] = toISODate(addDays(easter, 39))
+  holidays['Whit Monday'] = toISODate(addDays(easter, 50))
 
   return Object.values(holidays)
 }
@@ -125,13 +119,16 @@ const DURATION_UNIT_MS: Record<string, number> = {
  * Supports single units (`'5m'`) as well as compound durations made of
  * several space-separated (or concatenated) parts, e.g. `'1d 7h'` or `'1d7h30m'`.
  *
+ * A leading `-` makes the duration negative, as `formatDuration` writes it.
  * Units are case-sensitive: `m` is minutes while `M` is months.
  * Supported units: `s`, `m`, `h`, `d`, `w`, `M`, `y`.
+ *
+ * The inverse of `formatDuration` in its short mode.
  *
  * @param duration - A duration string, or a number that is returned unchanged (already ms).
  * @returns The duration in milliseconds, or `0` when no valid part is found.
  */
-export function stringToMsDuration(duration: string | number): number {
+export function parseDuration(duration: string | number): number {
   if (typeof duration === 'number')
     return duration
 
@@ -144,62 +141,7 @@ export function stringToMsDuration(duration: string | number): number {
       total += Number(time) * factor
   }
 
-  return total
-}
-
-export interface MsDurationOptions {
-  /**
-   * What each unit is written as, for a locale that does not read them in English:
-   * `{ d: 'j', m: 'min' }` turns `'1d 30m'` into `'1j 30min'`. Relabelled output no longer
-   * round-trips through {@link stringToMsDuration}.
-   */
-  labels?: Record<string, string>
-  /** Keep only the N largest non-zero units, like `formatDuration`'s. Truncated output no longer round-trips. */
-  maxUnits?: number
-}
-
-/**
- * Convert a duration in milliseconds into a human-readable string.
- *
- * The inverse of {@link stringToMsDuration}: the output round-trips back to the
- * same number of milliseconds when the same `units` are used and nothing is relabelled.
- * The duration is decomposed greedily from the largest unit to the smallest, skipping zeroes.
- *
- * Units are case-sensitive: `m` is minutes while `M` is months.
- * Supported units: `s`, `m`, `h`, `d`, `w`, `M`, `y`.
- *
- * @param ms - The duration in milliseconds.
- * @param units - Which units to use, defaulting to `['d', 'h', 'm', 's']`.
- * @param options - How the units are written, for a locale that does not read them in English.
- * @param options.labels - What each unit is written as, per {@link MsDurationOptions}.
- * @returns A duration string such as `'1d 7h 30m'`, or `'0s'` for an empty duration.
- */
-export function msDurationToString(ms: number, units: string[] = ['d', 'h', 'm', 's'], { labels, maxUnits = Infinity }: MsDurationOptions = {}): string {
-  const ordered = units
-    .filter(unit => DURATION_UNIT_MS[unit] !== undefined)
-    .sort((a, b) => DURATION_UNIT_MS[b]! - DURATION_UNIT_MS[a]!)
-
-  const written = (unit: string): string => labels?.[unit] ?? unit
-  const smallest = ordered.at(-1) ?? 's'
-
-  let remaining = Math.floor(Math.abs(ms))
-  const sign = ms < 0 ? '-' : ''
-  const parts: string[] = []
-
-  for (const unit of ordered) {
-    const factor = DURATION_UNIT_MS[unit]!
-    const value = Math.floor(remaining / factor)
-
-    if (value > 0) {
-      parts.push(`${value}${written(unit)}`)
-      remaining -= value * factor
-    }
-
-    if (parts.length >= maxUnits)
-      break
-  }
-
-  return parts.length === 0 ? `0${written(smallest)}` : sign + parts.join(' ')
+  return duration.trimStart().startsWith('-') && total > 0 ? -total : total
 }
 
 const RELATIVE_TIME_DIVISIONS: [number, Intl.RelativeTimeFormatUnit][] = [
@@ -212,7 +154,7 @@ const RELATIVE_TIME_DIVISIONS: [number, Intl.RelativeTimeFormatUnit][] = [
   [DURATION_UNIT_MS.s!, 'second'],
 ]
 
-export interface FormatRelativeTimeOptions {
+export interface FormatRelativeTimeOptions extends Intl.RelativeTimeFormatOptions {
   /** The date to measure against. Defaults to `new Date()`. */
   from?: Date | string | number
   /** A BCP 47 locale (or locales) for the output. Defaults to the runtime locale. */
@@ -228,13 +170,13 @@ export interface FormatRelativeTimeOptions {
  * the platform's {@link Intl.RelativeTimeFormat}, so output is localized.
  *
  * @param date - The target date (past or future).
- * @param options - Reference date, locale and numeric style.
+ * @param localeOrOptions - A locale, or an options object with the locale, reference date and `Intl.RelativeTimeFormat` options.
  * @returns A localized relative-time string.
  */
-export function formatRelativeTime(date: Date | string | number, options: FormatRelativeTimeOptions = {}): string {
-  const { from = new Date(), locale, numeric = 'auto' } = options
+export function formatRelativeTime(date: Date | string | number, localeOrOptions?: string | string[] | FormatRelativeTimeOptions): string {
+  const [locale, { from = new Date(), numeric = 'auto', ...intlOptions }] = resolveLocale<FormatRelativeTimeOptions>(localeOrOptions)
   const diff = new Date(date).getTime() - new Date(from).getTime()
-  const formatter = getRelativeTimeFormat(locale, { numeric })
+  const formatter = getRelativeTimeFormat(locale, { ...intlOptions, numeric })
 
   for (const [factor, unit] of RELATIVE_TIME_DIVISIONS) {
     if (Math.abs(diff) >= factor || unit === 'second')
@@ -244,19 +186,25 @@ export function formatRelativeTime(date: Date | string | number, options: Format
   return formatter.format(0, 'second')
 }
 
-/** Short day-month label in `locale`'s order, e.g. "15 Jan" with the default `en-GB` (never the US month-first order). */
-export function formatDayMonth(d: Date, locale: string | string[] = 'en-GB'): string {
-  return formatDateTime(d, locale, { day: 'numeric', month: 'short' })
+/** Short day-month label in the locale's order, e.g. "15 Jan" with the default `en-GB` (never the US month-first order). */
+export function formatDayMonth(d: Date, localeOrOptions?: LocaleOrOptions<Intl.DateTimeFormatOptions>): string {
+  const [locale, options] = resolveLocale(localeOrOptions, 'en-GB')
+
+  return formatDateTime(d, locale, { day: 'numeric', month: 'short', ...options })
 }
 
 /** Short month-year label, e.g. "Jan 2026". */
-export function formatMonthYear(d: Date, locale: string | string[] = 'en-GB'): string {
-  return formatDateTime(d, locale, { month: 'short', year: 'numeric' })
+export function formatMonthYear(d: Date, localeOrOptions?: LocaleOrOptions<Intl.DateTimeFormatOptions>): string {
+  const [locale, options] = resolveLocale(localeOrOptions, 'en-GB')
+
+  return formatDateTime(d, locale, { month: 'short', year: 'numeric', ...options })
 }
 
 /** Short month label, e.g. "Jan". */
-export function formatMonthShort(d: Date, locale: string | string[] = 'en-GB'): string {
-  return formatDateTime(d, locale, { month: 'short' })
+export function formatMonthShort(d: Date, localeOrOptions?: LocaleOrOptions<Intl.DateTimeFormatOptions>): string {
+  const [locale, options] = resolveLocale(localeOrOptions, 'en-GB')
+
+  return formatDateTime(d, locale, { month: 'short', ...options })
 }
 
 /** Parse a date label in `YYYY-MM-DD` (a time may follow), `YYYYMMDD` or `D/M/Y` form (`M/D/Y` with `order: 'month-first'`) into a local-midnight Date, or `null` when it names no real day. */
@@ -284,14 +232,14 @@ function localDate(year: number, month: number, day: number): Date | null {
 
 /** Local-date ISO string `YYYY-MM-DD` without UTC shift (unlike `toISOString`). */
 export function toISODate(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-/** Parse a `YYYY-MM-DD` string into a local-midnight Date. */
-export function fromISODate(iso: string): Date {
-  const [y, m, d] = iso.split('-').map(Number)
+/** Parse a `YYYY-MM-DD` string into a local-midnight Date, or `null` when it names no real day (`2024-02-30` included). */
+export function fromISODate(iso: string): Date | null {
+  const m = ISO_DATE_REGEX.test(iso) ? iso.split('-').map(Number) : null
 
-  return new Date(y!, (m ?? 1) - 1, d ?? 1)
+  return m ? localDate(m[0]!, m[1]!, m[2]!) : null
 }
 
 /** A `getDay()` number, 0 for Sunday to 6 for Saturday. */
@@ -330,16 +278,19 @@ export function gridDays(weeks: number, today: Date = new Date(), weekStart: Wee
 
 /** An hour of the day as a clock label, e.g. 7 -> "07:00". */
 export function formatHour(hour: number): string {
-  return `${String(hour).padStart(2, '0')}:00`
+  return `${pad(hour)}:00`
 }
 
-/** Localized short date-time label, e.g. "Jan 15, 03:04 PM". */
-export function formatTime(timestamp: number): string {
-  return formatDateTime(timestamp, undefined, {
+/** Localized short date-time label, e.g. "Jan 15, 03:04 PM", in the runtime locale unless one is named. */
+export function formatTime(value: Date | number, localeOrOptions?: LocaleOrOptions<Intl.DateTimeFormatOptions>): string {
+  const [locale, options] = resolveLocale(localeOrOptions)
+
+  return formatDateTime(value, locale, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    ...options,
   })
 }
 
@@ -403,7 +354,7 @@ function isBusinessDay(date: Date, { weekendDays = DEFAULT_WEEKEND_DAYS, holiday
   return !(holidays === true ? isHoliday(date) : holidays(date))
 }
 
-/** The span between two `YYYY-MM-DD` dates, in whichever order, counted on UTC days so a daylight saving change never shifts it by an hour; `null` when either does not parse. `options` set what `workingDays` skips. */
+/** The span between two `YYYY-MM-DD` dates, in whichever order, counting days over `[from, to)` like any diff (unlike `businessDaysBetween`, which counts both ends), counted on UTC days so a daylight saving change never shifts it by an hour; `null` when either does not parse. `options` set what `workingDays` skips. */
 export function dateDifference(from: string, to: string, options: BusinessDayOptions = {}): DateDifference | null {
   const a = Date.parse(`${from}T00:00:00Z`)
   const b = Date.parse(`${to}T00:00:00Z`)
@@ -473,7 +424,7 @@ export function isSameDay(a: Date, b: Date): boolean {
 }
 
 /** Whether `date` falls on one of `weekendDays`, Saturday or Sunday by default. */
-export function isWeekend(date: Date, weekendDays: readonly WeekDay[] = DEFAULT_WEEKEND_DAYS): boolean {
+export function isWeekend(date: Date, { weekendDays = DEFAULT_WEEKEND_DAYS }: Pick<BusinessDayOptions, 'weekendDays'> = {}): boolean {
   return weekendDays.includes(date.getDay() as WeekDay)
 }
 
@@ -482,8 +433,13 @@ export function isToday(date: Date): boolean {
   return isSameDay(date, new Date())
 }
 
+export interface IsBetweenOptions {
+  /** Whether the bounds themselves count. Defaults to `true`. */
+  inclusive?: boolean
+}
+
 /** Whether `date` is within `[start, end]`, inclusive by default. */
-export function isBetween(date: Date, start: Date, end: Date, inclusive = true): boolean {
+export function isBetween(date: Date, start: Date, end: Date, { inclusive = true }: IsBetweenOptions = {}): boolean {
   const t = date.getTime()
   const lo = Math.min(start.getTime(), end.getTime())
   const hi = Math.max(start.getTime(), end.getTime())
@@ -518,7 +474,7 @@ export function age(birth: Date, at: Date = new Date()): number {
   return years
 }
 
-/** Count of working days within `[start, end]` inclusive, Mon-Fri unless `options` say otherwise. Order-insensitive. */
+/** Count of working days within `[start, end]`, both ends included as Excel's NETWORKDAYS does (unlike `dateDifference`, which counts `[from, to)`), Mon-Fri unless `options` say otherwise. Order-insensitive. */
 export function businessDaysBetween(start: Date, end: Date, options: BusinessDayOptions = {}): number {
   let from = startOfDay(start)
   let to = startOfDay(end)
@@ -536,7 +492,7 @@ export function businessDaysBetween(start: Date, end: Date, options: BusinessDay
   return count
 }
 
-export interface FormatSessionTimeOptions {
+export interface FormatSessionTimeOptions extends Pick<Intl.DateTimeFormatOptions, 'hour12' | 'hourCycle'> {
   /** Defaults to the runtime's locale. */
   locale?: string | string[]
   labels?: { yesterday?: string }
@@ -545,11 +501,12 @@ export interface FormatSessionTimeOptions {
 }
 
 /** Relative session label: time today, "Yesterday", weekday within a week, else short date; days are counted on the calendar. */
-export function formatSessionTime(date: Date, { locale, labels = {}, now = Date.now() }: FormatSessionTimeOptions = {}): string {
+export function formatSessionTime(date: Date, localeOrOptions?: string | string[] | FormatSessionTimeOptions): string {
+  const [locale, { labels = {}, now = Date.now(), ...clock }] = resolveLocale<FormatSessionTimeOptions>(localeOrOptions)
   const diffDays = diffInDays(date, new Date(now))
 
   if (diffDays === 0)
-    return formatDateTime(date, locale, { hour: '2-digit', minute: '2-digit' })
+    return formatDateTime(date, locale, { hour: '2-digit', minute: '2-digit', ...clock })
 
   if (diffDays === 1)
     return labels.yesterday ?? 'Yesterday'

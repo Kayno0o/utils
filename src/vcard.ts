@@ -1,3 +1,5 @@
+import { pad } from './date'
+
 const NON_DIGIT_RE = /\D/g
 const LINE_BREAK_RE = /\r?\n/
 const LEADING_SPACE_RE = /^\s/
@@ -148,8 +150,8 @@ export function generateVCard(contact: VCardContact): string {
 
   if (contact.birth_month && contact.birth_day) {
     const y = contact.birth_year ? String(contact.birth_year).padStart(4, '0') : '0000'
-    const m = String(contact.birth_month).padStart(2, '0')
-    const d = String(contact.birth_day).padStart(2, '0')
+    const m = pad(contact.birth_month)
+    const d = pad(contact.birth_day)
 
     lines.push(`BDAY:${y}${m}${d}`)
   }

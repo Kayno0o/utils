@@ -17,11 +17,11 @@ describe('fromISODate', () => {
     const dates = ['2024-01-01', '2024-06-15', '2024-12-31']
 
     for (const iso of dates)
-      expect(toISODate(fromISODate(iso))).toBe(iso)
+      expect(toISODate(fromISODate(iso)!)).toBe(iso)
   })
 
   it('returns local midnight', () => {
-    const d = fromISODate('2024-03-10')
+    const d = fromISODate('2024-03-10')!
 
     expect(d.getHours()).toBe(0)
     expect(d.getMinutes()).toBe(0)
@@ -54,7 +54,7 @@ describe('gridDays', () => {
 
   it('starts on a Monday', () => {
     const days = gridDays(2, new Date(2024, 5, 16))
-    const start = fromISODate(days[0]!)
+    const start = fromISODate(days[0]!)!
 
     expect(start.getDay()).toBe(1) // Monday
   })

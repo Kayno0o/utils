@@ -1,4 +1,5 @@
 import type { DateTranslations } from '../i18n/date/types'
+import { pad } from '../date'
 import en from '../i18n/date/en'
 import { typedObjectEntries } from '../object'
 
@@ -71,21 +72,21 @@ export function dateToObject(date: Date): DateObject {
     year: String(date.getFullYear()).substring(2),
     year4: String(date.getFullYear()),
     month: String(date.getMonth() + 1),
-    month2: String(date.getMonth() + 1).padStart(2, '0'),
+    month2: pad(date.getMonth() + 1),
     month3: (currentLocale as any)[`ms-${date.getMonth() + 1}`],
     month4: (currentLocale as any)[`m-${date.getMonth() + 1}`],
     day: String(date.getDate()),
-    day2: String(date.getDate()).padStart(2, '0'),
+    day2: pad(date.getDate()),
     weekDay: String(date.getDay()),
-    weekDay2: String(date.getDay()).padStart(2, '0'),
+    weekDay2: pad(date.getDay()),
     weekDay3: (currentLocale as any)[`ws-${date.getDay() || 7}`],
     weekDay4: (currentLocale as any)[`w-${date.getDay() || 7}`],
     hour: String(date.getHours()),
-    hour2: String(date.getHours()).padStart(2, '0'),
+    hour2: pad(date.getHours()),
     minute: String(date.getMinutes()),
-    minute2: String(date.getMinutes()).padStart(2, '0'),
+    minute2: pad(date.getMinutes()),
     second: String(date.getSeconds()),
-    second2: String(date.getSeconds()).padStart(2, '0'),
+    second2: pad(date.getSeconds()),
   }
 }
 

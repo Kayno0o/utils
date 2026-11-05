@@ -54,7 +54,7 @@ export function wallClock(at: Date, timeZone: string): WallClock {
 }
 
 function isoDate(year: number, month: number, day: number): string {
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  return toISODate(new Date(year, month - 1, day))
 }
 
 /**
@@ -99,7 +99,12 @@ export function localDayStart(date: string, timeZone: string): Date {
  * would carry the host's UTC midnight and slide the day by the local offset.
  */
 export function localDayRange(date: string, timeZone: string): { start: string, end: string } {
-  const next = toISODate(addDays(fromISODate(date), 1))
+  const day = fromISODate(date)
+
+  if (!day)
+    throw new RangeError(`Invalid date: ${date}`)
+
+  const next = toISODate(addDays(day, 1))
 
   return {
     start: localDayStart(date, timeZone).toISOString(),
