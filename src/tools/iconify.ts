@@ -1,5 +1,7 @@
 import { escapeXml } from '../text'
 
+const ATTRIBUTE_NAME_REGEX = /^[a-z_:][\w:.-]*$/i
+
 export interface IconifyIcon {
   body: string
   width?: number
@@ -58,7 +60,12 @@ export function createIconify<const T extends Record<string, IconifyJSON>>(libs:
       return ''
 
     const extra = Object.entries(attrs ?? {})
-      .map(([k, v]) => ` ${k}="${escapeXml(String(v))}"`)
+      .map(([k, v]) => {
+        if (!ATTRIBUTE_NAME_REGEX.test(k))
+          throw new TypeError(`Invalid attribute name: ${k}`)
+
+        return ` ${k}="${escapeXml(String(v))}"`
+      })
       .join('')
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${data.viewBox}"${extra}>${data.svg}</svg>`

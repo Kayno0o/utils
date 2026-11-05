@@ -214,7 +214,7 @@ export function createMutex(): <T>(task: () => Promise<T>) => Promise<T> {
   }
 }
 
-/** Returns a gate resolving each call at least `interval` after the one before, slots reserved at call time so concurrent callers spread out; an aborted `signal` rejects only its own wait. */
+/** Returns a gate resolving each call at least `interval` after the one before, slots reserved at call time so concurrent callers spread out; an aborted `signal` rejects only its own wait, and its slot stays taken. */
 export function createRateLimiter(interval: number): (options?: { signal?: AbortSignal }) => Promise<void> {
   let nextSlot = 0
 
@@ -278,22 +278,22 @@ export function partial<T extends (...args: any[]) => any>(func: T, ...preset: a
   return (...args: any[]) => func(...preset, ...args)
 }
 
+/** Compose functions left-to-right: `pipe(f, g)(x)` is `g(f(x))`. */
 export function pipe<A extends any[], B>(fn1: (...a: A) => B): (...a: A) => B
 export function pipe<A extends any[], B, C>(fn1: (...a: A) => B, fn2: (b: B) => C): (...a: A) => C
 export function pipe<A extends any[], B, C, D>(fn1: (...a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D): (...a: A) => D
 export function pipe<A extends any[], B, C, D, E>(fn1: (...a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D, fn4: (d: D) => E): (...a: A) => E
 export function pipe(...fns: ((...args: any[]) => any)[]): (...args: any[]) => any
-/** Compose functions left-to-right: `pipe(f, g)(x)` is `g(f(x))`. */
 export function pipe(...fns: ((...args: any[]) => any)[]) {
   return (...args: any[]) => fns.reduce<any>((acc, fn, i) => i === 0 ? fn(...acc) : fn(acc), args)
 }
 
+/** Compose functions right-to-left: `compose(g, f)(x)` is `g(f(x))`. */
 export function compose<A extends any[], B>(fn1: (...a: A) => B): (...a: A) => B
 export function compose<A extends any[], B, C>(fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => C
 export function compose<A extends any[], B, C, D>(fn3: (c: C) => D, fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => D
 export function compose<A extends any[], B, C, D, E>(fn4: (d: D) => E, fn3: (c: C) => D, fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => E
 export function compose(...fns: ((...args: any[]) => any)[]): (...args: any[]) => any
-/** Compose functions right-to-left: `compose(g, f)(x)` is `g(f(x))`. */
 export function compose(...fns: ((...args: any[]) => any)[]) {
   return (...args: any[]) => fns.reduceRight<any>((acc, fn, i) => i === fns.length - 1 ? fn(...acc) : fn(acc), args)
 }
@@ -312,9 +312,9 @@ export type Result<T, E = Error> = [error: undefined, value: T] | [error: E, val
 
 const toError = (error: unknown): Error => error instanceof Error ? error : new Error(String(error))
 
+/** Run `func`, returning a `[error, value]` tuple instead of throwing. Awaits and catches promises too. */
 export function tryCatch<T>(func: () => Promise<T>): Promise<Result<T>>
 export function tryCatch<T>(func: () => T): Result<T>
-/** Run `func`, returning a `[error, value]` tuple instead of throwing. Awaits and catches promises too. */
 export function tryCatch<T>(func: () => T | Promise<T>): Result<T> | Promise<Result<T>> {
   try {
     const value = func()

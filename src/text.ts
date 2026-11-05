@@ -1,4 +1,5 @@
 import type { ExtractParams } from './types'
+import { utf8Encoder, utf8StrictDecoder } from './internal'
 import { randomInt } from './number'
 import { STRICT_UUID_REGEX, UUID_REGEX } from './regex'
 
@@ -45,7 +46,7 @@ const VOWEL_Y_ENDING_REGEX = /[aeiou]y$/
 const SEPARATORS_REGEX = /[_-]+/g
 const CAMEL_BOUNDARY_REGEX = /(\p{Ll})(\p{Lu})/gu
 const WHITESPACE_GLOBAL_REGEX = /\s+/g
-const SINGLE_SPACE_GLOBAL_REGEX = /\s/g
+const WHITESPACE_CHAR_GLOBAL_REGEX = /\s/g
 const WORDS_REGEX = /[\p{L}\p{N}]+/gu
 const HTML_TAG_REGEX = /<[^>]+>/g
 const PHONE_PREFIX_REGEX = /^\+\d{1,3}/
@@ -333,11 +334,8 @@ export function escapeHtml(text: string): string {
   return text.replace(HTML_CHARS, char => HTML_ENTITIES[char] ?? char)
 }
 
-const utf8Encoder = new TextEncoder()
-const utf8StrictDecoder = new TextDecoder('utf-8', { fatal: true })
 const BASE64_CHUNK = 0x2000
 const BASE64URL_CHARS = /[-_]/g
-const WHITESPACE = /\s+/g
 const TRAILING_PADDING = /=+$/
 const PLUS = /\+/g
 const SLASH = /\//g
@@ -364,7 +362,7 @@ export function base64Encode(input: string | BufferSource, url = false): string 
 
 /** The bytes behind base64, in either alphabet, with or without padding; throws when it is not base64. */
 export function base64DecodeBytes(encoded: string): Uint8Array<ArrayBuffer> {
-  const normal = encoded.replace(WHITESPACE, '').replace(BASE64URL_CHARS, char => (char === '-' ? '+' : '/'))
+  const normal = encoded.replace(WHITESPACE_GLOBAL_REGEX, '').replace(BASE64URL_CHARS, char => (char === '-' ? '+' : '/'))
   const binary = atob(normal.padEnd(Math.ceil(normal.length / 4) * 4, '='))
 
   const bytes = new Uint8Array(binary.length)
@@ -653,7 +651,8 @@ export function truncate(str: string, len: number, suffixOrOptions: string | Tru
   if (str.length <= len)
     return str
 
-  let cut = str.substring(0, Math.max(0, includeSuffix ? len - suffix.length : len))
+  const limit = Math.max(0, len)
+  let cut = str.substring(0, Math.max(0, includeSuffix ? limit - suffix.length : limit))
 
   // A cut already followed by whitespace ends on a word; a single word longer than the limit is cut mid-word rather than emptied.
   if (wordBoundary && !WHITESPACE_CHAR_REGEX.test(str[cut.length] ?? ' '))
@@ -662,7 +661,7 @@ export function truncate(str: string, len: number, suffixOrOptions: string | Tru
   if (wordBoundary)
     cut = cut.trimEnd()
 
-  return includeSuffix ? (cut + suffix).slice(0, len) : cut + suffix
+  return includeSuffix ? (cut + suffix).slice(0, limit) : cut + suffix
 }
 
 export function stripHtml(str: string): string {
@@ -777,7 +776,7 @@ function maskIp(m: string, char: string): string {
 }
 
 function maskIban(m: string, char: string): string {
-  const clean = m.replace(SINGLE_SPACE_GLOBAL_REGEX, '')
+  const clean = m.replace(WHITESPACE_CHAR_GLOBAL_REGEX, '')
   const end = clean.length - 4
   let idx = 0
 
@@ -1039,7 +1038,7 @@ export function mask(str: string, {
 
   if (iban) {
     collect(matches, str, IBAN_RE, applyMode((m) => {
-      return ibanCheck(m.replace(SINGLE_SPACE_GLOBAL_REGEX, '')) ? maskIban(m, char) : null
+      return ibanCheck(m.replace(WHITESPACE_CHAR_GLOBAL_REGEX, '')) ? maskIban(m, char) : null
     }), 'iban', 40)
   }
 
@@ -1211,8 +1210,6 @@ const CP1252 = new Map(['€', '', '‚', 'ƒ', '„', '…', '†', '‡', 'ˆ'
   .map((char, at) => [char, 0x80 + at] as const)
   .filter(([char]) => char))
 
-const UTF8 = new TextDecoder('utf-8', { fatal: true })
-
 /**
  * repairs text whose utf-8 bytes were read as cp1252 and written back: `Ã†bleflÃ¦sk` -> `Æbleflæsk`.
  * all or nothing, so a string that is not mojibake all the way through comes back untouched.
@@ -1239,7 +1236,7 @@ export function repairMojibake(str: string): string {
       return str
 
     try {
-      str = UTF8.decode(bytes.subarray(0, at))
+      str = utf8StrictDecoder.decode(bytes.subarray(0, at))
     }
     catch {
       return str

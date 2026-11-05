@@ -41,4 +41,11 @@ Each deprecated name is gone; use the one it pointed to.
 - `parseArgs`: a boolean flag only takes the next token when it is `true`, `false`, `1` or `0`, and `-5` reads as a value.
 - `decryptCaesar` and `decryptVigenere` shift lowercase letters too, keeping their case.
 - `cronMatches` and the run helpers AND the day fields when one starts with `*` (`*/2`), as Vixie cron does.
-- `randomString(length, charset, true)` throws a `RangeError` past 256 characters instead of looping.
+- `randomString(length, charset, true)` throws a `RangeError` past 256 characters instead of looping, and reads `charset` by code point, so an emoji counts as one character.
+- `buildDate` parses `YYYY-MM-DD` and `DD/MM/YYYY` as local dates, not UTC midnight, and rolls an impossible date over (`2024-02-30` reads as March 1st).
+- `decodePath` throws a `SyntaxError` on a truncated or invalid polyline instead of looping.
+- `parseArgs` only reads a flag whose name starts with a letter or `_`.
+- `getObjectValue` returns an own falsy value (`0`, `''`, `false`) as is instead of walking its dotted path, and returns `null` as is.
+- `createIconify().renderSvg` escapes attribute values and throws a `TypeError` on an invalid attribute name.
+- `parseCsv` with `headers: []` keys rows by column index.
+- `mix` in `oklch` treats a color as grey below a chroma of 5e-5 instead of 1e-4, the threshold `Color.to('oklch')` uses for its hue.

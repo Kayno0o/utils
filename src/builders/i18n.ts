@@ -82,7 +82,7 @@ export function declareI18n<
       return key
     }
 
-    return variables ? renderTemplate(template, variables as never) : template
+    return variables ? renderTemplate(template, variables) : template
   }
 
   function translate(locale: LocaleType) {

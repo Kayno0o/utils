@@ -26,6 +26,11 @@ describe('createIconify lookups and attributes', () => {
   it('escapes attribute values', () => {
     expect(renderSvg('ti:home', { title: 'a "b" <c>' })).toContain('title="a &quot;b&quot; &lt;c&gt;"')
   })
+
+  it('refuses an attribute name that would break out of the tag', () => {
+    expect(() => renderSvg('ti:home', { 'x onload=alert(1) y': 1 })).toThrow(TypeError)
+    expect(renderSvg('ti:home', { 'data-x': 1, 'xlink:href': '#a' })).toContain('data-x="1" xlink:href="#a"')
+  })
 })
 
 describe('createIconify', () => {

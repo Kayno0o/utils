@@ -102,15 +102,15 @@ export interface MapConcurrentOptions {
   settle?: boolean
 }
 
-export async function mapConcurrent<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]>
-export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions & { settle: true }, fn: (item: T, index: number) => Promise<R>): Promise<PromiseSettledResult<R>[]>
-export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions & { settle?: false }, fn: (item: T, index: number) => Promise<R>): Promise<R[]>
-export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions, fn: (item: T, index: number) => Promise<R>): Promise<R[] | PromiseSettledResult<R>[]>
 /**
  * Maps over `items` with at most `limit` calls in flight, keeping the results in input order.
  *
  * Unlike a chunked `Promise.all`, a worker takes the next item as soon as it is free, so one slow item does not hold up the rest of its batch.
  */
+export async function mapConcurrent<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]>
+export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions & { settle: true }, fn: (item: T, index: number) => Promise<R>): Promise<PromiseSettledResult<R>[]>
+export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions & { settle?: false }, fn: (item: T, index: number) => Promise<R>): Promise<R[]>
+export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions, fn: (item: T, index: number) => Promise<R>): Promise<R[] | PromiseSettledResult<R>[]>
 export async function mapConcurrent<T, R>(items: T[], limitOrOptions: number | MapConcurrentOptions, fn: (item: T, index: number) => Promise<R>): Promise<R[] | PromiseSettledResult<R>[]> {
   const { limit = Infinity, signal, settle = false } = typeof limitOrOptions === 'number' ? { limit: limitOrOptions } : limitOrOptions
   const results = Array.from({ length: items.length }) as (R | PromiseSettledResult<R>)[]

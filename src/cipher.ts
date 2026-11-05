@@ -1,3 +1,5 @@
+import { utf8Encoder, utf8StrictDecoder } from './internal'
+
 export interface Alphabet {
   /** The dictionary's characters in index order, one entry per code point so emoji count as one. */
   symbols: string[]
@@ -15,9 +17,6 @@ export function alphabetOf(chars: string): Alphabet {
 
   return { symbols, width: symbols.length < 2 ? 0 : Math.ceil(Math.log(256) / Math.log(symbols.length)) }
 }
-
-const utf8Encoder = new TextEncoder()
-const utf8StrictDecoder = new TextDecoder('utf-8', { fatal: true })
 
 const byteSymbols = new WeakMap<Alphabet, string[]>()
 const symbolIndexes = new WeakMap<Alphabet, Map<number, number>>()

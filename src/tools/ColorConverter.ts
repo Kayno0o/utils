@@ -1,3 +1,5 @@
+import { ACHROMATIC_CHROMA } from '../internal'
+
 export type RgbArrayType = [r: number, g: number, b: number]
 export interface RgbObjectType { r: number, g: number, b: number, a?: number }
 export type RgbaArrayType = [r: number, g: number, b: number, a: number]
@@ -232,9 +234,6 @@ function oklabToRgb(L: number, a: number, b: number): RgbArrayType {
 
   return [clamp(r), clamp(g), clamp(bb)]
 }
-
-// Below this a grey's float noise in a and b would hand it an arbitrary hue.
-export const ACHROMATIC_CHROMA = 5e-5
 
 function rgbToOklch(rgb: RgbArrayType): OklchArrayType {
   const [l, a, b] = rgbToOklab(rgb)

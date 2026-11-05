@@ -29,4 +29,9 @@ describe('truncate function', () => {
   it('should handle len of 0', () => {
     expect(truncate('hello', 0)).toBe('...')
   })
+
+  it('reads a negative len as 0', () => {
+    expect(truncate('hello', -2)).toBe('...')
+    expect(truncate('hello', -2, { includeSuffix: true })).toBe('')
+  })
 })

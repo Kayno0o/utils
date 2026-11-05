@@ -527,12 +527,19 @@ describe('fetchJson retry', () => {
 
   it('does not retry a body it cannot send', async () => {
     const fetcher = scriptedFetch(Response.json(1))
+    let serialized = 0
+    let retried = 0
     const serialize = () => {
+      serialized++
+
       throw new TypeError('cyclic')
     }
+    const retry = { delay: 1, attempts: 3, shouldRetry: () => ++retried > 0 }
 
-    await expect(fetchJson('http://example.com/api', { fetch: fetcher, body: { a: 1 }, serialize, retry: { delay: 1 } })).rejects.toThrow('cyclic')
-    await expect(fetchJson('http://example.com/api', { fetch: fetcher, body: new Date() as never, retry: { delay: 1 } })).rejects.toThrow('Unsupported body type')
+    await expect(fetchJson('http://example.com/api', { fetch: fetcher, body: { a: 1 }, serialize, retry })).rejects.toThrow('cyclic')
+    await expect(fetchJson('http://example.com/api', { fetch: fetcher, body: new Date() as never, retry })).rejects.toThrow('Unsupported body type')
+    expect(serialized).toBe(1)
+    expect(retried).toBe(0)
     expect(fetcher.calls).toHaveLength(0)
   })
 

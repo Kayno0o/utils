@@ -82,10 +82,9 @@ function cloneValue(value: unknown): unknown {
   return copy
 }
 
+/** `framesNb + 1` frames from `start` to `end`, numbers and number arrays eased linearly; zero frames gives `end` alone. */
 export function interpolate<T extends number>(start: T, end: T, framesNb: number): T[]
 export function interpolate<T extends object>(start: RecursivePartial<T>, end: RecursivePartial<T>, framesNb: number): T[]
-
-/** `framesNb + 1` frames from `start` to `end`, numbers and number arrays eased linearly; zero frames gives `end` alone. */
 export function interpolate<T extends object | number>(start: RecursivePartial<T>, end: RecursivePartial<T>, framesNb: number): T[] {
   const frames: any[] = []
   // A missing start value holds at the end value.

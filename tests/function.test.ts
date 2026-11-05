@@ -1,4 +1,4 @@
-import { describe, expect, test as it } from 'bun:test'
+import { describe, expect, test as it, jest } from 'bun:test'
 import { coalesce, compose, createMutex, createRateLimiter, curry, debounce, identity, negate, noop, partial, pipe, tap, throttle, tryCatch } from '../src'
 
 describe('identity / noop', () => {
@@ -176,19 +176,70 @@ describe('coalesce', () => {
 })
 
 describe('createRateLimiter', () => {
+  const flush = async () => {
+    for (let i = 0; i < 5; i++)
+      await Promise.resolve()
+  }
+
   it('spaces concurrent calls by the interval, in call order', async () => {
-    const wait = createRateLimiter(30)
-    const start = Date.now()
-    const times: number[] = []
+    jest.useFakeTimers()
 
-    await Promise.all([0, 1, 2].map(async () => {
+    try {
+      const wait = createRateLimiter(30)
+      const start = Date.now()
+      const times: number[] = []
+      const calls = [0, 1, 2].map(async () => {
+        await wait()
+        times.push(Date.now() - start)
+      })
+
+      await flush()
+      expect(times).toEqual([0])
+
+      jest.advanceTimersByTime(30)
+      await flush()
+      expect(times).toEqual([0, 30])
+
+      jest.advanceTimersByTime(30)
+      await Promise.all(calls)
+      expect(times).toEqual([0, 30, 60])
+    }
+    finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('lets the callers after an aborted wait resolve, the aborted slot staying taken', async () => {
+    jest.useFakeTimers()
+
+    try {
+      const wait = createRateLimiter(30)
+      const controller = new AbortController()
+      const start = Date.now()
+
       await wait()
-      times.push(Date.now() - start)
-    }))
 
-    expect(times[0]).toBeLessThan(15)
-    expect(times[1]).toBeGreaterThanOrEqual(25)
-    expect(times[2]).toBeGreaterThanOrEqual(55)
+      const aborted = wait({ signal: controller.signal })
+      let after: number | undefined
+      const next = (async () => {
+        await wait()
+        after = Date.now() - start
+      })()
+
+      controller.abort(new Error('stop'))
+      await expect(aborted).rejects.toThrow('stop')
+
+      jest.advanceTimersByTime(30)
+      await flush()
+      expect(after).toBeUndefined()
+
+      jest.advanceTimersByTime(30)
+      await next
+      expect(after).toBe(60)
+    }
+    finally {
+      jest.useRealTimers()
+    }
   })
 
   it('rejects an aborted wait with the signal reason', async () => {
