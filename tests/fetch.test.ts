@@ -458,3 +458,118 @@ describe('fetchWithTimeout', () => {
     expect(mock.signal()?.aborted).toBe(true)
   })
 })
+
+function scriptedFetch(...steps: (Response | Error)[]): typeof fetch & { calls: RequestInit[] } {
+  const calls: RequestInit[] = []
+  const fn = async (_url: RequestInfo | URL, init: RequestInit = {}) => {
+    calls.push(init)
+
+    const step = steps[Math.min(calls.length, steps.length) - 1]!
+
+    if (step instanceof Error)
+      throw step
+
+    return step.clone()
+  }
+
+  return Object.assign(fn, { calls }) as unknown as typeof fetch & { calls: RequestInit[] }
+}
+
+describe('fetchJson custom fetch and codec', () => {
+  it('calls the given fetch instead of the global one', async () => {
+    const fetcher = scriptedFetch(Response.json({ id: 1 }))
+
+    expect(await fetchJson<{ id: number }>('http://example.com/api', { fetch: fetcher })).toEqual({ id: 1 })
+    expect(fetcher.calls).toHaveLength(1)
+  })
+
+  it('parses and serializes with the given functions', async () => {
+    const fetcher = scriptedFetch(new Response('a=1'))
+    const data = await fetchJson('http://example.com/api', {
+      fetch: fetcher,
+      method: 'POST',
+      body: { b: 2 },
+      parse: text => Object.fromEntries(new URLSearchParams(text)),
+      serialize: body => `custom:${JSON.stringify(body)}`,
+    })
+
+    expect(data).toEqual({ a: '1' })
+    expect(fetcher.calls[0]!.body).toBe('custom:{"b":2}')
+  })
+
+  it('still wraps a failing custom parse in FetchParseError', async () => {
+    const fetcher = scriptedFetch(new Response('x'))
+    const [error] = await tryCatch(() => fetchJson('http://example.com/api', {
+      fetch: fetcher,
+      parse: () => {
+        throw new Error('bad')
+      },
+    }))
+
+    expect(error).toBeInstanceOf(FetchParseError)
+  })
+})
+
+describe('fetchJson retry', () => {
+  it('does not retry by default', async () => {
+    const fetcher = scriptedFetch(new Response('', { status: 503 }), Response.json({ ok: true }))
+
+    await expect(fetchJson('http://example.com/api', { fetch: fetcher })).rejects.toBeInstanceOf(FetchError)
+    expect(fetcher.calls).toHaveLength(1)
+  })
+
+  it('retries network errors and 5xx until a try succeeds', async () => {
+    const fetcher = scriptedFetch(new TypeError('fetch failed'), new Response('', { status: 502 }), Response.json({ ok: true }))
+
+    expect(await fetchJson('http://example.com/api', { fetch: fetcher, retry: { attempts: 3, delay: 1 } })).toEqual({ ok: true })
+    expect(fetcher.calls).toHaveLength(3)
+  })
+
+  it('does not retry a 4xx, and throws the last FetchError itself once retries run out', async () => {
+    const notFound = scriptedFetch(new Response('', { status: 404 }))
+
+    await expect(fetchJson('http://example.com/api', { fetch: notFound, retry: { delay: 1 } })).rejects.toMatchObject({ status: 404 })
+    expect(notFound.calls).toHaveLength(1)
+
+    const down = scriptedFetch(new Response('', { status: 503 }))
+    const [error] = await tryCatch(() => fetchJson('http://example.com/api', { fetch: down, retry: { attempts: 2, delay: 1 } }))
+
+    expect(error).toBeInstanceOf(FetchError)
+    expect((error as FetchError).status).toBe(503)
+    expect(down.calls).toHaveLength(3)
+  })
+
+  it('takes a retry count and a custom predicate', async () => {
+    const fetcher = scriptedFetch(new Response('', { status: 404 }), Response.json(1))
+
+    expect(await fetchJson('http://example.com/api', { fetch: fetcher, retry: { attempts: 1, delay: 1, shouldRetry: () => true } })).toBe(1)
+
+    const counted = scriptedFetch(new TypeError('fetch failed'))
+
+    await expect(fetchJson('http://example.com/api', { fetch: counted, retry: 1 })).rejects.toBeInstanceOf(TypeError)
+    expect(counted.calls).toHaveLength(2)
+  })
+
+  it('stops once the caller signal aborts', async () => {
+    const controller = new AbortController()
+    const fetcher = scriptedFetch(new TypeError('fetch failed'))
+    const pending = fetchJson('http://example.com/api', { fetch: fetcher, signal: controller.signal, retry: { delay: 1000 } })
+
+    await Bun.sleep(10)
+    controller.abort(new Error('left'))
+
+    await expect(pending).rejects.toThrow('left')
+    expect(fetcher.calls).toHaveLength(1)
+  })
+})
+
+describe('fetchJson onError', () => {
+  it('gets the thrown error once, after retries', async () => {
+    const errors: unknown[] = []
+    const fetcher = scriptedFetch(new Response('', { status: 500 }))
+    const [error] = await tryCatch(() => fetchJson('http://example.com/api', { fetch: fetcher, retry: { attempts: 1, delay: 1 }, onError: e => errors.push(e) }))
+
+    expect(errors).toEqual([error])
+    expect(fetcher.calls).toHaveLength(2)
+  })
+})

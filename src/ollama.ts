@@ -1,6 +1,6 @@
 import type { FetchJsonOptions } from './browser/fetch'
-import { notNullish } from './array'
 import { fetchJson, mergeHeaders, toFetchError } from './browser/fetch'
+import { combineSignals } from './fetch'
 
 export interface OllamaOutputUsage {
   input_tokens: number
@@ -115,7 +115,7 @@ export interface OllamaInputChatRequest {
 export type OllamaPromptRequest = Omit<OllamaInputChatRequest, 'stream'>
 
 /** Transport options forwarded to `fetchJson`, e.g. `timeout` and `signal`. */
-export type OllamaFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers' | 'token'>
+export type OllamaFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers' | 'token' | 'fetch'>
 
 type PromptArgs = [OllamaPromptRequest | string, (Omit<OllamaPromptRequest, 'messages'> | OllamaFetchOptions)?, OllamaFetchOptions?]
 
@@ -260,11 +260,9 @@ export async function* streamOllama(
   input: OllamaPromptRequest,
   options: OllamaFetchOptions = {},
 ): AsyncGenerator<OllamaOutputResponse, void> {
-  const { timeout, signal, headers, token } = options
-  const timeoutSignal = timeout === undefined ? undefined : AbortSignal.timeout(timeout)
-  const signals = [signal, timeoutSignal].filter(notNullish)
+  const { timeout, signal, headers, token, fetch: fetcher = fetch } = options
 
-  const res = await fetch(url, {
+  const res = await fetcher(url, {
     method: 'POST',
     headers: mergeHeaders(
       {
@@ -275,7 +273,7 @@ export async function* streamOllama(
       headers,
     ),
     body: JSON.stringify({ ...input, stream: true }),
-    signal: signals.length ? AbortSignal.any(signals) : undefined,
+    signal: combineSignals(signal, timeout),
   })
 
   if (!res.ok)

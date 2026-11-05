@@ -1,4 +1,6 @@
+import type { RetryOptions } from '../promise'
 import { combineSignals } from '../fetch'
+import { retry as retryCall } from '../promise'
 
 type HeaderValue = string | undefined
 export type HeadersInput = [string, HeaderValue][] | Record<string, HeaderValue> | Headers
@@ -184,11 +186,54 @@ export interface FetchJsonOptions extends Omit<RequestInit, 'body' | 'headers'> 
    * page is noticed once rather than at each call site - the body is still untouched here.
    */
   onResponse?: (res: Response) => void
+  /** Gets the error `fetchJson` is about to throw, after any retries. */
+  onError?: (error: unknown) => void
+  /** The `fetch` to call, for tests, SSR or a runtime-specific client. Defaults to the global `fetch`. */
+  fetch?: typeof fetch
+  /** Reads a non-empty response body. Defaults to `JSON.parse`. */
+  parse?: (text: string) => unknown
+  /** Writes a plain object or array body. Defaults to `JSON.stringify`. */
+  serialize?: (body: Record<string, unknown> | unknown[]) => string
+  /** Retries a failed request, a count or `retry`'s options; by default network errors, timeouts, 408, 429 and 5xx. Off by default. */
+  retry?: number | Omit<RetryOptions, 'signal'>
+}
+
+/** Network failures, per-attempt timeouts and statuses a later try may get past. */
+function isRetryable(error: unknown): boolean {
+  if (error instanceof FetchError)
+    return error.status === 408 || error.status === 429 || error.status >= 500
+
+  return error instanceof TypeError || (error instanceof DOMException && error.name === 'TimeoutError')
 }
 
 /** Fetches JSON from `url`, throwing `FetchError` on non-2xx responses. An empty body resolves to `null`. */
 export async function fetchJson<T>(url: string, options: FetchJsonOptions = {}): Promise<T> {
-  const { baseUrl, token, query, body, headers, timeout, signal, onResponse, ...init } = options
+  const { retry, onError, ...request } = options
+  const { signal } = request
+
+  try {
+    if (!retry)
+      return await fetchJsonOnce<T>(url, request)
+
+    const { attempts = 3, shouldRetry = isRetryable, ...retryOptions } = typeof retry === 'number' ? { attempts: retry } : retry
+
+    // The last try is refused a retry so its own error is thrown, not retry's summary.
+    return await retryCall(() => fetchJsonOnce<T>(url, request), {
+      ...retryOptions,
+      attempts,
+      signal: signal ?? undefined,
+      shouldRetry: (error, attempt) => attempt < attempts && !signal?.aborted && shouldRetry(error, attempt),
+    })
+  }
+  catch (error) {
+    onError?.(error)
+
+    throw error
+  }
+}
+
+async function fetchJsonOnce<T>(url: string, options: Omit<FetchJsonOptions, 'retry' | 'onError'>): Promise<T> {
+  const { baseUrl, token, query, body, headers, timeout, signal, onResponse, fetch: fetcher = fetch, parse = JSON.parse, serialize = JSON.stringify, ...init } = options
 
   const fullUrl = applyQuery(baseUrl ? new URL(url, baseUrl).href : url, query)
   const jsonBody = isJsonBody(body)
@@ -206,13 +251,13 @@ export async function fetchJson<T>(url: string, options: FetchJsonOptions = {}):
     headers,
   )
 
-  const res = await fetch(fullUrl, {
+  const res = await fetcher(fullUrl, {
     ...init,
     headers: finalHeaders,
     signal: combineSignals(signal, timeout),
     body: body === undefined || body === null
       ? undefined
-      : jsonBody ? JSON.stringify(body) : body as BodyInit,
+      : jsonBody ? serialize(body as Record<string, unknown> | unknown[]) : body as BodyInit,
   })
 
   onResponse?.(res)
@@ -226,7 +271,7 @@ export async function fetchJson<T>(url: string, options: FetchJsonOptions = {}):
     return null as T
 
   try {
-    return JSON.parse(text) as T
+    return parse(text) as T
   }
   catch (e) {
     throw new FetchParseError(res.url || fullUrl, text, e)

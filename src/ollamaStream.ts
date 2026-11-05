@@ -103,7 +103,7 @@ export function streamOllamaJson(opts: StreamOllamaJsonOptions): Response {
   })
 }
 
-export interface ReadOllamaJsonStreamOptions extends Pick<OllamaFetchOptions, 'signal' | 'headers' | 'token' | 'timeout'> {
+export interface ReadOllamaJsonStreamOptions extends Pick<OllamaFetchOptions, 'signal' | 'headers' | 'token' | 'timeout' | 'fetch'> {
   /** Fires for each `delta` frame while generating. */
   onDelta?: (delta: OllamaStreamDelta) => void
 }
@@ -117,7 +117,7 @@ export async function readOllamaJsonStream<T>(
   body: BodyInit,
   opts: ReadOllamaJsonStreamOptions = {},
 ): Promise<T & { __meta?: OllamaMeta }> {
-  const res = await fetch(url, {
+  const res = await (opts.fetch ?? fetch)(url, {
     method: 'POST',
     headers: mergeHeaders(
       { Authorization: opts.token ? `Bearer ${opts.token}` : undefined },

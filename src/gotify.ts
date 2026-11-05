@@ -12,7 +12,7 @@ export interface GotifyMessage {
 }
 
 /** Transport options forwarded to `fetchJson`, e.g. `timeout` and `signal`. */
-export type GotifyFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers'>
+export type GotifyFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers' | 'fetch' | 'retry'>
 
 /** POSTs a single message to a Gotify `/message` endpoint, authenticating with the app token. Throws `FetchError` on a non-2xx response. */
 export async function sendGotify(url: string, token: string, message: GotifyMessage, options: GotifyFetchOptions = {}): Promise<void> {

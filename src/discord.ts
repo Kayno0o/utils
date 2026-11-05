@@ -12,7 +12,7 @@ export interface DiscordWebhookFile {
 }
 
 /** Transport options, like `sendGotify`'s. */
-export type DiscordFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers'>
+export type DiscordFetchOptions = Pick<FetchJsonOptions, 'timeout' | 'signal' | 'headers' | 'fetch'>
 
 /** Discord CDN avatar URL; picks `gif` for animated hashes (`a_` prefix), else `png`. */
 export function getDiscordAvatarUrl(userId: string, avatarHash: string): string {
@@ -41,7 +41,7 @@ export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPay
     formData.append(`files[${i}]`, blob, file.filename)
   }
 
-  const response = await fetch(url, {
+  const response = await (options.fetch ?? fetch)(url, {
     body: formData,
     method: 'POST',
     headers: mergeHeaders(options.headers),
