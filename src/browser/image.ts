@@ -183,9 +183,13 @@ export async function base64FromFile(file?: File | null): Promise<string | null>
 export async function resolveImageFromUrl(imageUrl: string): Promise<string | null> {
   try {
     const res = await fetch(imageUrl)
+
+    if (!res.ok)
+      return null
+
     const blob = await res.blob()
 
-    return await base64FromFile(new File([blob], 'image'))
+    return await base64FromFile(new File([blob], 'image', { type: blob.type }))
   }
   catch {
     return null
