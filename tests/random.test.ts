@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'bun:test'
-import { createBoard, sample } from '../src'
+import { afterEach, describe, expect, it, spyOn } from 'bun:test'
+import { createBoard, sample, shuffle } from '../src'
 
 describe('sample', () => {
   it('returns n items without replacement', () => {
@@ -60,5 +60,34 @@ describe('createBoard', () => {
 
   it('handles 0×0', () => {
     expect(createBoard(0, 0, null)).toEqual([])
+  })
+})
+
+describe('crypto randomness in shuffle and sample', () => {
+  afterEach(() => {
+    spyOn(Math, 'random').mockRestore()
+    spyOn(crypto, 'getRandomValues').mockRestore()
+  })
+
+  it('draws from crypto.getRandomValues instead of Math.random when isCrypto is set', () => {
+    const mathRandom = spyOn(Math, 'random')
+    const cryptoRandom = spyOn(crypto, 'getRandomValues')
+    const arr = [1, 2, 3, 4, 5]
+
+    shuffle(arr, true)
+    expect(arr.toSorted()).toEqual([1, 2, 3, 4, 5])
+    expect(sample(arr, 3, true)).toHaveLength(3)
+
+    expect(mathRandom).not.toHaveBeenCalled()
+    expect(cryptoRandom).toHaveBeenCalledTimes(4 + 3)
+  })
+
+  it('uses Math.random by default', () => {
+    const mathRandom = spyOn(Math, 'random')
+
+    shuffle([1, 2, 3])
+    sample([1, 2, 3], 2)
+
+    expect(mathRandom).toHaveBeenCalledTimes(2 + 2)
   })
 })

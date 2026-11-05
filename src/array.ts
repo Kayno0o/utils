@@ -38,9 +38,9 @@ export function isEmpty(value: any): boolean {
 
 /** @deprecated use `shuffle` */
 export const shuffleArray = shuffle
-export function shuffle(array: any[]) {
+export function shuffle(array: any[], isCrypto = false) {
   for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = randomInt(0, i + 1, isCrypto);
 
     [array[i], array[j]] = [array[j], array[i]]
   }
@@ -51,14 +51,14 @@ export function shuffle(array: any[]) {
  * Uses partial Fisher-Yates — O(n) in sample size, not array length.
  * Clamps `n` to `[0, items.length]`.
  */
-export function sample<T>(items: T[], n: number): T[] {
+export function sample<T>(items: T[], n: number, isCrypto = false): T[] {
   const count = Math.max(0, Math.min(n, items.length))
   // swaps are recorded virtually, so only the touched slots are allocated
   const swapped = new Map<number, T>()
   const result: T[] = []
 
   for (let i = 0; i < count; i++) {
-    const j = i + Math.floor(Math.random() * (items.length - i))
+    const j = randomInt(i, items.length, isCrypto)
 
     result.push(swapped.has(j) ? swapped.get(j)! : items[j]!)
     swapped.set(j, swapped.has(i) ? swapped.get(i)! : items[i]!)
