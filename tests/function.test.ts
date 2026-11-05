@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { coalesce, compose, createMutex, curry, identity, negate, noop, partial, pipe, tap, tryCatch } from '../src'
+import { coalesce, compose, createMutex, curry, debounce, identity, negate, noop, partial, pipe, tap, throttle, tryCatch } from '../src'
 
 describe('identity / noop', () => {
   it('identity returns its argument', () => {
@@ -208,5 +208,122 @@ describe('createMutex', () => {
 
     await expect(failed).rejects.toThrow('boom')
     expect(await next).toBe('next')
+  })
+})
+
+describe('debounce', () => {
+  it('runs once with the last arguments after calls stop', async () => {
+    const calls: number[] = []
+    const run = debounce((n: number) => calls.push(n), 20)
+
+    run(1)
+    run(2)
+    run(3)
+    await Bun.sleep(40)
+
+    expect(calls).toEqual([3])
+  })
+
+  it('runs on the leading edge only when trailing is off', async () => {
+    const calls: number[] = []
+    const run = debounce((n: number) => calls.push(n), 20, { leading: true, trailing: false })
+
+    run(1)
+    run(2)
+    await Bun.sleep(40)
+    run(3)
+
+    expect(calls).toEqual([1, 3])
+  })
+
+  it('still runs under constant calls with maxWait', async () => {
+    let runs = 0
+    const run = debounce(() => runs++, 30, { maxWait: 40 })
+
+    for (let i = 0; i < 10; i++) {
+      run()
+      await Bun.sleep(10)
+    }
+
+    expect(runs).toBeGreaterThanOrEqual(1)
+  })
+
+  it('drops the pending call on cancel and runs it now on flush', async () => {
+    const calls: number[] = []
+    const run = debounce((n: number) => calls.push(n), 20)
+
+    run(1)
+    run.cancel()
+    run(2)
+    run.flush()
+    expect(calls).toEqual([2])
+
+    run.flush()
+    await Bun.sleep(40)
+    expect(calls).toEqual([2])
+  })
+})
+
+describe('throttle', () => {
+  it('runs the first call of each window and drops the rest by default', async () => {
+    const calls: number[] = []
+    const run = throttle((n: number) => calls.push(n), 20)
+
+    run(1)
+    run(2)
+    await Bun.sleep(40)
+    run(3)
+    run(4)
+
+    expect(calls).toEqual([1, 3])
+  })
+
+  it('also runs the last call of a window with trailing', async () => {
+    const calls: number[] = []
+    const run = throttle((n: number) => calls.push(n), 20, { trailing: true })
+
+    run(1)
+    run(2)
+    run(3)
+    await Bun.sleep(40)
+
+    expect(calls).toEqual([1, 3])
+  })
+})
+
+describe('coalesce options', () => {
+  it('takes an options object and reports failures to console.error by default', async () => {
+    const original = console.error
+    const logged: unknown[] = []
+
+    console.error = (error: unknown) => logged.push(error)
+
+    try {
+      const trigger = coalesce(async () => {
+        throw new Error('boom')
+      }, { delay: 1 })
+
+      trigger()
+      await Bun.sleep(10)
+    }
+    finally {
+      console.error = original
+    }
+
+    expect(logged).toHaveLength(1)
+  })
+
+  it('runs within delay of the first trigger even when retriggered constantly', async () => {
+    let runs = 0
+    const trigger = coalesce(async () => {
+      runs++
+    }, { delay: 20, onError: noop })
+
+    for (let i = 0; i < 5; i++) {
+      trigger()
+      await Bun.sleep(8)
+    }
+
+    expect(runs).toBeGreaterThanOrEqual(1)
   })
 })

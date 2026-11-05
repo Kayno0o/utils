@@ -33,17 +33,130 @@ export function delay<T extends (...args: any[]) => any>(ms: number, callback?: 
   })
 }
 
-export function debounce<T extends (...args: any[]) => any>(func: T, delay: number): ((...args: Parameters<T>) => void) {
-  let timeoutId: ReturnType<typeof setTimeout> | number
+export interface DebounceOptions {
+  /** Run on the first call of a burst. Default `false` for `debounce`, `true` for `throttle`. */
+  leading?: boolean
+  /** Run once the burst is over, with the last call's arguments. Default `true` for `debounce`, `false` for `throttle`. */
+  trailing?: boolean
+  /** Longest a call waits while calls keep coming, at least `delay`. Defaults to `delay` for `throttle`. */
+  maxWait?: number
+}
 
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId)
-    timeoutId = setTimeout(func, delay, ...args)
+export interface Debounced<T extends (...args: any[]) => any> {
+  (...args: Parameters<T>): void
+  /** Drops the pending call. */
+  cancel: () => void
+  /** Runs the pending call now, if any. */
+  flush: () => void
+}
+
+/** Runs `func` once calls stop for `delay`; `leading`, `trailing` and `maxWait` pick which edges of a burst run it. */
+export function debounce<T extends (...args: any[]) => any>(func: T, delay: number, { leading = false, trailing = true, maxWait }: DebounceOptions = {}): Debounced<T> {
+  const maxing = maxWait !== undefined
+  const longest = Math.max(maxWait ?? 0, delay)
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let pendingArgs: Parameters<T> | undefined
+  let lastCall: number | undefined
+  let lastInvoke = 0
+
+  function invoke(time: number): void {
+    const args = pendingArgs!
+
+    pendingArgs = undefined
+    lastInvoke = time
+    func(...args)
   }
+
+  function shouldInvoke(time: number): boolean {
+    if (lastCall === undefined)
+      return true
+
+    const sinceCall = time - lastCall
+
+    return sinceCall >= delay || sinceCall < 0 || (maxing && time - lastInvoke >= longest)
+  }
+
+  function remaining(time: number): number {
+    const untilQuiet = delay - (time - lastCall!)
+
+    return maxing ? Math.min(untilQuiet, longest - (time - lastInvoke)) : untilQuiet
+  }
+
+  function trailingEdge(time: number): void {
+    timer = undefined
+
+    if (trailing && pendingArgs)
+      invoke(time)
+
+    pendingArgs = undefined
+  }
+
+  function onTimer(): void {
+    const time = Date.now()
+
+    if (shouldInvoke(time))
+      trailingEdge(time)
+    else
+      timer = setTimeout(onTimer, remaining(time))
+  }
+
+  const debounced = (...args: Parameters<T>): void => {
+    const time = Date.now()
+    const invoking = shouldInvoke(time)
+
+    pendingArgs = args
+    lastCall = time
+
+    if (invoking && timer === undefined) {
+      lastInvoke = time
+      timer = setTimeout(onTimer, delay)
+
+      if (leading)
+        invoke(time)
+
+      return
+    }
+
+    if (invoking && maxing) {
+      clearTimeout(timer)
+      timer = setTimeout(onTimer, delay)
+      invoke(time)
+
+      return
+    }
+
+    timer ??= setTimeout(onTimer, delay)
+  }
+
+  debounced.cancel = (): void => {
+    clearTimeout(timer)
+    timer = pendingArgs = lastCall = undefined
+    lastInvoke = 0
+  }
+
+  debounced.flush = (): void => {
+    if (timer === undefined)
+      return
+
+    clearTimeout(timer)
+    trailingEdge(Date.now())
+  }
+
+  return debounced
+}
+
+export interface CoalesceOptions {
+  /** Wait from the first trigger of a burst before running, never pushed back by later triggers. */
+  delay: number
+  /** Gets a failed run's error. Default `console.error`. */
+  onError?: (error: unknown) => void
 }
 
 /** Runs an async task at most once at a time: a burst of triggers within `delay` runs it once, triggers during a run queue one more, a failure goes to `onError`. */
-export function coalesce(task: () => Promise<void>, delay: number, onError: (error: unknown) => void): () => void {
+export function coalesce(task: () => Promise<void>, options: CoalesceOptions): () => void
+export function coalesce(task: () => Promise<void>, delay: number, onError?: (error: unknown) => void): () => void
+export function coalesce(task: () => Promise<void>, delayOrOptions: number | CoalesceOptions, onErrorArg?: (error: unknown) => void): () => void {
+  const { delay, onError = console.error } = typeof delayOrOptions === 'number' ? { delay: delayOrOptions, onError: onErrorArg } : delayOrOptions
   let timer: ReturnType<typeof setTimeout> | undefined
   let running = false
   let again = false
@@ -101,21 +214,9 @@ export function createMutex(): <T>(task: () => Promise<T>) => Promise<T> {
   }
 }
 
-export function throttle<T extends (...args: any[]) => any>(func: T, delay: number): ((...args: Parameters<T>) => void) {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined
-  let canRun = true
-
-  return (...args: Parameters<T>) => {
-    if (canRun)
-      func(...args)
-
-    canRun = false
-
-    timeoutId ||= setTimeout(() => {
-      canRun = true
-      timeoutId = undefined
-    }, delay)
-  }
+/** Runs `func` at most once per `delay`; by default on the first call of each window, dropping the rest. */
+export function throttle<T extends (...args: any[]) => any>(func: T, delay: number, { leading = true, trailing = false, maxWait = delay }: DebounceOptions = {}): Debounced<T> {
+  return debounce(func, delay, { leading, trailing, maxWait })
 }
 
 export function once<T extends (...args: any[]) => any>(func: T): ((...args: Parameters<T>) => ReturnType<T>) {
