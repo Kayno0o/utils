@@ -93,8 +93,24 @@ function escapeAttr(value: string): string {
     .replace(/"/g, '&quot;')
 }
 
+const numberLabels = new Map<number, string>()
+
 function n(value: number): string {
-  return Number.isInteger(value) ? String(value) : value.toFixed(3).replace(/\.?0+$/, '')
+  if (Number.isInteger(value))
+    return String(value)
+
+  let label = numberLabels.get(value)
+
+  if (label === undefined) {
+    label = value.toFixed(3).replace(/\.?0+$/, '')
+
+    if (numberLabels.size > 4096)
+      numberLabels.clear()
+
+    numberLabels.set(value, label)
+  }
+
+  return label
 }
 
 function roundedRectPath(x: number, y: number, w: number, h: number, r: number): string {
@@ -128,13 +144,27 @@ type CornerDrawer = (r: number, dx: number, dy: number) => string
 const arcCorner: CornerDrawer = (r, dx, dy) => `a${n(r)} ${n(r)} 0 0 1 ${n(dx)} ${n(dy)}`
 const chamferCorner: CornerDrawer = (_r, dx, dy) => `l${n(dx)} ${n(dy)}`
 
+const modulePathTails = new Map<string, string>()
+
 /** Unit-square path with each corner transitioned independently (for connected modules). */
 function modulePath(x: number, y: number, tl: number, tr: number, br: number, bl: number, corner: CornerDrawer): string {
-  return `M${n(x + tl)} ${n(y)}`
-    + `h${n(1 - tl - tr)}${tr ? corner(tr, tr, tr) : ''}`
-    + `v${n(1 - tr - br)}${br ? corner(br, -br, br) : ''}`
-    + `h${n(-(1 - br - bl))}${bl ? corner(bl, -bl, -bl) : ''}`
-    + `v${n(-(1 - bl - tl))}${tl ? corner(tl, tl, -tl) : ''}z`
+  const key = `${corner === arcCorner ? 'a' : 'c'}${tl}|${tr}|${br}|${bl}`
+
+  let tail = modulePathTails.get(key)
+
+  if (tail === undefined) {
+    tail = `h${n(1 - tl - tr)}${tr ? corner(tr, tr, tr) : ''}`
+      + `v${n(1 - tr - br)}${br ? corner(br, -br, br) : ''}`
+      + `h${n(-(1 - br - bl))}${bl ? corner(bl, -bl, -bl) : ''}`
+      + `v${n(-(1 - bl - tl))}${tl ? corner(tl, tl, -tl) : ''}z`
+
+    if (modulePathTails.size > 256)
+      modulePathTails.clear()
+
+    modulePathTails.set(key, tail)
+  }
+
+  return `M${n(x + tl)} ${n(y)}${tail}`
 }
 
 function gradientDef(gradient: QrGradient, id: string): string {

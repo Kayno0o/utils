@@ -185,26 +185,32 @@ export function searchFuzzy(query: string, ...values: string[]): boolean {
  * handles single-line (//) and multi-line (/* *\/) comments while preserving string literals
  */
 export function removeComments(content: string): string {
-  let result = ''
+  const kept: string[] = []
+  let runStart = 0
   let i = 0
+
+  // a run of plain code is sliced whole when a comment starts or the input ends
+  const endRun = () => kept.push(content.slice(runStart, i))
 
   while (i < content.length) {
     // skip strings to avoid removing // or /* inside them
     if (content[i] === '"' || content[i] === '\'' || content[i] === '`') {
       const quote = content[i]
-      const start = i++
+
+      i++
 
       while (i < content.length && (content[i] !== quote || content[i - 1] === '\\')) {
         i++
       }
 
-      result += content.slice(start, ++i)
+      i++
 
       continue
     }
 
     // multi-line comment
     if (content[i] === '/' && content[i + 1] === '*') {
+      endRun()
       i += 2
 
       while (i < content.length && !(content[i] === '*' && content[i + 1] === '/')) {
@@ -212,23 +218,31 @@ export function removeComments(content: string): string {
       }
 
       i += 2
+      runStart = i
 
       continue
     }
 
     // single-line comment
     if (content[i] === '/' && content[i + 1] === '/') {
+      endRun()
+
       while (i < content.length && content[i] !== '\n') {
         i++
       }
 
+      runStart = i
+
       continue
     }
 
-    result += content[i++]
+    i++
   }
 
-  return result
+  i = Math.min(i, content.length)
+  endRun()
+
+  return kept.join('')
 }
 
 export function escapeXml(unsafe: string): string {
@@ -255,6 +269,9 @@ export function escapeHtml(text: string): string {
   return text.replace(HTML_CHARS, char => HTML_ENTITIES[char] ?? char)
 }
 
+const utf8Encoder = new TextEncoder()
+const utf8StrictDecoder = new TextDecoder('utf-8', { fatal: true })
+const BASE64_CHUNK = 0x2000
 const BASE64URL_CHARS = /[-_]/g
 const WHITESPACE = /\s+/g
 const TRAILING_PADDING = /=+$/
@@ -263,10 +280,11 @@ const SLASH = /\//g
 
 /** Base64 of the text's UTF-8 bytes, so any character encodes where `btoa` throws past Latin-1; `url` gives the url-safe alphabet without padding. */
 export function base64Encode(text: string, url = false): string {
+  const bytes = utf8Encoder.encode(text)
   let binary = ''
 
-  for (const byte of new TextEncoder().encode(text))
-    binary += String.fromCharCode(byte)
+  for (let i = 0; i < bytes.length; i += BASE64_CHUNK)
+    binary += String.fromCharCode(...bytes.subarray(i, i + BASE64_CHUNK))
 
   const encoded = btoa(binary)
 
@@ -278,7 +296,12 @@ export function base64Decode(encoded: string): string {
   const normal = encoded.replace(WHITESPACE, '').replace(BASE64URL_CHARS, char => (char === '-' ? '+' : '/'))
   const binary = atob(normal.padEnd(Math.ceil(normal.length / 4) * 4, '='))
 
-  return new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(binary, char => char.charCodeAt(0)))
+  const bytes = new Uint8Array(binary.length)
+
+  for (let i = 0; i < binary.length; i++)
+    bytes[i] = binary.charCodeAt(i)
+
+  return utf8StrictDecoder.decode(bytes)
 }
 
 export function escapeCSV(value: string | number): string {
@@ -319,13 +342,19 @@ export function commonPrefix(str1: string, str2: string): string {
 /** edits turning one string into the other, a swap of two neighbours counting as one edit like an insertion, deletion or substitution */
 export function editDistance(str1: string, str2: string): number {
   // Spread so an astral character counts as one edit, not two halves.
-  const a = [...str1]
-  const b = [...str2]
-  let beforePrevious: number[] = []
-  let previous = Array.from({ length: b.length + 1 }, (_, j) => j)
+  return distanceBetween([...str1], [...str2])
+}
+
+function distanceBetween(a: string[], b: string[]): number {
+  let beforePrevious = new Int32Array(b.length + 1)
+  let previous = new Int32Array(b.length + 1)
+  let current = new Int32Array(b.length + 1)
+
+  for (let j = 0; j <= b.length; j++)
+    previous[j] = j
 
   for (let i = 1; i <= a.length; i++) {
-    const current = [i]
+    current[0] = i
 
     for (let j = 1; j <= b.length; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1
@@ -336,8 +365,11 @@ export function editDistance(str1: string, str2: string): number {
         current[j] = Math.min(current[j]!, beforePrevious[j - 2]! + 1)
     }
 
+    const recycled = beforePrevious
+
     beforePrevious = previous
     previous = current
+    current = recycled
   }
 
   return previous[b.length]!
@@ -345,11 +377,13 @@ export function editDistance(str1: string, str2: string): number {
 
 /** the candidate nearest the query, for a "did you mean", or undefined when none is within `maxDistance` edits (a third of the query by default) */
 export function closestMatch(query: string, candidates: Iterable<string>, maxDistance = Math.max(1, Math.floor([...query].length / 3))): string | undefined {
+  const queryChars = [...query]
+
   let best: string | undefined
   let bestDistance = maxDistance + 1
 
   for (const candidate of candidates) {
-    const distance = editDistance(query, candidate)
+    const distance = distanceBetween(queryChars, [...candidate])
 
     if (distance < bestDistance) {
       best = candidate
@@ -1109,9 +1143,16 @@ export function tokenizeLines(text: string): TextSpan[] {
   return spans
 }
 
+const sentenceSegmenters = new Map<string, Intl.Segmenter>()
+
 /** Sentences with where each starts, split by the locale's own rules rather than by punctuation. */
 export function splitSentences(text: string, locale = 'en'): TextSpan[] {
-  const segmenter = new Intl.Segmenter(locale, { granularity: 'sentence' })
+  let segmenter = sentenceSegmenters.get(locale)
+
+  if (!segmenter) {
+    segmenter = new Intl.Segmenter(locale, { granularity: 'sentence' })
+    sentenceSegmenters.set(locale, segmenter)
+  }
 
   return [...segmenter.segment(text)].map(segment => ({ text: segment.segment, offset: segment.index }))
 }
@@ -1124,15 +1165,43 @@ export function splitSentences(text: string, locale = 'en'): TextSpan[] {
  */
 export function mergeSpans(spans: TextSpan[], minLength: number): TextSpan[] {
   const merged: TextSpan[] = []
+  const parts: string[][] = []
+  // trimmed length and trailing whitespace of the last merged span, kept as spans join so its text is never re-trimmed
+  let trimmed = 0
+  let trailing = 0
+
+  const flush = () => {
+    if (merged.length)
+      merged.at(-1)!.text = parts.at(-1)!.join('')
+  }
 
   for (const span of spans) {
-    const last = merged.at(-1)
+    const core = span.text.trimEnd().length
+    const spanTrimmed = span.text.trim().length
 
-    if (last && last.text.trim().length < minLength)
-      last.text += span.text
-    else
-      merged.push({ ...span })
+    if (merged.length && trimmed < minLength) {
+      parts.at(-1)!.push(span.text)
+
+      if (spanTrimmed > 0) {
+        // the previous trailing whitespace and this span's leading whitespace are now interior
+        trimmed = trimmed > 0 ? trimmed + trailing + core : spanTrimmed
+        trailing = span.text.length - core
+      }
+      else {
+        trailing += span.text.length
+      }
+
+      continue
+    }
+
+    flush()
+    merged.push({ ...span })
+    parts.push([span.text])
+    trimmed = spanTrimmed
+    trailing = spanTrimmed > 0 ? span.text.length - core : span.text.length
   }
+
+  flush()
 
   return merged
 }

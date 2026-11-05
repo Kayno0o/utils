@@ -1,7 +1,7 @@
 function escapeField(value: unknown, sep: string): string {
-  const s = String(value ?? '').replace(/"/g, '""')
+  const s = String(value ?? '')
 
-  return s.includes('"') || s.includes(sep) || s.includes('\n') ? `"${s}"` : s
+  return s.includes('"') || s.includes(sep) || s.includes('\n') ? `"${s.replaceAll('"', '""')}"` : s
 }
 
 /** @deprecated use `parseCsv` */
@@ -11,30 +11,62 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
   let cur = ''
   let inQuotes = false
   let row: string[] = []
-  const s = str.replace(/\r\n?/g, '\n')
+  const s = str.includes('\r') ? str.replace(/\r\n?/g, '\n') : str
+  const separatorCode = separator.charCodeAt(0)
+  let i = 0
 
-  for (let i = 0; i < s.length; i++) {
-    const ch = s[i]!
-
+  while (i < s.length) {
     if (inQuotes) {
-      if (ch === '"' && s[i + 1] === '"') {
+      const quote = s.indexOf('"', i)
+
+      if (quote === -1) {
+        cur += s.slice(i)
+
+        break
+      }
+
+      cur += s.slice(i, quote)
+
+      if (s[quote + 1] === '"') {
         cur += '"'
-        i++
+        i = quote + 2
       }
-      else if (ch === '"') {
+      else {
         inQuotes = false
+        i = quote + 1
       }
-      else { cur += ch }
+
+      continue
     }
-    else if (ch === '"') {
+
+    // plain text up to the next quote, separator or newline is copied whole
+    let end = i
+
+    while (end < s.length) {
+      const code = s.charCodeAt(end)
+
+      if (code === 34 || code === 10 || (code === separatorCode && s.startsWith(separator, end)))
+        break
+
+      end++
+    }
+
+    cur += s.slice(i, end)
+    i = end
+
+    if (i >= s.length)
+      break
+
+    if (s[i] === '"') {
       inQuotes = true
+      i++
     }
     else if (s.startsWith(separator, i)) {
       row.push(cur)
       cur = ''
-      i += separator.length - 1
+      i += separator.length
     }
-    else if (ch === '\n') {
+    else {
       row.push(cur)
       cur = ''
 
@@ -42,8 +74,8 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
         rows.push(row)
 
       row = []
+      i++
     }
-    else { cur += ch }
   }
 
   row.push(cur)
@@ -55,8 +87,18 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
     return []
 
   const headers = rows[0]!
+  const result: T[] = []
 
-  return rows.slice(1).map(r => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? ''])) as T)
+  for (let r = 1; r < rows.length; r++) {
+    const record: Record<string, string> = {}
+
+    for (const [h, header] of headers.entries())
+      record[header] = rows[r]![h] ?? ''
+
+    result.push(record as T)
+  }
+
+  return result
 }
 
 /** @deprecated use `stringifyCsv` */
