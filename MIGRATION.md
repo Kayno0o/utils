@@ -61,6 +61,7 @@ No alias is kept: the type checker flags each call site.
 | `knownZone`, `wallClock`, `localDayHour`, `localDate`, `zoneOffsetMs` | `resolveTimeZone`, `getWallClock`, `getLocalDayHour`, `formatLocalDate`, `getZoneOffsetMs` |
 | `age`, `diffInDays`, `diffInHours` | `getAge`, `getDaysBetween`, `getHoursBetween` |
 | `copy`, `entriesFromDataTransfer`, `pickHtml` (`@kaynooo/utils/browser`) | `copyToClipboard`, `readDataTransferEntries`, `getHtmlOrText` |
+| `@kaynooo/utils/unit` | `@kaynooo/utils/geo` (`haversineDistance`, `indexToCoords`, `manhattanDistance`, `euclideanDistance`) and `@kaynooo/utils/polyline` (`encodePath`, `decodePath`); the root import is unchanged |
 | `getRandomElement(values)` typed `T` | typed `T \| undefined`, `undefined` for `[]` |
 | `UnitConverter` `'kB'` to `'YB'` as powers of 1024 | `'KiB'` to `'YiB'`; `'kB'` to `'YB'` are now powers of 1000, as in `formatFileSize(..., { units: 'si' })` |
 | `UnitConverter.value` holding the base-unit value | `value` holds the input, in `unit` |
@@ -80,18 +81,21 @@ No alias is kept: the type checker flags each call site.
 - `parseArgs`: a boolean flag only takes the next token when it is `true`, `false`, `1` or `0`, and `-5` reads as a value.
 - `decryptCaesar` and `decryptVigenere` shift lowercase letters too, keeping their case.
 - `cronMatches` and the run helpers AND the day fields when one starts with `*` (`*/2`), as Vixie cron does.
-- `randomString` reads `charset` by code point, so an emoji counts as one character.
+- `randomString` reads `charset` by code point, so an emoji counts as one character, and draws each character through its source: with `cryptoRandom` (53 bits) the bias stays below charset size / 2^53 rather than exactly zero, and the 256 character cap is gone.
+- `randomInt` and `randomFloat` throw a `TypeError` when given something other than a function as their source, so an untyped `randomInt(max, true)` fails instead of quietly using `Math.random`.
+- `randomHex` can return `#FFFFFF`.
 - `closestMatch` ignores case by default, like `searchOne`, `searchAll` and `searchFuzzy`; pass `{ caseSensitive: true }` for the old behaviour.
 - `sortBy` orders numbers before strings when keys mix both types, instead of leaving their order unspecified.
 - `mean`, `median`, `percentile` and `percentiles` of no values return `NaN` instead of `0`.
-- `UnitConverter` factors for km/h, oz, psi, acre, ft2, yd2, mmHg and BTU are exact, so results move in the 5th to 7th significant digit.
+- `UnitConverter` factors for km/h, kn, oz, psi, inHg, mmHg, BTU, acre, ft2, yd2, mi2 and the US volumes (tsp to gal, in3, ft3) are exact, so results move in the 5th to 7th significant digit.
+- `formatUnit` with a `locale` writes a count under 1000 in that locale too (`1,5` in `fr-FR`).
 - `renderProgressBar` throws a `RangeError` for a NaN `value`, a non-finite `min` or `max`, or a `totalChars` that is not a non-negative integer; `applyLowQuality` throws one for `levels` below 2.
 - `groupBy`, `keyBy` and `countBy` keep a `__proto__` key as an own key, and no longer read inherited names such as `toString` as existing keys.
 - `tokenizeLines` drops the `\r` of a `\r\n` ending, so `diffLines` ignores mixed line endings.
 - `diffTokens`, `diffLines` and `diffWords` throw a `RangeError` past `MAX_DIFF_CELLS` (25 million table cells) instead of allocating without bound; `diffTokens` and `diffLines` take `{ maxCells }` to raise it.
 - `formatDuration` keeps the sign (`-1h`, not `1h`) and takes `y`, `M` and `w` in `units`; `parseDuration` reads a leading `-`.
 - `fromISODate` returns `null` for anything but a real `YYYY-MM-DD` day (`2024-02-30`, `2024-3-1`, `2024-03`) instead of an overflowed Date, and `localDayRange` throws a `RangeError` on such a date.
-- `sendDiscordWebhook` and `sendGotify` time out after 15 s unless given a `timeout`, and `sendDiscordWebhook` takes `retry`.
+- `sendDiscordWebhook` and `sendGotify` time out after 15 s unless given a `timeout`, and `sendDiscordWebhook` takes `retry`, sends `Accept: application/json` and rejects a 2xx body that is not JSON with a `FetchParseError` instead of a `SyntaxError`.
 - `streamOllama` and `readOllamaJsonStream` throw a `SyntaxError` naming the line on a line that is not JSON; `readOllamaJsonStream` used to skip it.
 - `buildDate` parses `YYYY-MM-DD` and `DD/MM/YYYY` as local dates, not UTC midnight, and rolls an impossible date over (`2024-02-30` reads as March 1st).
 - `decodePath` throws a `SyntaxError` on a truncated or invalid polyline instead of looping.

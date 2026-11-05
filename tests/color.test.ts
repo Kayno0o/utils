@@ -89,6 +89,7 @@ describe('randomHex function', () => {
 
   it('is deterministic with a seeded source', () => {
     expect(randomHex(() => 0)).toBe('#000000')
+    expect(randomHex(() => 1 - 2 ** -53)).toBe('#FFFFFF')
     expect(randomHex(sfc32(1, 2, 3, 4))).toBe(randomHex(sfc32(1, 2, 3, 4)))
   })
 

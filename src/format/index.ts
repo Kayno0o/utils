@@ -1,4 +1,4 @@
-import { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS, WEEK_MS } from '../date'
+import { DURATION_UNIT_MS } from '../internal'
 
 export * from './number'
 
@@ -13,13 +13,13 @@ export interface DurationLabel {
 }
 
 const DURATION_UNITS: { unit: DurationUnit, ms: number, label: Required<DurationLabel> }[] = [
-  { unit: 'y', ms: 365 * DAY_MS, label: { short: 'y', one: 'year', other: 'years' } },
-  { unit: 'M', ms: 30 * DAY_MS, label: { short: 'M', one: 'month', other: 'months' } },
-  { unit: 'w', ms: WEEK_MS, label: { short: 'w', one: 'week', other: 'weeks' } },
-  { unit: 'd', ms: DAY_MS, label: { short: 'd', one: 'day', other: 'days' } },
-  { unit: 'h', ms: HOUR_MS, label: { short: 'h', one: 'hour', other: 'hours' } },
-  { unit: 'm', ms: MINUTE_MS, label: { short: 'm', one: 'minute', other: 'minutes' } },
-  { unit: 's', ms: SECOND_MS, label: { short: 's', one: 'second', other: 'seconds' } },
+  { unit: 'y', ms: DURATION_UNIT_MS.y, label: { short: 'y', one: 'year', other: 'years' } },
+  { unit: 'M', ms: DURATION_UNIT_MS.M, label: { short: 'M', one: 'month', other: 'months' } },
+  { unit: 'w', ms: DURATION_UNIT_MS.w, label: { short: 'w', one: 'week', other: 'weeks' } },
+  { unit: 'd', ms: DURATION_UNIT_MS.d, label: { short: 'd', one: 'day', other: 'days' } },
+  { unit: 'h', ms: DURATION_UNIT_MS.h, label: { short: 'h', one: 'hour', other: 'hours' } },
+  { unit: 'm', ms: DURATION_UNIT_MS.m, label: { short: 'm', one: 'minute', other: 'minutes' } },
+  { unit: 's', ms: DURATION_UNIT_MS.s, label: { short: 's', one: 'second', other: 'seconds' } },
 ]
 
 export interface FormatDurationOptions {

@@ -1,6 +1,22 @@
 import { describe, expect, test as it } from 'bun:test'
 import { clamp, convertBase, cryptoRandom, degToRad, entropyBits, formatNumber, gcd, isPrime, lcm, mapRange, ordinal, percentage, radToDeg, randomBool, randomFloat, randomInt, reduceRatio, round, sfc32 } from '../src'
 
+describe('random sources', () => {
+  it('refuses the true of 2.x instead of falling back to Math.random', () => {
+    expect(() => randomInt(10, true as never)).toThrow(TypeError)
+    expect(() => randomInt(0, 10, true as never)).toThrow(TypeError)
+    expect(() => randomFloat(10, true as never)).toThrow(TypeError)
+    expect(() => randomFloat(0, 10, true as never)).toThrow(TypeError)
+  })
+
+  it('draws cryptoRandom in [0, 1) on 53 bits', () => {
+    const values = Array.from({ length: 200 }, cryptoRandom)
+
+    expect(values.every(value => value >= 0 && value < 1)).toBe(true)
+    expect(values.some(value => !Number.isInteger(value * 2 ** 32))).toBe(true)
+  })
+})
+
 describe('randomInt function', () => {
   it('within the specified range', () => {
     const max = 100

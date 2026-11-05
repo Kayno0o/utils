@@ -1,5 +1,6 @@
+import type { RandomSource } from '../number'
 import { sfc32, xmur3 } from '../crypto'
-import { getDaysInMonth } from '../date'
+import { getDaysInMonth, pad } from '../date'
 import { capitalize } from '../text'
 
 const LOREM_WORDS = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'proin', 'ultricies', 'sed', 'dui', 'scelerisque', 'donec', 'pellentesque', 'diam', 'vel', 'ligula', 'efficitur']
@@ -20,7 +21,7 @@ export interface FakerOptions {
   /** Makes every call deterministic, for fixtures and snapshots. */
   seed?: string | number
   /** A random source in `[0, 1)`, taking precedence over `seed`. Defaults to `Math.random`; pass `cryptoRandom` for secrets. */
-  random?: () => number
+  random?: RandomSource
   firstNames?: readonly string[]
   lastNames?: readonly string[]
   /** Domains for `internet.email`, with or without a leading `@`. */
@@ -65,9 +66,9 @@ export function createFaker({
       const month = Number(date.month())
       const day = int(1, getDaysInMonth(month, year) + 1)
 
-      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+      return `${year}-${pad(month)}-${pad(day)}`
     },
-    month: (): string => int(1, 13).toString().padStart(2, '0'),
+    month: (): string => pad(int(1, 13)),
     year: ({ endYear = new Date().getFullYear() + 4, startYear = new Date().getFullYear() - 4 }: { endYear?: number, startYear?: number } = {}): string =>
       int(startYear, endYear + 1).toString(),
   }

@@ -42,5 +42,5 @@ export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPay
   }
 
   // Discord answers 204 with no body unless the url carries `?wait=true`, which `fetchJson` reads as null.
-  return await fetchJson(url, { timeout: DEFAULT_FETCH_TIMEOUT_MS, ...options, method: 'POST', body: formData })
+  return await fetchJson(url, { ...options, timeout: options.timeout ?? DEFAULT_FETCH_TIMEOUT_MS, method: 'POST', body: formData })
 }

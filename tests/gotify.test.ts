@@ -53,6 +53,14 @@ describe('sendGotify', () => {
     expect(call.init.signal).toBeInstanceOf(AbortSignal)
   })
 
+  it('keeps the default deadline for an explicit undefined timeout', async () => {
+    const call = mockFetch()
+
+    await sendGotify(ENDPOINT, 'secret', { title: 'Hi', message: 'Body' }, { timeout: undefined })
+
+    expect(call.init.signal).toBeInstanceOf(AbortSignal)
+  })
+
   it('keeps an explicit priority', async () => {
     const call = mockFetch()
 

@@ -24,6 +24,12 @@ describe('UnitConverter', () => {
     expect(UnitConverter.from('area', 'yd2', 1).to('m2')).toBe(0.83612736)
     expect(UnitConverter.from('pressure', 'mmHg', 1).to('Pa')).toBe(133.322387415)
     expect(UnitConverter.from('energy', 'BTU', 1).to('J')).toBe(1055.05585262)
+    expect(UnitConverter.from('speed', 'kn', 3.6).to('m/s')).toBeCloseTo(1.852, 14)
+    expect(UnitConverter.from('area', 'mi2', 1).to('m2')).toBe(2589988.110336)
+    expect(UnitConverter.from('pressure', 'inHg', 1).to('Pa')).toBeCloseTo(3386.38864034, 8)
+    expect(UnitConverter.from('volume', 'gal', 1).to('in3')).toBeCloseTo(231, 12)
+    expect(UnitConverter.from('volume', 'cup', 1).to('tbsp')).toBeCloseTo(16, 12)
+    expect(UnitConverter.from('volume', 'tbsp', 1).to('tsp')).toBeCloseTo(3, 12)
   })
 
   it('keeps the input in value and unit', () => {

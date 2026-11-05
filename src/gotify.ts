@@ -30,8 +30,8 @@ export async function sendGotify(url: string, token: string, message: GotifyMess
   }
 
   await fetchJson(url, {
-    timeout: DEFAULT_FETCH_TIMEOUT_MS,
     ...options,
+    timeout: options.timeout ?? DEFAULT_FETCH_TIMEOUT_MS,
     method: 'POST',
     headers: mergeHeaders({ 'X-Gotify-Key': token }, options.headers),
     body: {

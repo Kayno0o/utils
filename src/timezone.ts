@@ -1,4 +1,4 @@
-import { addDays, fromISODate, toISODate } from './date'
+import { addDays, fromISODate, pad, toISODate } from './date'
 import { getDateTimeFormat } from './intlCache'
 
 function formatter(timeZone: string): Intl.DateTimeFormat {
@@ -54,7 +54,7 @@ export function getWallClock(at: Date, timeZone: string): WallClock {
 }
 
 function isoDate(year: number, month: number, day: number): string {
-  return toISODate(new Date(year, month - 1, day))
+  return `${year}-${pad(month)}-${pad(day)}`
 }
 
 /**

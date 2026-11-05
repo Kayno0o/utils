@@ -6,7 +6,7 @@ import { STRICT_UUID_REGEX, UUID_REGEX } from './regex'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
-/** `length` characters of `charset` read by code point, each drawn from `random`; pass `cryptoRandom` for secrets (uniform up to 2^-32 per draw, any charset size). */
+/** `length` characters of `charset` read by code point, each drawn from `random`; pass `cryptoRandom` for secrets, whose 53 bits keep the bias below charset size / 2^53. */
 export function randomString(length: number, charset?: string, random: RandomSource = Math.random): string {
   const chars = Array.from(charset || wordChars)
   let result = ''

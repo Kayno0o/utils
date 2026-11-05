@@ -43,8 +43,10 @@ describe('sendDiscordWebhook', () => {
     const fetchSpy = mockFetch(() => new Response(null, { status: 204 }))
 
     await sendDiscordWebhook(URL, { content: 'hi' })
+    await sendDiscordWebhook(URL, { content: 'hi' }, [], { timeout: undefined })
 
     expect(fetchSpy.mock.calls[0]![1]!.signal).toBeInstanceOf(AbortSignal)
+    expect(fetchSpy.mock.calls[1]![1]!.signal).toBeInstanceOf(AbortSignal)
   })
 
   it('aborts a webhook that hangs past its timeout', async () => {

@@ -1,5 +1,9 @@
 import { describe, expect, test as it } from 'bun:test'
+import { cryptoRandom } from '../src'
 import { createFaker, Faker } from '../src/tools'
+
+const UUID_V4_REGEX = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/
+const MONTH_REGEX = /^(0[1-9]|1[0-2])$/
 
 describe('faker.paragraph function', () => {
   const notEmpty = (value: any) => Boolean(value)
@@ -76,6 +80,13 @@ describe('createFaker', () => {
 
     expect(faker.name.fullname()).toBe('Jean Paul Dupont')
     expect(faker.internet.email()).toBe('jean.paul.dupont@exemple.fr')
+  })
+
+  it('draws from cryptoRandom', () => {
+    const faker = createFaker({ random: cryptoRandom })
+
+    expect(faker.datatype.uuidV4()).toMatch(UUID_V4_REGEX)
+    expect(faker.date.month()).toMatch(MONTH_REGEX)
   })
 
   it('only makes real days', () => {

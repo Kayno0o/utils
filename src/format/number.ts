@@ -50,7 +50,7 @@ export function formatUnit(num: number, { locale }: FormatUnitOptions = {}): str
     return `-${formatUnit(-num, { locale })}`
 
   if (num < 1000)
-    return num.toString()
+    return locale ? getNumberFormat(locale, { maximumFractionDigits: 20 }).format(num) : num.toString()
 
   const units = ['k', 'M', 'B', 'T']
   let unitIndex = -1

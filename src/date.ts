@@ -1,4 +1,5 @@
 import type { LocaleOrOptions } from './intlCache'
+import { DURATION_UNIT_MS } from './internal'
 import { formatDateTime, getRelativeTimeFormat, resolveLocale } from './intlCache'
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
@@ -103,16 +104,6 @@ export function isHoliday(date: Date | string): boolean {
   return getHolidaySet(Number(formattedDate.slice(0, 4))).has(formattedDate)
 }
 
-const DURATION_UNIT_MS: Record<string, number> = {
-  s: 1000,
-  m: 1000 * 60,
-  h: 1000 * 60 * 60,
-  d: 1000 * 60 * 60 * 24,
-  w: 1000 * 60 * 60 * 24 * 7,
-  M: 1000 * 60 * 60 * 24 * 30,
-  y: 1000 * 60 * 60 * 24 * 365,
-}
-
 /**
  * Convert a human-readable duration into milliseconds.
  *
@@ -135,7 +126,7 @@ export function parseDuration(duration: string | number): number {
   let total = 0
 
   for (const [, time, unit] of duration.matchAll(DURATION_PART_REGEX)) {
-    const factor = DURATION_UNIT_MS[unit!]
+    const factor = DURATION_UNIT_MS[unit as keyof typeof DURATION_UNIT_MS]
 
     if (factor !== undefined)
       total += Number(time) * factor
@@ -145,13 +136,13 @@ export function parseDuration(duration: string | number): number {
 }
 
 const RELATIVE_TIME_DIVISIONS: [number, Intl.RelativeTimeFormatUnit][] = [
-  [DURATION_UNIT_MS.y!, 'year'],
-  [DURATION_UNIT_MS.M!, 'month'],
-  [DURATION_UNIT_MS.w!, 'week'],
-  [DURATION_UNIT_MS.d!, 'day'],
-  [DURATION_UNIT_MS.h!, 'hour'],
-  [DURATION_UNIT_MS.m!, 'minute'],
-  [DURATION_UNIT_MS.s!, 'second'],
+  [DURATION_UNIT_MS.y, 'year'],
+  [DURATION_UNIT_MS.M, 'month'],
+  [DURATION_UNIT_MS.w, 'week'],
+  [DURATION_UNIT_MS.d, 'day'],
+  [DURATION_UNIT_MS.h, 'hour'],
+  [DURATION_UNIT_MS.m, 'minute'],
+  [DURATION_UNIT_MS.s, 'second'],
 ]
 
 export interface FormatRelativeTimeOptions extends Intl.RelativeTimeFormatOptions {
@@ -173,7 +164,7 @@ export interface FormatRelativeTimeOptions extends Intl.RelativeTimeFormatOption
  * @param localeOrOptions - A locale, or an options object with the locale, reference date and `Intl.RelativeTimeFormat` options.
  * @returns A localized relative-time string.
  */
-export function formatRelativeTime(date: Date | string | number, localeOrOptions?: string | string[] | FormatRelativeTimeOptions): string {
+export function formatRelativeTime(date: Date | string | number, localeOrOptions?: LocaleOrOptions<FormatRelativeTimeOptions>): string {
   const [locale, { from = new Date(), numeric = 'auto', ...intlOptions }] = resolveLocale<FormatRelativeTimeOptions>(localeOrOptions)
   const diff = new Date(date).getTime() - new Date(from).getTime()
   const formatter = getRelativeTimeFormat(locale, { ...intlOptions, numeric })
@@ -501,7 +492,7 @@ export interface FormatSessionTimeOptions extends Pick<Intl.DateTimeFormatOption
 }
 
 /** Relative session label: time today, "Yesterday", weekday within a week, else short date; days are counted on the calendar. */
-export function formatSessionTime(date: Date, localeOrOptions?: string | string[] | FormatSessionTimeOptions): string {
+export function formatSessionTime(date: Date, localeOrOptions?: LocaleOrOptions<FormatSessionTimeOptions>): string {
   const [locale, { labels = {}, now = Date.now(), ...clock }] = resolveLocale<FormatSessionTimeOptions>(localeOrOptions)
   const diffDays = getDaysBetween(date, new Date(now))
 

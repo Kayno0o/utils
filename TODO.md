@@ -422,7 +422,7 @@ HTTP
 
 Format
 
-- [x] formatDuration(ms, options?) — human-readable duration: 90061000 → "1d 1h 1m 1s" or "1 day, 1 hour", pairs with your stringToMsDuration (inverse operation)
+- [x] formatDuration(ms, options?) — human-readable duration: 90061000 → "1d 1h 1m 1s" or "1 day, 1 hour", pairs with parseDuration (inverse operation)
   ```ts
   formatDuration(90061000) // → "1d 1h 1m 1s"
   formatDuration(90061000, { long: true }) // → "1 day, 1 hour, 1 minute, 1 second"

@@ -74,13 +74,13 @@ function getUnitFactors() {
       atm: 101325, // standard atmosphere
       psi: 6894.757293168, // pounds per square inch
       mmHg: 133.322387415, // millimeters of mercury
-      inHg: 3386.39, // inches of mercury
+      inHg: 133.322387415 * 25.4, // inches of mercury
     },
     speed: {
       'm/s': 1, // base (meters per second)
       'km/h': 1000 / 3600, // kilometers per hour
       'mph': 0.44704, // miles per hour
-      'kn': 0.514444, // knots
+      'kn': 1852 / 3600, // knots
       'ft/s': 0.3048, // feet per second
     },
     time: {
@@ -101,16 +101,15 @@ function getUnitFactors() {
       ml: 0.000001, // milliliter (same as cm³)
       L: 0.001, // liter
       m3: 1, // base (cubic meter)
-      tsp: 0.00000492892, // teaspoon
-      tbsp: 0.0000147868, // tablespoon
-
-      fl_oz: 0.0000295735, // fluid ounce
-      cup: 0.000236588, // cup
-      pt: 0.000473176, // pint
-      qt: 0.000946353, // quart
-      gal: 0.00378541, // gallon
-      in3: 0.0000163871, // cubic inch
-      ft3: 0.0283168, // cubic foot
+      tsp: 0.003785411784 / 768, // US teaspoon
+      tbsp: 0.003785411784 / 256, // US tablespoon
+      fl_oz: 0.003785411784 / 128, // US fluid ounce
+      cup: 0.003785411784 / 16, // US cup
+      pt: 0.003785411784 / 8, // US pint
+      qt: 0.003785411784 / 4, // US quart
+      gal: 0.003785411784, // US gallon, 231 in³
+      in3: 0.000016387064, // cubic inch
+      ft3: 0.028316846592, // cubic foot
     },
     area: {
       mm2: 0.000001, // square millimeter
@@ -122,7 +121,7 @@ function getUnitFactors() {
       ft2: 0.09290304, // square foot
       yd2: 0.83612736, // square yard
       ac: 4046.8564224, // acre
-      mi2: 2589988.11, // square mile
+      mi2: 2589988.110336, // square mile
     },
   }
 

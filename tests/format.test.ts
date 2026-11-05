@@ -88,6 +88,11 @@ describe('formatUnit', () => {
     expect(formatUnit(-2_500_000, { locale: 'de-DE' })).toBe('-2,5M')
     expect(formatUnit(1500)).toBe('1.5k')
   })
+
+  it('writes a count under 1000 in the locale too', () => {
+    expect(formatUnit(1.5, { locale: 'fr-FR' })).toBe('1,5')
+    expect(formatUnit(1.5)).toBe('1.5')
+  })
 })
 
 describe('formatFileSize (defaults)', () => {
