@@ -62,6 +62,15 @@ No alias is kept: the type checker flags each call site.
 | `age`, `diffInDays`, `diffInHours` | `getAge`, `getDaysBetween`, `getHoursBetween` |
 | `copy`, `entriesFromDataTransfer`, `pickHtml` (`@kaynooo/utils/browser`) | `copyToClipboard`, `readDataTransferEntries`, `getHtmlOrText` |
 | `@kaynooo/utils/unit` | `@kaynooo/utils/geo` (`haversineDistance`, `indexToCoords`, `manhattanDistance`, `euclideanDistance`) and `@kaynooo/utils/polyline` (`encodePath`, `decodePath`); the root import is unchanged |
+| `CanvasFormat` `'png' \| 'jpeg' \| 'webp'` | `'image/png' \| 'image/jpeg' \| 'image/webp'` |
+| `canvasMimeType(format)` | the format itself, already a MIME type |
+| `canvasExtension('jpeg')`, `downloadCanvas(canvas, name, 'png')`, `copyCanvasToClipboard(canvas, 'png')` | `canvasExtension('image/jpeg')`, `downloadCanvas(canvas, name, 'image/png')`, `copyCanvasToClipboard(canvas, 'image/png')` |
+| `base64FromFile(file)` | `readFileAsDataUrl(file)` |
+| `readPastedImage(event)` returning `File \| undefined` | returning `File \| null` |
+| `import { downloadVCard } from '@kaynooo/utils'` | `import { downloadVCard } from '@kaynooo/utils/browser'` |
+| `CookieBuilder` / `CookieManager.set(name, value)...build()` writing the cookie | `...save()`; `build()` only returns the string |
+| `CookieManager.update(name, value)` | `CookieManager.set(name, value)` |
+| `setStorage`, `removeStorage`, `JsonStorage.remove`, `JsonStorage.update` returning `void` | returning `boolean`, `true` on success |
 | `getRandomElement(values)` typed `T` | typed `T \| undefined`, `undefined` for `[]` |
 | `UnitConverter` `'kB'` to `'YB'` as powers of 1024 | `'KiB'` to `'YiB'`; `'kB'` to `'YB'` are now powers of 1000, as in `formatFileSize(..., { units: 'si' })` |
 | `UnitConverter.value` holding the base-unit value | `value` holds the input, in `unit` |
@@ -87,6 +96,10 @@ No alias is kept: the type checker flags each call site.
 - `closestMatch` ignores case by default, like `searchOne`, `searchAll` and `searchFuzzy`; pass `{ caseSensitive: true }` for the old behaviour.
 - `sortBy` orders numbers before strings when keys mix both types, instead of leaving their order unspecified.
 - `mean`, `median`, `percentile` and `percentiles` of no values return `NaN` instead of `0`.
+- `setStorage`, `removeStorage` and every `JsonStorage` method no longer throw when storage is full, disabled, in private mode or absent (SSR): a setter or remover returns `false`, a getter its default, `JsonStorage.has` `false`. The default storage is resolved at call time, so importing under SSR is safe.
+- `convertImage`, `cropImage` and `transformImage` load an http(s) source with `crossOrigin = 'anonymous'`, so a remote crop no longer taints the canvas but the server must send CORS headers; `convertImage` rejects with an `Error` instead of the raw event.
+- `downloadFile`, `downloadFromString`, `downloadCanvas` and `downloadVCard` attach their anchor to `document.body` and revoke their object URL after the click.
+- `CookieManager.get` and `getAll` return the raw text of a name or value with invalid percent-encoding instead of throwing a `URIError`.
 - `UnitConverter` factors for km/h, kn, oz, psi, inHg, mmHg, BTU, acre, ft2, yd2, mi2 and the US volumes (tsp to gal, in3, ft3) are exact, so results move in the 5th to 7th significant digit.
 - `formatUnit` with a `locale` writes a count under 1000 in that locale too (`1,5` in `fr-FR`).
 - `renderProgressBar` throws a `RangeError` for a NaN `value`, a non-finite `min` or `max`, or a `totalChars` that is not a non-negative integer; `applyLowQuality` throws one for `levels` below 2.
