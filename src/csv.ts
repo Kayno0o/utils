@@ -1,15 +1,45 @@
-function escapeField(value: unknown, sep: string): string {
-  const s = String(value ?? '')
+import { escapeCSV } from './text'
 
-  return s.includes('"') || s.includes(sep) || s.includes('\n') ? `"${s.replaceAll('"', '""')}"` : s
+export interface ParseCsvOptions {
+  separator?: string
+  /** `true` reads them off the first row, `false` keys every row by column index, an array names the columns of every row. Defaults to true. */
+  headers?: boolean | string[]
+  /** Trims each field. Defaults to false. */
+  trim?: boolean
+  /** Drops lines whose fields are all empty. Defaults to true. */
+  skipEmptyLines?: boolean
 }
 
-export function parseCsv<T extends Record<string, string>>(str: string, { separator = ',' }: { separator?: string } = {}): T[] {
+export interface StringifyCsvOptions {
+  separator?: string
+  headers?: string[]
+  /** Line ending, `\r\n` for Excel or RFC 4180. Defaults to `\n`. */
+  newline?: string
+  /** Starts with a UTF-8 byte order mark, so Excel reads accents right. Defaults to false. */
+  bom?: boolean
+}
+
+const LINE_BREAK_REGEX = /\r\n?/g
+
+export function parseCsv<T extends Record<string, string>>(str: string, { separator = ',', headers = true, trim = false, skipEmptyLines = true }: ParseCsvOptions = {}): T[] {
   const rows: string[][] = []
   let cur = ''
   let inQuotes = false
   let row: string[] = []
-  const s = str.includes('\r') ? str.replace(/\r\n?/g, '\n') : str
+
+  const endField = (): void => {
+    row.push(trim ? cur.trim() : cur)
+    cur = ''
+  }
+
+  // A trailing line break ends the last row, it does not start an empty one.
+  const endRow = (last: boolean): void => {
+    if (row.some(f => f.length) || (!skipEmptyLines && !last))
+      rows.push(row)
+
+    row = []
+  }
+  const s = str.includes('\r') ? str.replace(LINE_BREAK_REGEX, '\n') : str
   const separatorCode = separator.charCodeAt(0)
   let i = 0
 
@@ -60,38 +90,33 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
       i++
     }
     else if (s.startsWith(separator, i)) {
-      row.push(cur)
-      cur = ''
+      endField()
       i += separator.length
     }
     else {
-      row.push(cur)
-      cur = ''
-
-      if (row.some(f => f.length))
-        rows.push(row)
-
-      row = []
+      endField()
+      endRow(false)
       i++
     }
   }
 
-  row.push(cur)
+  endField()
+  endRow(true)
 
-  if (row.some(f => f.length))
-    rows.push(row)
-
-  if (rows.length < 2)
-    return []
-
-  const headers = rows[0]!
+  const columns = headers === true ? rows.shift() : headers || undefined
   const result: T[] = []
 
-  for (let r = 1; r < rows.length; r++) {
+  for (const values of rows) {
     const record: Record<string, string> = {}
 
-    for (const [h, header] of headers.entries())
-      record[header] = rows[r]![h] ?? ''
+    if (columns) {
+      for (const [h, header] of columns.entries())
+        record[header] = values[h] ?? ''
+    }
+    else {
+      for (const [h, value] of values.entries())
+        record[h] = value
+    }
 
     result.push(record as T)
   }
@@ -99,11 +124,13 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
   return result
 }
 
-export function stringifyCsv(rows: Record<string, unknown>[], { separator = ',', headers }: { separator?: string, headers?: string[] } = {}): string {
-  if (!rows.length)
-    return headers ? headers.join(separator) : ''
+export function stringifyCsv(rows: Record<string, unknown>[], { separator = ',', headers, newline = '\n', bom = false }: StringifyCsvOptions = {}): string {
+  const keys = headers ?? (rows.length ? Object.keys(rows[0]!) : undefined)
 
-  const keys = headers ?? Object.keys(rows[0]!)
+  if (!keys)
+    return ''
 
-  return [keys.join(separator), ...rows.map(row => keys.map(k => escapeField(row[k], separator)).join(separator))].join('\n')
+  const lines = [keys, ...rows.map(row => keys.map(k => row[k] ?? ''))]
+
+  return (bom ? '\uFEFF' : '') + lines.map(line => line.map(value => escapeCSV(String(value), separator)).join(separator)).join(newline)
 }

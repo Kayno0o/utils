@@ -75,3 +75,40 @@ describe('stringifyCsv', () => {
     expect(parseCsv(stringifyCsv(data))).toEqual(data)
   })
 })
+
+describe('parseCsv options', () => {
+  it('keys rows by column index without a header row', () => {
+    expect(parseCsv('a,b\nc,d', { headers: false })).toEqual([{ 0: 'a', 1: 'b' }, { 0: 'c', 1: 'd' }])
+  })
+
+  it('names the columns of every row with given headers', () => {
+    expect(parseCsv('a,b\nc,d', { headers: ['x', 'y'] })).toEqual([{ x: 'a', y: 'b' }, { x: 'c', y: 'd' }])
+  })
+
+  it('trims fields', () => {
+    expect(parseCsv('name , age\n Ana ,  3', { trim: true })).toEqual([{ name: 'Ana', age: '3' }])
+  })
+
+  it('keeps empty lines with skipEmptyLines off, but not the trailing line break', () => {
+    expect(parseCsv('a\n1\n\n2\n', { skipEmptyLines: false })).toEqual([{ a: '1' }, { a: '' }, { a: '2' }])
+    expect(parseCsv('a\n1\n\n2\n')).toEqual([{ a: '1' }, { a: '2' }])
+  })
+})
+
+describe('stringifyCsv options', () => {
+  it('writes CRLF line endings and a BOM', () => {
+    const csv = stringifyCsv([{ a: 1 }, { a: 2 }], { newline: '\r\n', bom: true })
+
+    expect(csv).toBe('﻿a\r\n1\r\n2')
+  })
+
+  it('quotes fields holding a carriage return, and headers holding the separator', () => {
+    expect(stringifyCsv([{ 'a;b': 'x\ry' }], { separator: ';' })).toBe('"a;b"\n"x\ry"')
+  })
+
+  it('round-trips through parseCsv', () => {
+    const rows = [{ name: 'Ana "A"', note: 'line\r\nbreak' }]
+
+    expect(parseCsv(stringifyCsv(rows, { newline: '\r\n' }))).toEqual([{ name: 'Ana "A"', note: 'line\nbreak' }])
+  })
+})

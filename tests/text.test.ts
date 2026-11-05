@@ -394,6 +394,12 @@ describe('escapeCSV function', () => {
 
     expect(result).toEqual('12345')
   })
+
+  it('quotes on the given delimiter and on carriage returns', () => {
+    expect(escapeCSV('a;b', ';')).toBe('"a;b"')
+    expect(escapeCSV('a,b', ';')).toBe('a,b')
+    expect(escapeCSV('a\rb')).toBe('"a\rb"')
+  })
 })
 
 describe('commonPrefixLength function', () => {

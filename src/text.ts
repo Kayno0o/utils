@@ -302,15 +302,14 @@ export function base64Decode(encoded: string): string {
   return utf8StrictDecoder.decode(bytes)
 }
 
-export function escapeCSV(value: string | number): string {
-  let stringValue = String(value)
+/** Quotes a CSV field holding a quote, the delimiter or a line break, doubling its quotes. */
+export function escapeCSV(value: string | number, delimiter = ','): string {
+  const stringValue = String(value)
 
-  stringValue = stringValue.replace(/"/g, '""')
+  if (!stringValue.includes('"') && !stringValue.includes(delimiter) && !stringValue.includes('\n') && !stringValue.includes('\r'))
+    return stringValue
 
-  if ((/[",\n]/).test(stringValue))
-    stringValue = `"${stringValue}"`
-
-  return stringValue
+  return `"${stringValue.replaceAll('"', '""')}"`
 }
 
 export function commonPrefixLength(str1: string, str2: string): number {
