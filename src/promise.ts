@@ -149,11 +149,7 @@ export async function mapConcurrent<T, R>(items: T[], limitOrOptions: number | M
   return results as R[] | PromiseSettledResult<R>[]
 }
 
-/**
- * The work's answer if it lands inside `ms`, else `fallback`. Only the wait is bounded - the work
- * keeps running and its answer is dropped, which is what makes this the right shape for a budget
- * (a render, a page's seeds) rather than for cancelling the work itself.
- */
+/** The work's answer if it lands inside `ms`, else `fallback`. Only the wait is bounded: the work keeps running and its answer is dropped, which is what makes this the right shape for a budget (a render, a page's seeds) rather than for cancelling the work itself. */
 export async function within<T, F = null>(work: Promise<T>, ms: number, fallback: F = null as F): Promise<T | F> {
   let pid: ReturnType<typeof setTimeout> | undefined
 
