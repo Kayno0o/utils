@@ -10,28 +10,121 @@ export type RulesName<T> = ValidRuleKeys<typeof Rules, T>
 /** either allow a rule name or a rule function */
 export type RuleType<T> = (RulesName<T> | RuleFunction<T>)[]
 
+/** A rule's error text, or a function building it from the rule's parameters. */
+export type RuleMessage<P = void> = string | ((params: P) => string)
+
+export interface RuleMessages {
+  eq: RuleMessage<{ nb: number }>
+  neq: RuleMessage<{ nb: number }>
+  gt: RuleMessage<{ nb: number }>
+  gte: RuleMessage<{ nb: number }>
+  lt: RuleMessage<{ nb: number }>
+  lte: RuleMessage<{ nb: number }>
+  email: RuleMessage
+  isCode: RuleMessage
+  isDateBetweenHours: RuleMessage<{ minHour: number, maxHour: number, include: boolean }>
+  isInteger: RuleMessage
+  isNumber: RuleMessage
+  isSlug: RuleMessage
+  isWeekDay: RuleMessage
+  lowercase: RuleMessage
+  isUrl: RuleMessage
+  isUrlSecured: RuleMessage
+  isUrlProtocol: RuleMessage<{ protocols: string[] }>
+  maxLength: RuleMessage<{ length: number }>
+  minLength: RuleMessage<{ length: number }>
+  phone: RuleMessage
+  required: RuleMessage
+  isAfterDay: RuleMessage<{ date: Date, include: boolean }>
+  isAfterToday: RuleMessage<{ include: boolean }>
+  isBetweenDays: RuleMessage<{ minDate: Date, maxDate: Date, include: boolean }>
+}
+
+const DEFAULT_URL_PROTOCOLS = ['http:', 'https:']
+
+const DEFAULT_RULE_MESSAGES: RuleMessages = {
+  eq: ({ nb }) => `Must equal ${nb}.`,
+  neq: ({ nb }) => `Must not be ${nb}.`,
+  gt: ({ nb }) => `Greater than ${nb}.`,
+  gte: ({ nb }) => `At least ${nb}.`,
+  lt: ({ nb }) => `Less than ${nb}.`,
+  lte: ({ nb }) => `At most ${nb}.`,
+  email: 'Invalid email',
+  isCode: 'Must contain lowercase letters and underscores only',
+  isDateBetweenHours: ({ minHour, maxHour, include }) => include
+    ? `Time must be between ${minHour}h and ${maxHour}h, inclusive`
+    : `Time must be between ${minHour}h and ${maxHour}h`,
+  isInteger: 'Must be an integer',
+  isNumber: 'Must be a number',
+  isSlug: 'Must contain lowercase letters, numbers, and underscores only',
+  isWeekDay: 'Must be a weekday',
+  lowercase: 'Must be lowercase',
+  isUrl: 'Must be a valid URL',
+  isUrlSecured: 'URL must use HTTPS',
+  isUrlProtocol: ({ protocols }) => protocols.join() === DEFAULT_URL_PROTOCOLS.join()
+    ? 'Must be an HTTP or HTTPS URL'
+    : `URL must use ${protocols.join(' or ')}`,
+  maxLength: ({ length }) => `Max length is ${length} characters`,
+  minLength: ({ length }) => `Min length is ${length} characters`,
+  phone: 'Invalid phone number',
+  required: 'Required',
+  isAfterDay: ({ date, include }) => include
+    ? `Date must be on or after ${date.toDateString()}`
+    : `Date must be after ${date.toDateString()}`,
+  isAfterToday: ({ include }) => include ? 'Date must be today or later' : 'Date must be after today',
+  isBetweenDays: ({ minDate, maxDate, include }) => include
+    ? `Date must be between ${minDate.toDateString()} and ${maxDate.toDateString()}, inclusive`
+    : `Date must be between ${minDate.toDateString()} and ${maxDate.toDateString()}`,
+}
+
+let ruleMessages: RuleMessages = { ...DEFAULT_RULE_MESSAGES }
+
+function say<K extends keyof RuleMessages>(key: K, ...[params]: RuleMessages[K] extends RuleMessage<infer P> ? (P extends void ? [] : [P]) : never): string {
+  const message = ruleMessages[key] as RuleMessage<unknown>
+
+  return typeof message === 'function' ? message(params) : message
+}
+
+const EMAIL_REGEX = /^(?:[^<>()[\]\\.,;:\s@"]+(?:\.[^<>()[\]\\.,;:\s@"]+)*|".+")@(?:\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]|(?:[a-z\-0-9]+\.)+[a-z]{2,})$/i
+const CODE_REGEX = /^[a-z_]+$/
+const SLUG_REGEX = /^[a-z0-9_]+$/
+const PHONE_SEPARATORS_REGEX = /[\s.()-]/g
+
+/** `FR` takes French numbers, national or `+33`; `E164` an international `+` number, separators allowed. */
+export const PHONE_FORMATS = {
+  FR: /^(?:\+?33 ?|0)[1-9](?:[-. ]?\d{2}){4}$/,
+  E164: /^\+[1-9]\d{6,14}$/,
+}
+
+export type PhoneFormat = keyof typeof PHONE_FORMATS | RegExp
+
+export interface IsUrlOptions {
+  /** Accepted `URL.protocol` values, colon included. Defaults to `http:` and `https:`. */
+  protocols?: string[]
+}
+
 function compareNumber(comparator: 'lt' | 'gt' | 'gte' | 'lte' | 'eq' | 'neq', nb: number): RuleFunction<number | undefined | null> {
   return (value: number | undefined | null) => {
     value ??= 0
 
     switch (comparator) {
       case 'eq':
-        return value === nb || `Must equal ${nb}.`
+        return value === nb || say('eq', { nb })
 
       case 'neq':
-        return value !== nb || `Must not be ${nb}.`
+        return value !== nb || say('neq', { nb })
 
       case 'gt':
-        return value > nb || `Greater than ${nb}.`
+        return value > nb || say('gt', { nb })
 
       case 'gte':
-        return value >= nb || `At least ${nb}.`
+        return value >= nb || say('gte', { nb })
 
       case 'lt':
-        return value < nb || `Less than ${nb}.`
+        return value < nb || say('lt', { nb })
 
       case 'lte':
-        return value <= nb || `At most ${nb}.`
+        return value <= nb || say('lte', { nb })
       default:
         return `Invalid comparator`
     }
@@ -41,19 +134,38 @@ function compareNumber(comparator: 'lt' | 'gt' | 'gte' | 'lte' | 'eq' | 'neq', n
 export class Rules {
   static compareNumber = compareNumber
 
+  /** Replaces some or all of the default messages, e.g. with translations; later rule calls use them. */
+  static setMessages = (messages: Partial<RuleMessages>): void => {
+    ruleMessages = { ...ruleMessages, ...messages }
+  }
+
+  /** Puts every message back to its English default. */
+  static resetMessages = (): void => {
+    ruleMessages = { ...DEFAULT_RULE_MESSAGES }
+  }
+
+  /** Wraps any rule so a failure reads `message` instead, built from the value when a function. */
+  static withMessage = <T>(rule: RuleFunction<T>, message: string | ((value: T) => string)): RuleFunction<T> => (value: T) => {
+    const result = rule(value)
+
+    if (typeof result !== 'string')
+      return result
+
+    return typeof message === 'function' ? message(value) : message
+  }
+
   static email = (value?: string | null): boolean | string => {
     if (!value)
       return true
 
-    return (/^(?:[^<>()[\]\\.,;:\s@"]+(?:\.[^<>()[\]\\.,;:\s@"]+)*|".+")@(?:\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]|(?:[a-z\-0-9]+\.)+[a-z]{2,})$/i)
-      .test(value) || 'Invalid email'
+    return EMAIL_REGEX.test(value) || say('email')
   }
 
   static isCode = (value?: string | null): boolean | string => {
     if (!value)
       return true
 
-    return (/^[a-z_]+$/).test(value) || 'Must contain lowercase letters and underscores only'
+    return CODE_REGEX.test(value) || say('isCode')
   }
 
   static isDateBetweenHours = (minHour = 0, maxHour = 24, include = true) => (date?: Date | null) => {
@@ -63,9 +175,7 @@ export class Rules {
     const hour = date.getHours()
 
     return (include ? (hour >= minHour && hour <= maxHour) : (hour > minHour && hour < maxHour))
-      || (include
-        ? `Time must be between ${minHour}h and ${maxHour}h, inclusive`
-        : `Time must be between ${minHour}h and ${maxHour}h`)
+      || say('isDateBetweenHours', { minHour, maxHour, include })
   }
 
   static isInteger = (strict = false) => (value?: string | number | null): boolean | string => {
@@ -73,51 +183,54 @@ export class Rules {
       return true
 
     return (strict ? Number.isInteger(Number(value)) : Math.floor(Number(value)) === Number(value) * 1.0)
-      || 'Must be an integer'
+      || say('isInteger')
   }
 
   static isNumber = (value?: string | number | null): boolean | string => {
     if (value === null || value === undefined)
       return true
 
-    return !Number.isNaN(Number(value)) || 'Nombre invalide'
+    return !Number.isNaN(Number(value)) || say('isNumber')
   }
 
   static isSlug = (value?: string | null): boolean | string => {
     if (!value)
       return true
 
-    return (/^[a-z0-9_]+$/).test(value) || 'Must contain lowercase letters, numbers, and underscores only'
+    return SLUG_REGEX.test(value) || say('isSlug')
   }
 
   static isWeekDay = (date?: Date | null) => {
     if (!date)
       return true
 
-    return (date.getDay() >= 1 && date.getDay() <= 5) || 'Must be a weekday'
+    return (date.getDay() >= 1 && date.getDay() <= 5) || say('isWeekDay')
   }
 
   static lowercase = (value?: string | null): boolean | string => {
     if (!value)
       return true
 
-    return value.toLowerCase() === value || 'Must be lowercase'
+    return value.toLowerCase() === value || say('lowercase')
   }
 
-  static isUrl = (str: string, secured = false): true | string => {
+  /** `secured` alone requires `https:`; options pick the accepted protocols. */
+  static isUrl = (str: string, secured: boolean | IsUrlOptions = false): true | string => {
     try {
       const url = new URL(str)
 
-      if (secured && url.protocol !== 'https:')
-        return 'URL must use HTTPS'
+      if (secured === true && url.protocol !== 'https:')
+        return say('isUrlSecured')
 
-      if (!['http:', 'https:'].includes(url.protocol))
-        return 'Must be an HTTP or HTTPS URL'
+      const protocols = (typeof secured === 'object' && secured.protocols) || DEFAULT_URL_PROTOCOLS
+
+      if (!protocols.includes(url.protocol))
+        return say('isUrlProtocol', { protocols })
 
       return true
     }
     catch {
-      return 'Must be a valid URL'
+      return say('isUrl')
     }
   }
 
@@ -128,7 +241,7 @@ export class Rules {
       if (!value)
         return true
 
-      return ((value?.length || 0) <= length) || `Max length is ${length} characters`
+      return ((value?.length || 0) <= length) || say('maxLength', { length })
     }
 
   static min = (nb: number, eq = true) => compareNumber(eq ? 'gte' : 'gt', nb)
@@ -138,38 +251,44 @@ export class Rules {
       if (!value)
         return true
 
-      return ((value?.length || 0) >= length) || `Min length is ${length} characters`
+      return ((value?.length || 0) >= length) || say('minLength', { length })
     }
 
   static nonEmptyString = (value?: string | null): boolean | string => {
-    return !value ? 'Required' : value.trim().length > 0 || 'Required'
+    return !value ? say('required') : value.trim().length > 0 || say('required')
   }
 
   static nonZero = (value?: number | null): boolean | string => {
-    return typeof value === 'number' ? (value !== 0) || 'Required' : Boolean(value) || 'Required'
+    return typeof value === 'number' ? (value !== 0) || say('required') : Boolean(value) || say('required')
   }
 
-  static phone = (value?: string | number | null): boolean | string => {
+  /** French numbers by default; `format` takes `E164` or a pattern of your own. */
+  static phone = (value?: string | number | null, format: PhoneFormat = 'FR'): boolean | string => {
     if (!value)
       return true
 
-    return (/^(?:\+?33 ?|0)[1-9](?:[-. ]?\d{2}){4}$/).test(value.toString()) || 'Invalid phone number'
+    const text = value.toString()
+    const valid = format === 'E164'
+      ? PHONE_FORMATS.E164.test(text.replace(PHONE_SEPARATORS_REGEX, ''))
+      : (typeof format === 'string' ? PHONE_FORMATS[format] : format).test(text)
+
+    return valid || say('phone')
   }
 
   static required = (value?: any): boolean | string => {
     if (value === undefined || value === null)
-      return 'Required'
+      return say('required')
 
     if (typeof value === 'number')
       return true
 
     if (Array.isArray(value))
-      return value.length > 0 || 'Required'
+      return value.length > 0 || say('required')
 
     if (typeof value === 'string')
-      return value.trim().length > 0 || 'Required'
+      return value.trim().length > 0 || say('required')
 
-    return typeof value === 'object' ? Object.keys(value).length > 0 || 'Required' : Boolean(value) || 'Required'
+    return typeof value === 'object' ? Object.keys(value).length > 0 || say('required') : Boolean(value) || say('required')
   }
 
   static isAfterDay = (date: Date, include = true) => (value?: Date | null) => {
@@ -184,9 +303,7 @@ export class Rules {
       ? value >= normalizedDate
       : value > normalizedDate
 
-    return comparison || (include
-      ? `Date must be on or after ${normalizedDate.toDateString()}`
-      : `Date must be after ${normalizedDate.toDateString()}`)
+    return comparison || say('isAfterDay', { date: normalizedDate, include })
   }
 
   static isAfterToday = (include = true) => (value?: Date | null) => {
@@ -201,9 +318,7 @@ export class Rules {
       ? value >= today
       : value > today
 
-    return comparison || (include
-      ? 'Date must be today or later'
-      : 'Date must be after today')
+    return comparison || say('isAfterToday', { include })
   }
 
   static isBetweenDays = (minDate: Date, maxDate: Date, include = true) => (value?: Date | null) => {
@@ -222,11 +337,6 @@ export class Rules {
       ? value >= normalizedMinDate && value <= normalizedMaxDate
       : value > normalizedMinDate && value < normalizedMaxDate
 
-    const minDateStr = normalizedMinDate.toDateString()
-    const maxDateStr = normalizedMaxDate.toDateString()
-
-    return comparison || (include
-      ? `Date must be between ${minDateStr} and ${maxDateStr}, inclusive`
-      : `Date must be between ${minDateStr} and ${maxDateStr}`)
+    return comparison || say('isBetweenDays', { minDate: normalizedMinDate, maxDate: normalizedMaxDate, include })
   }
 }
