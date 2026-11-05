@@ -39,8 +39,22 @@ describe('CookieBuilder', () => {
     mockCookieJar.clear()
   })
 
+  it('build() returns the string without writing the cookie', () => {
+    const result = new CookieBuilder('user_id', '12345').build()
+
+    expect(result).toBe('user_id=12345')
+    expect(mockCookieJar.size).toBe(0)
+  })
+
+  it('save() writes the cookie and returns the string', () => {
+    const result = new CookieBuilder('user_id', '12345').save()
+
+    expect(result).toBe('user_id=12345')
+    expect(mockCookieJar.get('user_id')).toBe('12345')
+  })
+
   it('should set a cookie with name and value', () => {
-    new CookieBuilder('user_id', '12345').build()
+    new CookieBuilder('user_id', '12345').save()
 
     expect(mockCookieJar.has('user_id')).toBe(true)
     expect(mockCookieJar.get('user_id')).toBe('12345')
@@ -48,7 +62,7 @@ describe('CookieBuilder', () => {
   })
 
   it('should encode name and value', () => {
-    new CookieBuilder('foo bar', 'baz qux').build()
+    new CookieBuilder('foo bar', 'baz qux').save()
 
     expect(mockCookieJar.has('foo bar')).toBe(true)
     expect(mockCookieJar.get('foo bar')).toBe('baz qux')
@@ -87,7 +101,7 @@ describe('CookieManager', () => {
   })
 
   it('should set a cookie using set()', () => {
-    CookieManager.set('theme', 'dark').build()
+    CookieManager.set('theme', 'dark').save()
 
     expect(mockCookieJar.get('theme')).toBe('dark')
   })
@@ -153,11 +167,26 @@ describe('CookieManager', () => {
     expect(mockCookieJar.size).toBe(0)
   })
 
-  it('should update a cookie', () => {
+  it('should overwrite a cookie with set()', () => {
     mockCookieJar.set('count', '1')
 
-    CookieManager.update('count', '2').build()
+    CookieManager.set('count', '2').save()
 
     expect(mockCookieJar.get('count')).toBe('2')
+  })
+
+  it('keeps the raw text of a value with invalid percent-encoding', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'document')!
+
+    Object.defineProperty(globalThis, 'document', { value: { cookie: 'bad=100%; 50%=x; ok=a%20b' }, writable: true })
+
+    try {
+      expect(CookieManager.get('bad')).toBe('100%')
+      expect(CookieManager.get('50%')).toBe('x')
+      expect(CookieManager.getAll()).toEqual({ 'bad': '100%', '50%': 'x', 'ok': 'a b' })
+    }
+    finally {
+      Object.defineProperty(globalThis, 'document', descriptor)
+    }
   })
 })

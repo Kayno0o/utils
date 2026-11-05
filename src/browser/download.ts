@@ -1,28 +1,22 @@
 import type { TextDataMimeType, TextMimeType } from '../types'
+import type { VCardContact } from '../vcard'
+import { generateVCard } from '../vcard'
+import { clickAnchor, clickBlobAnchor } from './anchor'
 
-export function downloadFile(blob: Blob, name: string) {
-  const blobUrl = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-
-  a.href = blobUrl
-  a.download = name
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+/** Downloads `blob` as `name`. */
+export function downloadFile(blob: Blob, name: string): void {
+  clickBlobAnchor(blob, name)
 }
 
-export function downloadFromUrl(url: string, name: string) {
-  const a = document.createElement('a')
-
-  a.href = url
-  a.download = name
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+export function downloadFromUrl(url: string, name: string): void {
+  clickAnchor(url, name)
 }
 
-export function downloadFromString(content: string, name: string, type: TextDataMimeType | TextMimeType = 'text/plain') {
-  const blob = new Blob([content], { type })
+export function downloadFromString(content: string, name: string, type: TextDataMimeType | TextMimeType = 'text/plain'): void {
+  downloadFile(new Blob([content], { type }), name)
+}
 
-  downloadFile(blob, name)
+/** Downloads the contacts as one `.vcf` file. */
+export function downloadVCard(contacts: VCardContact[], filename: string): void {
+  downloadFile(new Blob([contacts.map(generateVCard).join('\n')], { type: 'text/vcard' }), filename)
 }

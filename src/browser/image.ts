@@ -1,47 +1,69 @@
-import type { CropRect } from './canvas'
+import type { CanvasFormat, CropRect } from './canvas'
 import { base64DecodeBytes } from '../text'
 
+const REMOTE_URL = /^https?:/i
+
+interface LoadImageOptions {
+  /** CORS mode of the request. Defaults to `'anonymous'` for a remote (http/https) source, so drawing it does not taint a canvas; `null` sets none. */
+  crossOrigin?: 'anonymous' | 'use-credentials' | null
+}
+
+function readAsDataUrl(file: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.addEventListener('load', () => resolve(String(reader.result)))
+    reader.addEventListener('error', () => reject(new Error('Failed to read file')))
+    reader.readAsDataURL(file)
+  })
+}
+
+function loadImageElement(src: string, options: LoadImageOptions = {}): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const crossOrigin = options.crossOrigin === undefined ? (REMOTE_URL.test(src) ? 'anonymous' : null) : options.crossOrigin
+
+    if (crossOrigin)
+      img.crossOrigin = crossOrigin
+
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Could not load image'))
+    img.src = src
+  })
+}
+
+/** Loads `imageUrl`, scales it down to `maxWidth` / `maxHeight` and re-encodes it as a data URL (webp by default); rejects with an `Error` when the image cannot load. */
 export async function convertImage(imageUrl: string, options?: {
-  format?: 'image/webp' | 'image/png' | 'image/jpeg'
+  format?: CanvasFormat
   maxHeight?: number
   maxWidth?: number
   quality?: number
 }): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
+  const img = await loadImageElement(imageUrl)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
 
-    if (!ctx)
-      return reject(new Error('Context not found'))
+  if (!ctx)
+    throw new Error('Context not found')
 
-    const img = new Image()
+  let width = img.width
+  let height = img.height
 
-    img.crossOrigin = 'anonymous'
-    img.src = imageUrl
+  if (options?.maxWidth && width > options.maxWidth) {
+    height *= options.maxWidth / width
+    width = options.maxWidth
+  }
 
-    img.onload = () => {
-      let width = img.width
-      let height = img.height
+  if (options?.maxHeight && height > options.maxHeight) {
+    width *= options.maxHeight / height
+    height = options.maxHeight
+  }
 
-      if (options?.maxWidth && width > options.maxWidth) {
-        height *= options.maxWidth / width
-        width = options.maxWidth
-      }
+  canvas.width = width
+  canvas.height = height
+  ctx.drawImage(img, 0, 0, width, height)
 
-      if (options?.maxHeight && height > options.maxHeight) {
-        width *= options.maxHeight / height
-        height = options.maxHeight
-      }
-
-      canvas.width = width
-      canvas.height = height
-      ctx.drawImage(img, 0, 0, width, height)
-
-      resolve(canvas.toDataURL(options?.format ?? 'image/webp', options?.quality ?? 0.8))
-    }
-
-    img.onerror = reject
-  })
+  return canvas.toDataURL(options?.format ?? 'image/webp', options?.quality ?? 0.8)
 }
 
 export interface LoadedImage { src: string, width: number, height: number }
@@ -52,31 +74,7 @@ export async function loadImageFromFile(file: File): Promise<LoadedImage> {
   if (!file.type.startsWith('image/'))
     throw new Error('File is not an image')
 
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-
-    reader.onload = async () => {
-      try {
-        resolve(await loadImageDimensions(reader.result as string))
-      }
-      catch (e) {
-        reject(e)
-      }
-    }
-
-    reader.onerror = () => reject(new Error('Failed to read file'))
-    reader.readAsDataURL(file)
-  })
-}
-
-function loadImageElement(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('Could not load image'))
-    img.src = src
-  })
+  return loadImageDimensions(await readAsDataUrl(file))
 }
 
 /** Resolves natural dimensions of an image URL (data URL or remote). */
@@ -87,7 +85,7 @@ export async function loadImageDimensions(src: string): Promise<LoadedImage> {
 }
 
 export interface CropImageOptions {
-  format?: 'image/webp' | 'image/png' | 'image/jpeg'
+  format?: CanvasFormat
   quality?: number
   /** Output width in pixels. Defaults to the crop's own width, or to whatever keeps `height` at the crop ratio. */
   width?: number
@@ -162,18 +160,9 @@ export function dataUrlToBlob(src: string): Blob {
   return new Blob([bytes], { type: head.slice(head.indexOf(':') + 1).split(';')[0] || 'application/octet-stream' })
 }
 
-/** Read a File into a base64 data URL (resolves null for a missing file). */
-export async function base64FromFile(file?: File | null): Promise<string | null> {
-  return new Promise((resolve, reject) => {
-    if (!file)
-      return resolve(null)
-
-    const reader = new FileReader()
-
-    reader.addEventListener('load', () => resolve(String(reader.result)))
-    reader.addEventListener('error', () => reject(new Error('Failed to read file')))
-    reader.readAsDataURL(file)
-  })
+/** Reads a File into a data URL; resolves `null` for a missing file and rejects with an `Error` when the read fails. */
+export async function readFileAsDataUrl(file?: File | null): Promise<string | null> {
+  return file ? readAsDataUrl(file) : null
 }
 
 /** Fetch a remote image URL and return it as a base64 data URL (null on failure). */
@@ -186,19 +175,19 @@ export async function resolveImageFromUrl(imageUrl: string): Promise<string | nu
 
     const blob = await res.blob()
 
-    return await base64FromFile(new File([blob], 'image', { type: blob.type }))
+    return await readFileAsDataUrl(new File([blob], 'image', { type: blob.type }))
   }
   catch {
     return null
   }
 }
 
-/** Extracts the first image File from a ClipboardEvent, or `undefined` if none. */
-export function readPastedImage(e: ClipboardEvent): File | undefined {
+/** Extracts the first image File from a ClipboardEvent, or `null` if the paste holds none. */
+export function readPastedImage(e: ClipboardEvent): File | null {
   const items = e.clipboardData?.items
 
   if (!items)
-    return undefined
+    return null
 
   for (const item of items) {
     if (item.type.startsWith('image/')) {
@@ -209,5 +198,5 @@ export function readPastedImage(e: ClipboardEvent): File | undefined {
     }
   }
 
-  return undefined
+  return null
 }

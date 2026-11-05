@@ -1,7 +1,7 @@
-/** Reads `key` as JSON from `storage` (`localStorage` by default), or `fallback` when it is missing, unreadable or storage is unavailable. */
+/** Reads `key` as JSON from `storage` (`localStorage` by default), or `fallback` when it is missing, unreadable or storage is unavailable; never throws. */
 export function getStorage<T>(key: string, fallback: T, storage?: Storage): T {
   try {
-    const raw = (storage ?? localStorage).getItem(key)
+    const raw = (storage ?? globalThis.localStorage).getItem(key)
 
     return raw === null ? fallback : JSON.parse(raw) as T
   }
@@ -10,15 +10,31 @@ export function getStorage<T>(key: string, fallback: T, storage?: Storage): T {
   }
 }
 
-export function setStorage<T>(key: string, value: T, storage: Storage = localStorage): void {
-  storage.setItem(key, JSON.stringify(value))
+/** Stores `value` as JSON under `key` (`localStorage` by default); returns `false` when the write fails (quota, private mode, SSR, disabled storage), never throws. */
+export function setStorage<T>(key: string, value: T, storage?: Storage): boolean {
+  try {
+    (storage ?? globalThis.localStorage).setItem(key, JSON.stringify(value))
+
+    return true
+  }
+  catch {
+    return false
+  }
 }
 
-export function removeStorage(key: string, storage: Storage = localStorage): void {
-  storage.removeItem(key)
+/** Removes `key` (from `localStorage` by default); returns `false` when storage is unavailable, never throws. */
+export function removeStorage(key: string, storage?: Storage): boolean {
+  try {
+    (storage ?? globalThis.localStorage).removeItem(key)
+
+    return true
+  }
+  catch {
+    return false
+  }
 }
 
-/** JSON-serializing wrapper bound to a single `Storage` (e.g. `localStorage`, `sessionStorage`). */
+/** JSON-serializing wrapper bound to a single `Storage` (e.g. `localStorage`, `sessionStorage`); no method throws. */
 export class JsonStorage {
   constructor(private readonly storage: Storage) {}
 
@@ -45,12 +61,26 @@ export class JsonStorage {
     }
   }
 
-  remove(key: string): void {
-    this.storage.removeItem(key)
+  /** Removes the value; returns `false` if storage is unavailable. */
+  remove(key: string): boolean {
+    try {
+      this.storage.removeItem(key)
+
+      return true
+    }
+    catch {
+      return false
+    }
   }
 
+  /** Whether `key` holds a value; `false` if storage is unavailable. */
   has(key: string): boolean {
-    return this.storage.getItem(key) !== null
+    try {
+      return this.storage.getItem(key) !== null
+    }
+    catch {
+      return false
+    }
   }
 
   /** Reads the value; if absent or unparseable, computes it via `factory`, stores it, and returns it. */
@@ -79,16 +109,16 @@ export class JsonStorage {
     return value
   }
 
-  /** Read-modify-write: applies `fn` to the current value (or `fallback`) and stores the result. */
-  update<T>(key: string, fn: (prev: T) => T, fallback: T): void {
-    this.set(key, fn(this.get(key, fallback)))
+  /** Read-modify-write: applies `fn` to the current value (or `fallback`) and stores the result; returns `false` if the write fails. */
+  update<T>(key: string, fn: (prev: T) => T, fallback: T): boolean {
+    return this.set(key, fn(this.get(key, fallback)))
   }
 }
 
 /** Lazily-resolved singleton so the `Storage` global is only touched on first use (SSR/worker-safe). */
-function lazyJsonStorage(getStorage: () => Storage): JsonStorage {
+function lazyJsonStorage(resolveStorage: () => Storage): JsonStorage {
   let instance: JsonStorage | undefined
-  const resolve = (): JsonStorage => instance ??= new JsonStorage(getStorage())
+  const resolve = (): JsonStorage => instance ??= new JsonStorage(resolveStorage())
 
   return new Proxy({} as JsonStorage, {
     get(_target, prop) {
@@ -99,10 +129,5 @@ function lazyJsonStorage(getStorage: () => Storage): JsonStorage {
   })
 }
 
-export const jsonLocalStorage = lazyJsonStorage(() => localStorage)
-export const jsonSessionStorage = lazyJsonStorage(() => sessionStorage)
-
-/** Reads a resolved CSS custom property from the document root (e.g. `--color-accent`). */
-export function cssVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-}
+export const jsonLocalStorage = lazyJsonStorage(() => globalThis.localStorage)
+export const jsonSessionStorage = lazyJsonStorage(() => globalThis.sessionStorage)

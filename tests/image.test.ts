@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test as it, spyOn } from 'bun:test'
 import { getPlaceholderUrl } from '../src'
-import { dataUrlToBlob, resolveImageFromUrl, transformImage } from '../src/browser/image'
+import { convertImage, cropImage, dataUrlToBlob, loadImageFromFile, readFileAsDataUrl, readPastedImage, resolveImageFromUrl, transformImage } from '../src/browser/image'
 
 describe('getPlaceholderUrl function', () => {
   it('should return a default URL when no props are provided', () => {
@@ -150,5 +150,105 @@ describe('transformImage function', () => {
 
   it('outputs the given format and quality', async () => {
     expect((await transformImage('a.png', { rotate: 0, flipH: false, flipV: false }, { format: 'image/webp', quality: 0.7 })).src).toBe('image/webp|0.7')
+  })
+})
+
+describe('image loading', () => {
+  const originals = { Image: globalThis.Image, document: globalThis.document, FileReader: globalThis.FileReader }
+  const loaded: { src: string, crossOrigin: string | undefined }[] = []
+  let failLoad = false
+
+  beforeAll(() => {
+    globalThis.Image = class {
+      width = 40
+      height = 20
+      naturalWidth = 40
+      naturalHeight = 20
+      crossOrigin: string | undefined
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      #src = ''
+
+      get src() {
+        return this.#src
+      }
+
+      set src(value: string) {
+        this.#src = value
+        loaded.push({ src: value, crossOrigin: this.crossOrigin })
+        queueMicrotask(() => failLoad ? this.onerror?.() : this.onload?.())
+      }
+    } as unknown as typeof Image
+    globalThis.document = {
+      createElement: () => ({ getContext: () => ({ drawImage: () => undefined, translate: () => undefined, scale: () => undefined, rotate: () => undefined }), toDataURL: (format: string) => `${format}|` }),
+    } as unknown as Document
+  })
+
+  afterEach(() => {
+    loaded.length = 0
+    failLoad = false
+    globalThis.FileReader = originals.FileReader
+  })
+
+  afterAll(() => {
+    globalThis.Image = originals.Image
+    globalThis.document = originals.document
+  })
+
+  it('requests a remote image anonymously so a crop does not taint the canvas', async () => {
+    await cropImage('https://example.com/a.png', { x: 0, y: 0, w: 10, h: 10 })
+    await convertImage('http://example.com/a.png')
+
+    expect(loaded.map(entry => entry.crossOrigin)).toEqual(['anonymous', 'anonymous'])
+  })
+
+  it('leaves a data or blob source without a crossOrigin', async () => {
+    await transformImage('data:image/png;base64,AA==', { rotate: 0, flipH: false, flipV: false })
+    await transformImage('blob:http://example.com/id', { rotate: 0, flipH: false, flipV: false })
+
+    expect(loaded.map(entry => entry.crossOrigin)).toEqual([undefined, undefined])
+  })
+
+  it('convertImage rejects with an Error when the image fails to load', async () => {
+    failLoad = true
+
+    await expect(convertImage('https://example.com/a.png')).rejects.toThrow(new Error('Could not load image'))
+  })
+
+  it('convertImage encodes to the given MIME type', async () => {
+    expect(await convertImage('data:image/png;base64,AA==', { format: 'image/jpeg' })).toBe('image/jpeg|')
+    expect(await convertImage('data:image/png;base64,AA==')).toBe('image/webp|')
+  })
+
+  it('readFileAsDataUrl resolves null for no file and rejects with an Error when the read fails', async () => {
+    globalThis.FileReader = class extends EventTarget {
+      readAsDataURL() {
+        this.dispatchEvent(new Event('error'))
+      }
+    } as unknown as typeof FileReader
+
+    expect(await readFileAsDataUrl(null)).toBeNull()
+    expect(await readFileAsDataUrl(undefined)).toBeNull()
+
+    await expect(readFileAsDataUrl(new File(['x'], 'a.png'))).rejects.toThrow(new Error('Failed to read file'))
+  })
+
+  it('loadImageFromFile shares the reader and rejects with an Error when it fails', async () => {
+    globalThis.FileReader = class extends EventTarget {
+      readAsDataURL() {
+        this.dispatchEvent(new Event('error'))
+      }
+    } as unknown as typeof FileReader
+
+    await expect(loadImageFromFile(new File(['x'], 'a.png', { type: 'image/png' }))).rejects.toThrow(new Error('Failed to read file'))
+  })
+
+  it('readPastedImage returns the first image file, or null when the paste holds none', () => {
+    const file = new File(['x'], 'a.png', { type: 'image/png' })
+    const paste = (items?: unknown[]) => ({ clipboardData: items && { items } }) as unknown as ClipboardEvent
+
+    expect(readPastedImage(paste([{ type: 'text/plain', getAsFile: () => null }, { type: 'image/png', getAsFile: () => file }]))).toBe(file)
+    expect(readPastedImage(paste([{ type: 'text/plain', getAsFile: () => null }]))).toBeNull()
+    expect(readPastedImage(paste())).toBeNull()
   })
 })

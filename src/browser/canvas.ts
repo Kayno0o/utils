@@ -1,10 +1,12 @@
 import { clamp } from '../number'
+import { clickBlobAnchor } from './anchor'
 
 export interface CropRect { x: number, y: number, w: number, h: number }
 export type CropHandle = 'nw' | 'ne' | 'sw' | 'se'
 export interface Point { x: number, y: number }
 export interface WrappedText { lines: string[], fontSize: number }
-export type CanvasFormat = 'png' | 'jpeg' | 'webp'
+/** An image MIME type a canvas can encode to (what `toBlob` and `toDataURL` take). */
+export type CanvasFormat = 'image/png' | 'image/jpeg' | 'image/webp'
 
 /** Clamps crop dimensions and position to stay within image bounds. */
 export function fitCropToImage(crop: CropRect, imgW: number, imgH: number, minSize = 1): CropRect {
@@ -224,37 +226,24 @@ export function applyLowQuality(
   ctx.putImageData(imageData, 0, 0)
 }
 
-export function canvasMimeType(format: CanvasFormat): string {
-  return format === 'png' ? 'image/png' : format === 'jpeg' ? 'image/jpeg' : 'image/webp'
-}
-
 export function canvasExtension(format: CanvasFormat): string {
-  return format === 'jpeg' ? 'jpg' : format
+  return format === 'image/jpeg' ? 'jpg' : format.slice('image/'.length)
 }
 
 /** Downloads the canvas as a file. */
-export function downloadCanvas(canvas: HTMLCanvasElement, filename: string, format: CanvasFormat = 'png', quality?: number): void {
+export function downloadCanvas(canvas: HTMLCanvasElement, filename: string, format: CanvasFormat = 'image/png', quality?: number): void {
   canvas.toBlob((blob) => {
-    if (!blob)
-      return
-
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-
-    a.href = url
-    a.download = filename
-    a.click()
-    URL.revokeObjectURL(url)
-  }, canvasMimeType(format), quality)
+    if (blob)
+      clickBlobAnchor(blob, filename)
+  }, format, quality)
 }
 
 /** Copies the canvas to the clipboard as an image. */
-export async function copyCanvasToClipboard(canvas: HTMLCanvasElement, format: CanvasFormat = 'png', quality?: number): Promise<void> {
-  const mime = canvasMimeType(format)
-  const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, mime, quality))
+export async function copyCanvasToClipboard(canvas: HTMLCanvasElement, format: CanvasFormat = 'image/png', quality?: number): Promise<void> {
+  const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, format, quality))
 
   if (!blob || !navigator.clipboard?.write)
     throw new Error('Clipboard API not available')
 
-  await navigator.clipboard.write([new ClipboardItem({ [mime]: blob })])
+  await navigator.clipboard.write([new ClipboardItem({ [format]: blob })])
 }

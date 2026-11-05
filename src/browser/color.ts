@@ -29,3 +29,8 @@ export function parseCssColor(input: string): Color | null {
 
   return Color.from('rgb', [r, g, b, a])
 }
+
+/** Reads a resolved CSS custom property from the document root (e.g. `--color-accent`). */
+export function cssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}

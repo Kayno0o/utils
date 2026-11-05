@@ -166,14 +166,3 @@ export function generateVCard(contact: VCardContact): string {
 
   return lines.join('\n')
 }
-
-export function downloadVCard(contacts: VCardContact[], filename: string): void {
-  const blob = new Blob([contacts.map(generateVCard).join('\n')], { type: 'text/vcard' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}

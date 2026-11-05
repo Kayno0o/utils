@@ -60,6 +60,7 @@ export class CookieBuilder {
     return this
   }
 
+  /** Returns the `Set-Cookie` style string without writing anything. */
   build(): string {
     let cookieString = `${encodeURIComponent(this.name)}=${encodeURIComponent(this.value)}`
 
@@ -72,9 +73,25 @@ export class CookieBuilder {
       }
     }
 
+    return cookieString
+  }
+
+  /** Writes the cookie to `document.cookie` and returns the string written. */
+  save(): string {
+    const cookieString = this.build()
+
     document.cookie = cookieString
 
     return cookieString
+  }
+}
+
+function decodeSafely(text: string): string {
+  try {
+    return decodeURIComponent(text)
+  }
+  catch {
+    return text
   }
 }
 
@@ -86,6 +103,7 @@ function splitCookie(cookie: string): [string, string] {
 }
 
 export class CookieManager {
+  /** Starts a cookie; chain options then `.save()` to write it. */
   static set(name: string, value: string): CookieBuilder {
     return new CookieBuilder(name, value)
   }
@@ -96,8 +114,8 @@ export class CookieManager {
     for (const cookie of cookies) {
       const [cookieName, cookieValue] = splitCookie(cookie)
 
-      if (decodeURIComponent(cookieName!) === name) {
-        return decodeURIComponent(cookieValue || '')
+      if (decodeSafely(cookieName!) === name) {
+        return decodeSafely(cookieValue || '')
       }
     }
 
@@ -112,7 +130,7 @@ export class CookieManager {
       const [name, value] = splitCookie(cookie)
 
       if (name) {
-        cookies[decodeURIComponent(name)] = decodeURIComponent(value || '')
+        cookies[decodeSafely(name)] = decodeSafely(value || '')
       }
     }
 
@@ -130,7 +148,7 @@ export class CookieManager {
     if (options.domain)
       builder.domain(options.domain)
 
-    builder.build()
+    builder.save()
   }
 
   static exists(name: string): boolean {
@@ -143,9 +161,5 @@ export class CookieManager {
     for (const name in cookies) {
       this.delete(name, options)
     }
-  }
-
-  static update(name: string, value: string): CookieBuilder {
-    return new CookieBuilder(name, value)
   }
 }

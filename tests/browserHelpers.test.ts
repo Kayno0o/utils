@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'bun:test'
+import { downloadCanvas } from '../src/browser/canvas'
 import { getHtmlOrText, readClipboardEntries, readDataTransferEntries } from '../src/browser/clipboard'
-import { downloadFile, downloadFromString, downloadFromUrl } from '../src/browser/download'
+import { downloadFile, downloadFromString, downloadFromUrl, downloadVCard } from '../src/browser/download'
 import { isMobile, isMobileDevice, isMobileOrTablet } from '../src/browser/isMobile'
-import { downloadVCard } from '../src/vcard'
 
 const globals = globalThis as Record<string, unknown>
 const original = { window: globals.window, navigator: globals.navigator, document: globals.document }
@@ -85,7 +85,7 @@ function stubDownload() {
   stub('document', {
     createElement: () => {
       const anchor = { href: '', download: '', clicked: false, click() {
-        anchor.clicked = attached.has(anchor) || anchors.includes(anchor)
+        anchor.clicked = attached.has(anchor)
       } }
 
       anchors.push(anchor)
@@ -107,6 +107,10 @@ function stubDownload() {
 }
 
 describe('download helpers', () => {
+  afterEach(async () => {
+    await new Promise(resolve => setTimeout(resolve, 0))
+  })
+
   it('downloadFromUrl clicks a temporary anchor and removes it', () => {
     const { anchors, attached } = stubDownload()
 
@@ -117,7 +121,7 @@ describe('download helpers', () => {
     expect(attached.size).toBe(0)
   })
 
-  it('downloadFile points an anchor at an object url of the blob', () => {
+  it('downloadFile points an attached anchor at an object url of the blob, revoked after the click', async () => {
     const { anchors, attached, urls } = stubDownload()
     const blob = new Blob(['x'])
 
@@ -126,6 +130,35 @@ describe('download helpers', () => {
     expect(urls.created).toEqual([blob])
     expect(anchors[0]).toMatchObject({ href: 'blob:test', download: 'x.bin', clicked: true })
     expect(attached.size).toBe(0)
+    expect(urls.revoked).toEqual([])
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(urls.revoked).toEqual(['blob:test'])
+  })
+
+  it('downloadFromUrl never revokes the url it was given', async () => {
+    const { urls } = stubDownload()
+
+    downloadFromUrl('blob:other', 'a.txt')
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(urls.revoked).toEqual([])
+  })
+
+  it('downloadCanvas downloads the encoded blob through an attached anchor', async () => {
+    const { anchors, urls } = stubDownload()
+    const asked: unknown[] = []
+    const canvas = { toBlob: (cb: (blob: Blob | null) => void, ...args: unknown[]) => {
+      asked.push(...args)
+      cb(new Blob(['png']))
+    } }
+
+    downloadCanvas(canvas as unknown as HTMLCanvasElement, 'a.png', 'image/webp', 0.5)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(asked).toEqual(['image/webp', 0.5])
+    expect(anchors[0]).toMatchObject({ download: 'a.png', clicked: true })
+    expect(urls.revoked).toEqual(['blob:test'])
   })
 
   it('downloadFromString wraps the content in a blob of the given type, text/plain by default', async () => {
@@ -141,11 +174,12 @@ describe('download helpers', () => {
   it('downloadVCard downloads the contacts as text/vcard and revokes the url', async () => {
     const { anchors, urls } = stubDownload()
 
-    downloadVCard([{ fullName: 'Ada Lovelace' } as never], 'ada.vcf')
+    downloadVCard([{ given_name: 'Ada' }], 'ada.vcf')
+    await new Promise(resolve => setTimeout(resolve, 0))
 
     expect(urls.created[0]!.type).toBe('text/vcard')
     expect(await urls.created[0]!.text()).toContain('BEGIN:VCARD')
-    expect(anchors[0]).toMatchObject({ href: 'blob:test', download: 'ada.vcf' })
+    expect(anchors[0]).toMatchObject({ href: 'blob:test', download: 'ada.vcf', clicked: true })
     expect(urls.revoked).toEqual(['blob:test'])
   })
 })

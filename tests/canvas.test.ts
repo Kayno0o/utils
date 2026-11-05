@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import {
   applyLowQuality,
   canvasExtension,
-  canvasMimeType,
+
   createCenteredCrop,
   fitCropToImage,
   moveCrop,
@@ -140,17 +140,11 @@ describe('wrapTextForWidth', () => {
   })
 })
 
-describe('canvasMimeType / canvasExtension', () => {
-  it('maps formats to mime types', () => {
-    expect(canvasMimeType('png')).toBe('image/png')
-    expect(canvasMimeType('jpeg')).toBe('image/jpeg')
-    expect(canvasMimeType('webp')).toBe('image/webp')
-  })
-
+describe('canvasExtension', () => {
   it('uses jpg extension for jpeg', () => {
-    expect(canvasExtension('jpeg')).toBe('jpg')
-    expect(canvasExtension('png')).toBe('png')
-    expect(canvasExtension('webp')).toBe('webp')
+    expect(canvasExtension('image/jpeg')).toBe('jpg')
+    expect(canvasExtension('image/png')).toBe('png')
+    expect(canvasExtension('image/webp')).toBe('webp')
   })
 })
 
