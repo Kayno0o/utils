@@ -1,8 +1,9 @@
 /** @deprecated use `getStorage` */
 export const storageGet = getStorage
-export function getStorage<T>(key: string, fallback: T): T {
+/** Reads `key` as JSON from `storage` (`localStorage` by default), or `fallback` when it is missing, unreadable or storage is unavailable. */
+export function getStorage<T>(key: string, fallback: T, storage?: Storage): T {
   try {
-    const raw = localStorage.getItem(key)
+    const raw = (storage ?? localStorage).getItem(key)
 
     return raw === null ? fallback : JSON.parse(raw) as T
   }
@@ -13,14 +14,14 @@ export function getStorage<T>(key: string, fallback: T): T {
 
 /** @deprecated use `setStorage` */
 export const storageSet = setStorage
-export function setStorage<T>(key: string, value: T): void {
-  localStorage.setItem(key, JSON.stringify(value))
+export function setStorage<T>(key: string, value: T, storage: Storage = localStorage): void {
+  storage.setItem(key, JSON.stringify(value))
 }
 
 /** @deprecated use `removeStorage` */
 export const storageRemove = removeStorage
-export function removeStorage(key: string): void {
-  localStorage.removeItem(key)
+export function removeStorage(key: string, storage: Storage = localStorage): void {
+  storage.removeItem(key)
 }
 
 /** JSON-serializing wrapper bound to a single `Storage` (e.g. `localStorage`, `sessionStorage`). */
