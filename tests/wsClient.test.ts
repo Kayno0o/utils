@@ -159,6 +159,21 @@ describe('createWsClient', () => {
     expect(client.ready()).toBe(false)
   })
 
+  it('drops a frame that is not a JSON object and keeps handling the next ones', () => {
+    const received: unknown[] = []
+    const invalid: unknown[] = []
+
+    createWsClient({ path: '/ws', onMessage: msg => received.push(msg), onInvalidMessage: data => invalid.push(data) })
+    last().open()
+
+    last().onmessage?.({ data: 'not json' })
+    last().onmessage?.({ data: 'null' })
+    last().receive({ type: 'chat' })
+
+    expect(invalid).toEqual(['not json', 'null'])
+    expect(received).toEqual([{ type: 'chat' }])
+  })
+
   it('does not reconnect by default', () => {
     createWsClient({ path: '/ws', onMessage: () => undefined })
     last().close()

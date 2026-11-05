@@ -6,6 +6,8 @@ export interface WsClientOptions<TMsg> {
   onReady?: () => void
   onMessage: (msg: TMsg) => void
   onError?: () => void
+  /** Fired for a frame that is not a JSON object; the frame is dropped and the client keeps running. */
+  onInvalidMessage?: (data: unknown, error: unknown) => void
   onClose?: () => void
   /** Auto-reconnect 2s after a drop. Off by default (a game socket needs a full rejoin, not a silent reconnect). */
   reconnect?: boolean | number
@@ -45,7 +47,19 @@ export function createWsClient<TMsg extends { type: string }>(opts: WsClientOpti
     }
 
     ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data as string) as TMsg
+      let msg: TMsg
+
+      try {
+        msg = JSON.parse(e.data as string) as TMsg
+
+        if (typeof msg !== 'object' || msg === null)
+          throw new TypeError('Message is not a JSON object')
+      }
+      catch (error) {
+        opts.onInvalidMessage?.(e.data, error)
+
+        return
+      }
 
       if (msg.type === 'authed') {
         markReady()
