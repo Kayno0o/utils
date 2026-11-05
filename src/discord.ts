@@ -29,7 +29,7 @@ export function getDiscordBannerUrl(userId: string, bannerHash: string): string 
 }
 
 /** POSTs `payload` and `files` to a Discord webhook, with a default timeout. Throws `FetchError` on a non-2xx response. */
-export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPayload, files: DiscordWebhookFile[] = [], options: DiscordFetchOptions = {}): Promise<any> {
+export async function sendDiscordWebhook<T = unknown>(url: string, payload: DiscordWebhookPayload, files: DiscordWebhookFile[] = [], options: DiscordFetchOptions = {}): Promise<T> {
   const formData = new FormData()
 
   formData.append('payload_json', JSON.stringify(payload))
@@ -42,5 +42,5 @@ export async function sendDiscordWebhook(url: string, payload: DiscordWebhookPay
   }
 
   // Discord answers 204 with no body unless the url carries `?wait=true`, which `fetchJson` reads as null.
-  return await fetchJson(url, { ...options, timeout: options.timeout ?? DEFAULT_FETCH_TIMEOUT_MS, method: 'POST', body: formData })
+  return await fetchJson<T>(url, { ...options, timeout: options.timeout ?? DEFAULT_FETCH_TIMEOUT_MS, method: 'POST', body: formData })
 }

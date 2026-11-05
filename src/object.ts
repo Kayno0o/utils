@@ -2,11 +2,14 @@ import type { Key, RecursivePartial } from './types'
 import { mapRange } from './number'
 
 /** `object[key]` when the key exists, a falsy value included, else the value at its dotted path; a non-object, `null` included, is returned as is. */
-export function getObjectValue(object: any, key: Key): any {
+export function getObjectValue(object: unknown, key: Key): unknown {
   if (typeof object !== 'object' || object === null)
     return object
 
-  return key in object ? object[key] : String(key).split('.').reduce((acc, key) => acc?.[key], object)
+  if (key in object)
+    return (object as Record<Key, unknown>)[key]
+
+  return String(key).split('.').reduce<unknown>((acc, part) => (acc as Record<string, unknown> | null | undefined)?.[part], object)
 }
 
 /** True for `{}` literals and `Object.create(null)`, false for arrays, class instances and `null`. */
@@ -86,43 +89,43 @@ function cloneValue(value: unknown): unknown {
 export function interpolate<T extends number>(start: T, end: T, frameCount: number): T[]
 export function interpolate<T extends object>(start: RecursivePartial<T>, end: RecursivePartial<T>, frameCount: number): T[]
 export function interpolate<T extends object | number>(start: RecursivePartial<T>, end: RecursivePartial<T>, frameCount: number): T[] {
-  const frames: any[] = []
+  const frames: T[] = []
   // A missing start value holds at the end value.
   const step = (i: number, from: number | undefined, to: number): number => frameCount === 0 || typeof from !== 'number' ? to : mapRange(i, 0, frameCount, from, to)
 
   if (typeof start === 'number' && typeof end === 'number') {
     for (let i = 0; i <= frameCount; i++)
-      frames.push(step(i, start, end))
+      frames.push(step(i, start, end) as T)
 
     return frames
   }
 
   if (typeof start === 'object' && typeof end === 'object') {
     for (let i = 0; i <= frameCount; i++) {
-      const interpolatedFrame: T = {} as T
+      const interpolatedFrame: Record<PropertyKey, unknown> = {}
 
       for (const key in end) {
         if (Object.hasOwn(end, key)) {
           if (typeof end[key] === 'number' && typeof start[key] === 'number') {
-            interpolatedFrame[key] = step(i, start[key], end[key]) as any
+            interpolatedFrame[key] = step(i, start[key], end[key])
           }
           else if (Array.isArray(end[key]) && Array.isArray(start[key])) {
             const from = start[key] as unknown[]
 
-            interpolatedFrame[key] = (end[key] as unknown[]).map((to, index) => typeof to === 'number' ? step(i, from[index] as number | undefined, to) : to) as any
+            interpolatedFrame[key] = (end[key] as unknown[]).map((to, index) => typeof to === 'number' ? step(i, from[index] as number | undefined, to) : to)
           }
           else {
-            interpolatedFrame[key] = end[key] as any
+            interpolatedFrame[key] = end[key]
           }
         }
       }
 
       for (const key in start) {
         if (Object.hasOwn(start, key) && !Object.hasOwn(end, key))
-          interpolatedFrame[key] = start[key] as any
+          interpolatedFrame[key] = start[key]
       }
 
-      frames.push(interpolatedFrame)
+      frames.push(interpolatedFrame as T)
     }
 
     return frames
@@ -132,9 +135,9 @@ export function interpolate<T extends object | number>(start: RecursivePartial<T
 }
 
 export function toJSONWithGetters(obj: object) {
-  const jsonObj = Object.assign({}, obj)
+  const jsonObj = Object.assign({} as Record<string, unknown>, obj)
 
-  const addGetters = (obj: any, target: any) => {
+  const addGetters = (obj: object, target: Record<string, unknown>) => {
     if (obj === Object.prototype)
       return
 
@@ -145,7 +148,7 @@ export function toJSONWithGetters(obj: object) {
       const hasGetter = desc && typeof desc.get === 'function'
 
       if (hasGetter)
-        target[key] = obj[key]
+        target[key] = (obj as Record<string, unknown>)[key]
     }
     addGetters(Object.getPrototypeOf(obj), target)
   }

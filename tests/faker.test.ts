@@ -6,7 +6,7 @@ const UUID_V4_REGEX = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-
 const MONTH_REGEX = /^(0[1-9]|1[0-2])$/
 
 describe('faker.paragraph function', () => {
-  const notEmpty = (value: any) => Boolean(value)
+  const notEmpty = (value: unknown) => Boolean(value)
 
   it('should generate a random word of specified length', () => {
     const length = 5

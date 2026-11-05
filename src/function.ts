@@ -1,3 +1,5 @@
+import type { AnyFunction } from './types'
+
 /** Resolves after `ms`; an aborted `signal` rejects with its reason and clears the timer. */
 export function sleep(ms: number, { signal }: { signal?: AbortSignal | undefined } = {}): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -18,13 +20,13 @@ export function sleep(ms: number, { signal }: { signal?: AbortSignal | undefined
   })
 }
 
-export function delay<T extends (...args: any[]) => any>(ms: number, callback?: T, ...args: Parameters<T>): Promise<T extends undefined ? void : ReturnType<T>> {
+export function delay<T extends AnyFunction>(ms: number, callback?: T, ...args: Parameters<T>): Promise<ReturnType<T>> {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       try {
         const result = callback?.(...args)
 
-        resolve(result as any)
+        resolve(result)
       }
       catch (error) {
         reject(error)
@@ -42,7 +44,7 @@ export interface DebounceOptions {
   maxWait?: number
 }
 
-export interface Debounced<T extends (...args: any[]) => any> {
+export interface Debounced<T extends AnyFunction> {
   (...args: Parameters<T>): void
   /** Drops the pending call. */
   cancel: () => void
@@ -51,7 +53,7 @@ export interface Debounced<T extends (...args: any[]) => any> {
 }
 
 /** Runs `func` once calls stop for `delay`; `leading`, `trailing` and `maxWait` pick which edges of a burst run it. */
-export function debounce<T extends (...args: any[]) => any>(func: T, delay: number, { leading = false, trailing = true, maxWait }: DebounceOptions = {}): Debounced<T> {
+export function debounce<T extends AnyFunction>(func: T, delay: number, { leading = false, trailing = true, maxWait }: DebounceOptions = {}): Debounced<T> {
   const maxing = maxWait !== undefined
   const longest = Math.max(maxWait ?? 0, delay)
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -232,11 +234,11 @@ export function createRateLimiter(interval: number): (options?: { signal?: Abort
 }
 
 /** Runs `func` at most once per `delay`; by default on the first call of each window, dropping the rest. */
-export function throttle<T extends (...args: any[]) => any>(func: T, delay: number, { leading = true, trailing = false, maxWait = delay }: DebounceOptions = {}): Debounced<T> {
+export function throttle<T extends AnyFunction>(func: T, delay: number, { leading = true, trailing = false, maxWait = delay }: DebounceOptions = {}): Debounced<T> {
   return debounce(func, delay, { leading, trailing, maxWait })
 }
 
-export function once<T extends (...args: any[]) => any>(func: T): ((...args: Parameters<T>) => ReturnType<T>) {
+export function once<T extends AnyFunction>(func: T): ((...args: Parameters<T>) => ReturnType<T>) {
   let response: ReturnType<T> | undefined
   let hasRun = false
 
@@ -269,42 +271,42 @@ export function tap<T>(value: T, fn: (value: T) => void): T {
 }
 
 /** Returns a predicate that negates `predicate`. */
-export function negate<T extends any[]>(predicate: (...args: T) => boolean): ((...args: T) => boolean) {
+export function negate<T extends unknown[]>(predicate: (...args: T) => boolean): ((...args: T) => boolean) {
   return (...args: T) => !predicate(...args)
 }
 
 /** Pre-applies leading `preset` arguments to `func`. */
-export function partial<T extends (...args: any[]) => any>(func: T, ...preset: any[]): ((...args: any[]) => ReturnType<T>) {
-  return (...args: any[]) => func(...preset, ...args)
+export function partial<P extends unknown[], A extends unknown[], R>(func: (...args: [...P, ...A]) => R, ...preset: P): ((...args: A) => R) {
+  return (...args: A) => func(...preset, ...args)
 }
 
 /** Compose functions left-to-right: `pipe(f, g)(x)` is `g(f(x))`. */
-export function pipe<A extends any[], B>(fn1: (...a: A) => B): (...a: A) => B
-export function pipe<A extends any[], B, C>(fn1: (...a: A) => B, fn2: (b: B) => C): (...a: A) => C
-export function pipe<A extends any[], B, C, D>(fn1: (...a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D): (...a: A) => D
-export function pipe<A extends any[], B, C, D, E>(fn1: (...a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D, fn4: (d: D) => E): (...a: A) => E
-export function pipe(...fns: ((...args: any[]) => any)[]): (...args: any[]) => any
-export function pipe(...fns: ((...args: any[]) => any)[]) {
-  return (...args: any[]) => fns.reduce<any>((acc, fn, i) => i === 0 ? fn(...acc) : fn(acc), args)
+export function pipe<A extends unknown[], B>(fn1: (...a: A) => B): (...a: A) => B
+export function pipe<A extends unknown[], B, C>(fn1: (...a: A) => B, fn2: (b: B) => C): (...a: A) => C
+export function pipe<A extends unknown[], B, C, D>(fn1: (...a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D): (...a: A) => D
+export function pipe<A extends unknown[], B, C, D, E>(fn1: (...a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D, fn4: (d: D) => E): (...a: A) => E
+export function pipe(...fns: (AnyFunction)[]): AnyFunction
+export function pipe(...fns: (AnyFunction)[]) {
+  return (...args: unknown[]) => fns.reduce<unknown>((acc, fn, i) => i === 0 ? fn(...acc as unknown[]) : fn(acc), args)
 }
 
 /** Compose functions right-to-left: `compose(g, f)(x)` is `g(f(x))`. */
-export function compose<A extends any[], B>(fn1: (...a: A) => B): (...a: A) => B
-export function compose<A extends any[], B, C>(fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => C
-export function compose<A extends any[], B, C, D>(fn3: (c: C) => D, fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => D
-export function compose<A extends any[], B, C, D, E>(fn4: (d: D) => E, fn3: (c: C) => D, fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => E
-export function compose(...fns: ((...args: any[]) => any)[]): (...args: any[]) => any
-export function compose(...fns: ((...args: any[]) => any)[]) {
-  return (...args: any[]) => fns.reduceRight<any>((acc, fn, i) => i === fns.length - 1 ? fn(...acc) : fn(acc), args)
+export function compose<A extends unknown[], B>(fn1: (...a: A) => B): (...a: A) => B
+export function compose<A extends unknown[], B, C>(fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => C
+export function compose<A extends unknown[], B, C, D>(fn3: (c: C) => D, fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => D
+export function compose<A extends unknown[], B, C, D, E>(fn4: (d: D) => E, fn3: (c: C) => D, fn2: (b: B) => C, fn1: (...a: A) => B): (...a: A) => E
+export function compose(...fns: (AnyFunction)[]): AnyFunction
+export function compose(...fns: (AnyFunction)[]) {
+  return (...args: unknown[]) => fns.reduceRight<unknown>((acc, fn, i) => i === fns.length - 1 ? fn(...acc as unknown[]) : fn(acc), args)
 }
 
 /** Curry `func` so it can be called with arguments one (or several) at a time until `arity` is reached. */
-export function curry(func: (...args: any[]) => any, arity = func.length): ((...args: any[]) => any) {
-  return function curried(...args: any[]): any {
+export function curry(func: AnyFunction, arity = func.length): (AnyFunction) {
+  return function curried(...args: unknown[]): unknown {
     if (args.length >= arity)
       return func(...args)
 
-    return (...rest: any[]) => curried(...args, ...rest)
+    return (...rest: unknown[]) => curried(...args, ...rest)
   }
 }
 

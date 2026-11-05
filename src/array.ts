@@ -14,7 +14,7 @@ export function notNullish<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined
 }
 
-export function isEmpty(value: any): boolean {
+export function isEmpty(value: unknown): boolean {
   if (value === null || value === undefined)
     return true
 

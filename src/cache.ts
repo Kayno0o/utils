@@ -138,18 +138,18 @@ export function createTtlCache<K, V>(options?: TtlCacheOptions): TtlCache<K, V> 
   return cache
 }
 
-export interface MemoizeOptions<A extends any[]> extends TtlCacheOptions {
+export interface MemoizeOptions<A extends unknown[]> extends TtlCacheOptions {
   /** Cache key for a call. Defaults to `JSON.stringify(args)`. */
   key?: (...args: A) => string
 }
 
-export type Memoized<A extends any[], R> = ((...args: A) => R) & { cache: TtlCache<string, R> }
+export type Memoized<A extends unknown[], R> = ((...args: A) => R) & { cache: TtlCache<string, R> }
 
 /**
  * Wrap `fn` in a TTL cache keyed by its arguments. A returned promise is cached as-is,
  * so concurrent calls share one in-flight run and a rejection evicts the entry.
  */
-export function memoize<A extends any[], R>(fn: (...args: A) => R, options?: MemoizeOptions<A>): Memoized<A, R> {
+export function memoize<A extends unknown[], R>(fn: (...args: A) => R, options?: MemoizeOptions<A>): Memoized<A, R> {
   const cache = createTtlCache<string, R>(options)
   const toKey = options?.key ?? ((...args: A) => JSON.stringify(args))
 

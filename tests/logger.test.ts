@@ -3,7 +3,7 @@ import { declareCustomLogger, declareLogger, stringifyLogMessage } from '../src/
 
 afterEach(() => {
   for (const method of ['log', 'warn', 'error'] as const)
-    (console[method] as any).mockRestore?.()
+    (console[method] as unknown as { mockRestore?: () => void }).mockRestore?.()
 })
 
 describe('declareLogger', () => {

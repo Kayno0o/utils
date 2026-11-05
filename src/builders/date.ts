@@ -73,14 +73,14 @@ export function dateToObject(date: Date): DateObject {
     year4: String(date.getFullYear()),
     month: String(date.getMonth() + 1),
     month2: pad(date.getMonth() + 1),
-    month3: (currentLocale as any)[`ms-${date.getMonth() + 1}`],
-    month4: (currentLocale as any)[`m-${date.getMonth() + 1}`],
+    month3: currentLocale[`ms-${date.getMonth() + 1}` as keyof DateTranslations],
+    month4: currentLocale[`m-${date.getMonth() + 1}` as keyof DateTranslations],
     day: String(date.getDate()),
     day2: pad(date.getDate()),
     weekDay: String(date.getDay()),
     weekDay2: pad(date.getDay()),
-    weekDay3: (currentLocale as any)[`ws-${date.getDay() || 7}`],
-    weekDay4: (currentLocale as any)[`w-${date.getDay() || 7}`],
+    weekDay3: currentLocale[`ws-${date.getDay() || 7}` as keyof DateTranslations],
+    weekDay4: currentLocale[`w-${date.getDay() || 7}` as keyof DateTranslations],
     hour: String(date.getHours()),
     hour2: pad(date.getHours()),
     minute: String(date.getMinutes()),
@@ -97,13 +97,13 @@ export function formatDate(date: Date, format: FormatType): string
 export function formatDate(date: Date, builderOrFormat: DateBuilderFunction | FormatType): string {
   const d: DateObject = dateToObject(date)
 
-  const reverseFormats: Record<string, keyof DateObject> = typedObjectEntries(formats)
+  const reverseFormats: Record<string, string> = typedObjectEntries(formats)
     .reduce((acc, [key, values]) => {
       for (const value of values)
-        acc[value] = (d as any)[key]
+        acc[value] = d[key]
 
       return acc
-    }, {} as Record<string, keyof DateObject>)
+    }, {} as Record<string, string>)
 
   if (typeof builderOrFormat === 'function')
     return builderOrFormat(d, date)

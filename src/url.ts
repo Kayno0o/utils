@@ -31,8 +31,12 @@ export function buildUrlQuery(query?: object | null, { encode = true, arrayForma
   return pairs.length ? `?${pairs.join('&')}` : ''
 }
 
-export function queryToNestedObject(query: Record<string, string>): Record<string, any> {
-  const queryObj: Record<string, any> = {}
+export interface NestedQuery {
+  [key: string]: string | NestedQuery
+}
+
+export function queryToNestedObject(query: Record<string, string>): NestedQuery {
+  const queryObj: NestedQuery = {}
 
   for (let [key, value] of typedObjectEntries(query)) {
     if (!key.includes('[') || !key.includes(']')) {
@@ -49,10 +53,12 @@ export function queryToNestedObject(query: Record<string, string>): Record<strin
       key = key.slice(0, bracket)
 
     queryObj[key] ??= {}
-    let currentObj = queryObj[key]
+    const root = queryObj[key]
 
-    if (typeof queryObj[key] !== 'object')
+    if (typeof root !== 'object')
       continue
+
+    let currentObj = root
 
     for (let i = 0; i < matches.length; i++) {
       const match = matches[i]!
@@ -69,10 +75,12 @@ export function queryToNestedObject(query: Record<string, string>): Record<strin
 
       currentObj[newKey] ??= {}
 
-      if (typeof currentObj[newKey] !== 'object')
+      const next = currentObj[newKey]
+
+      if (typeof next !== 'object')
         break
 
-      currentObj = currentObj[newKey]
+      currentObj = next
     }
   }
 

@@ -329,7 +329,7 @@ describe('parseArgs function', () => {
     expect(() => parseArgs({
       args: ['--invalid=value'],
       options: {
-        invalid: {} as any,
+        invalid: {} as never,
       },
     })).toThrow('Option invalid must have either a \'type\' or \'format\' function')
   })

@@ -57,7 +57,7 @@ describe('declareGetEndpoint function', () => {
   })
 
   it('should return undefined if the endpoint does not exist', () => {
-    const result = getEndpoint('nonexistent' as any)
+    const result = getEndpoint('nonexistent' as never)
 
     expect(result).toBeUndefined()
   })

@@ -86,7 +86,7 @@ describe('colors', () => {
   })
 
   it('throws on an unknown style', () => {
-    expect(() => (colors as any).nope).toThrow('Unknown style: nope')
+    expect(() => (colors as unknown as Record<string, unknown>).nope).toThrow('Unknown style: nope')
   })
 })
 

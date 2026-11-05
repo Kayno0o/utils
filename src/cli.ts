@@ -161,7 +161,7 @@ interface ArgsConfig<T extends Record<string, OptionDefinition>> {
 }
 
 class OptionFormatError extends Error {
-  constructor(option: TypedOptionDefinition<any, any>, value: string | undefined) {
+  constructor(option: { type: string }, value: string | undefined) {
     super(`Invalid value: ${value}\nExpected value of type: ${option.type}`)
   }
 }
@@ -212,7 +212,7 @@ function parsePathOption(option: TypedOptionDefinition<StringOptionType, string>
   return value
 }
 
-function parseOption(option: OptionDefinition & { name: string }, value: string | undefined): any {
+function parseOption(option: OptionDefinition & { name: string }, value: string | undefined): unknown {
   if (option.format) {
     return value === undefined ? undefined : option.format(value)
   }
@@ -323,7 +323,7 @@ export function parseArgs<
     })
   }
 
-  const result: any = {}
+  const result: Record<string, unknown> = {}
 
   for (let i = 0; i < config.args.length; i++) {
     const arg = config.args[i]!

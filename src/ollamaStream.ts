@@ -83,10 +83,10 @@ export function streamOllamaJson(url: string, opts: StreamOllamaJsonOptions): Re
         write({ done: { ...data, __meta: meta } })
         controller.close()
       }
-      catch (err: any) {
+      catch (err) {
         // AbortError = client disconnected mid-stream; nothing to report.
-        if (err?.name !== 'AbortError')
-          write({ error: err?.message ?? 'Generation failed' })
+        if ((err as Error | undefined)?.name !== 'AbortError')
+          write({ error: (err as Error | undefined)?.message ?? 'Generation failed' })
 
         controller.close()
       }

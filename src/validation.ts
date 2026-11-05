@@ -1,33 +1,33 @@
 import { STRICT_IPV4_REGEX, STRICT_IPV6_REGEX, STRICT_UUID_REGEX } from './regex'
 
-export function isString(val: any): val is string {
+export function isString(val: unknown): val is string {
   return val !== null && typeof val === 'string'
 }
 
-export function isNumber(val: any): val is number {
+export function isNumber(val: unknown): val is number {
   return val !== null && typeof val === 'number'
 }
 
-export function isObject(val: any): val is object {
+export function isObject(val: unknown): val is object {
   return val !== null && typeof val === 'object'
 }
 
 // eslint-disable-next-line ts/no-unsafe-function-type
-export function isFunction(val: any): val is Function {
+export function isFunction(val: unknown): val is Function {
   return val !== null && typeof val === 'function'
 }
 
-export function isArray(val: any): val is any[] {
+export function isArray(val: unknown): val is unknown[] {
   return val !== null && Array.isArray(val)
 }
 
-export function isDate(val: any): val is Date {
+export function isDate(val: unknown): val is Date {
   return val !== null && val instanceof Date
 }
 
-export function isPromise(val: any): val is Promise<any> {
+export function isPromise(val: unknown): val is Promise<unknown> {
   // eslint-disable-next-line kaynooo/no-then
-  return val !== null && typeof val === 'object' && typeof val.then === 'function'
+  return val !== null && typeof val === 'object' && typeof (val as { then?: unknown }).then === 'function'
 }
 
 export function isUUID(val: string): boolean {

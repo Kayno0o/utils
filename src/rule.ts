@@ -237,7 +237,7 @@ export class Rules {
   static max = (nb: number, eq = true) => compareNumber(eq ? 'lte' : 'lt', nb)
 
   static maxLength = (length: number) =>
-    (value?: string | any[] | null) => {
+    (value?: string | readonly unknown[] | null) => {
       if (!value)
         return true
 
@@ -247,7 +247,7 @@ export class Rules {
   static min = (nb: number, eq = true) => compareNumber(eq ? 'gte' : 'gt', nb)
 
   static minLength = (length: number) =>
-    (value?: string | any[] | null) => {
+    (value?: string | readonly unknown[] | null) => {
       if (!value)
         return true
 
@@ -275,7 +275,7 @@ export class Rules {
     return valid || say('phone')
   }
 
-  static required = (value?: any): boolean | string => {
+  static required = (value?: unknown): boolean | string => {
     if (value === undefined || value === null)
       return say('required')
 

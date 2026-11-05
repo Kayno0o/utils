@@ -21,7 +21,7 @@ type RecursiveKeyOfInner<TObj extends object> = {
 }[keyof TObj & (string | number)]
 
 type RecursiveKeyOfHandleValue<TValue, Text extends string>
-  = TValue extends any[] ? Text
+  = TValue extends unknown[] ? Text
     : TValue extends object
       ? Text | `${Text}${RecursiveKeyOfInner<TValue>}`
       : Text
@@ -50,7 +50,7 @@ export type NonFunctionKeys<T> = { [K in keyof T]: T[K] extends Function ? never
 export type DotNotation<T, Prefix extends string = ''> = {
   [K in keyof T]: T[K] extends string
     ? `${Prefix}${K & string}`
-    : T[K] extends Record<string, any>
+    : T[K] extends object
       ? DotNotation<T[K], `${Prefix}${K & string}.`>
       : never
 }[keyof T]
@@ -63,3 +63,6 @@ export type ExtractVariables<T extends string> = T extends `${string}{${infer Va
   : never
 
 export type HasKeys<T> = keyof T extends never ? false : true
+
+// eslint-disable-next-line ts/no-explicit-any -- the one constraint every function type satisfies, whatever its parameters
+export type AnyFunction = (...args: any[]) => any

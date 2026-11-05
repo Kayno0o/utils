@@ -296,9 +296,9 @@ export class Color {
   static from(type: 'cmyk', value: CmykArrayType | CmykaArrayType | CmykObjectType): Color
   static from(type: 'oklch', value: OklchArrayType | OklchaArrayType | OklchObjectType): Color
   static from(type: 'oklab', value: OklabArrayType | OklabaArrayType | OklabObjectType): Color
-  static from(type: ColorType, value: any): Color {
+  static from(type: ColorType, value: unknown): Color {
     if (type === 'hex') {
-      const [r, g, b, a] = hexToRgb(value)
+      const [r, g, b, a] = hexToRgb(typeof value === 'number' ? value.toString(16).padStart(6, '0') : value as string)
 
       return new Color(r, g, b, a)
     }

@@ -7,7 +7,7 @@ export interface TranslationObject {
 }
 
 export type TranslationStructure<T> = {
-  [K in keyof T]: T[K] extends string ? string : T[K] extends Record<string, any> ? TranslationStructure<T[K]> : never
+  [K in keyof T]: T[K] extends string ? string : T[K] extends object ? TranslationStructure<T[K]> : never
 }
 
 // get value type from nested object using dot notation
@@ -63,6 +63,10 @@ export function declareI18n<
   ): string
 
   function t<K extends I18nKey>(locale: LocaleType, key: K, variables?: Record<string, string | number>): string {
+    return lookup(locale, key, variables)
+  }
+
+  function lookup(locale: LocaleType, key: I18nKey, variables?: Record<string, string | number>): string {
     const localeTranslations = translations[locale]
 
     const template = getObjectValue(localeTranslations, key) as string
@@ -87,7 +91,7 @@ export function declareI18n<
     ): string
 
     function scopedT<K extends I18nKey>(key: K, variables?: Record<string, string | number>): string {
-      return t(locale, key as any, variables as any)
+      return lookup(locale, key, variables)
     }
 
     return scopedT

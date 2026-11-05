@@ -13,10 +13,10 @@ export function isMobileOrTablet(): boolean {
 
 export function isMobileDevice(): boolean {
   if ('userAgentData' in navigator) {
-    return (navigator as any).userAgentData.mobile
+    return (navigator as Navigator & { userAgentData: { mobile: boolean } }).userAgentData.mobile
   }
 
-  const ua = navigator.userAgent || navigator.vendor || (window as any).opera
+  const ua = navigator.userAgent || navigator.vendor || (window as Window & { opera?: string }).opera || ''
 
   return MOBILE_UA_REGEX.test(ua)
 }

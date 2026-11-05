@@ -1,6 +1,6 @@
 import { colors } from '../tools/colors'
 
-interface LogType { char: string, color?: (str: string) => string, level?: number, log?: (...args: any[]) => void | Promise<void> }
+interface LogType { char: string, color?: (str: string) => string, level?: number, log?: (...args: unknown[]) => void | Promise<void> }
 
 export interface LogEntry<Level extends string = string> {
   date: Date
@@ -49,7 +49,7 @@ function formatLogEntry({ date, level, char, messages }: LogEntry): string {
 export function declareCustomLogger<
   Level extends string,
 >({ logTypes, logLevel, onLog, format = formatLogEntry, filterOnLog = false }: LoggerOptions<Level>) {
-  const log = (level: Level, ...messages: any[]) => {
+  const log = (level: Level, ...messages: unknown[]) => {
     const logType = logTypes[level]
 
     const envLogLevel = Number.isNaN(Number(logLevel))

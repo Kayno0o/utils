@@ -2,14 +2,14 @@ import type { Memoized, MemoizeOptions, TtlCache } from '../cache'
 import { createTtlCache, memoize } from '../cache'
 
 /** `memoize`'s options; `key` only applies to methods, a getter has a single entry. */
-interface MemoizeDecoratorOptions extends MemoizeOptions<any[]> {
+interface MemoizeDecoratorOptions extends MemoizeOptions<never[]> {
   /** Properties whose assignment invalidates this cache. */
   clearOn?: string[]
 }
 
 interface MemoizeState {
-  caches: Map<string, TtlCache<string, any>>
-  methods: Map<string, Memoized<any[], any>>
+  caches: Map<string, TtlCache<string, unknown>>
+  methods: Map<string, Memoized<never[], unknown>>
   deps: Map<string, string[]>
   patched: Set<string>
 }
@@ -34,7 +34,7 @@ function cacheOf(instance: object, propertyKey: string, options?: MemoizeDecorat
   let cache = caches.get(propertyKey)
 
   if (!cache) {
-    cache = createTtlCache<string, any>(options)
+    cache = createTtlCache<string, unknown>(options)
     caches.set(propertyKey, cache)
   }
 
@@ -42,7 +42,7 @@ function cacheOf(instance: object, propertyKey: string, options?: MemoizeDecorat
 }
 
 /** A method goes through `memoize`, so a rejected promise is evicted the same way. */
-function methodOf(instance: object, propertyKey: string, method: (...args: any[]) => any, options?: MemoizeDecoratorOptions) {
+function methodOf(instance: object, propertyKey: string, method: (...args: never[]) => unknown, options?: MemoizeDecoratorOptions) {
   const { caches, methods } = stateOf(instance)
   let memoized = methods.get(propertyKey)
 
@@ -86,7 +86,7 @@ function watchProp(instance: object, prop: string) {
       get() {
         return existing.get?.call(this)
       },
-      set(value: any) {
+      set(value: unknown) {
         originalSetter.call(this, value)
         clearDependents(this, prop)
       },
@@ -97,13 +97,13 @@ function watchProp(instance: object, prop: string) {
     return
   }
 
-  let currentValue = (instance as any)[prop]
+  let currentValue = (instance as Record<string, unknown>)[prop]
 
   Object.defineProperty(instance, prop, {
     get() {
       return currentValue
     },
-    set(value: any) {
+    set(value: unknown) {
       currentValue = value
       clearDependents(this, prop)
     },
@@ -124,7 +124,7 @@ function register(instance: object, propertyKey: string, options?: MemoizeDecora
 
 /** Memoize a getter or method per instance, with optional TTL and `clearOn` invalidation. */
 export function Memoize(options?: MemoizeDecoratorOptions) {
-  return function (target: any, propertyKey: string, descriptor?: PropertyDescriptor) {
+  return function (target: object, propertyKey: string, descriptor?: PropertyDescriptor) {
     descriptor ||= Object.getOwnPropertyDescriptor(target, propertyKey)
 
     const isGetter = descriptor?.get
@@ -154,7 +154,7 @@ export function Memoize(options?: MemoizeDecoratorOptions) {
     else {
       const originalMethod = descriptor.value
 
-      descriptor.value = function (...args: any[]) {
+      descriptor.value = function (this: object, ...args: never[]) {
         register(this, propertyKey, options)
 
         return methodOf(this, propertyKey, originalMethod, options).apply(this, args)

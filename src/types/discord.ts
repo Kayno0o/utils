@@ -1,18 +1,33 @@
 export interface DiscordWebhookPayload {
-  allowed_mentions?: any // allowed mention object (type needs to be defined)
+  allowed_mentions?: DiscordAllowedMentions // which mentions in the content may ping
   applied_tags?: string[] // array of tag ids to apply to the thread
   attachments?: DiscordWebhookAttachment[] // array of partial attachment objects
   avatar_url?: string // override the default avatar of the webhook
-  components?: any[] // array of message component (type needs to be defined)
+  components?: { type: number, [key: string]: unknown }[] // array of message components
   content?: string // the message contents (up to 2000 characters)
   embeds?: DiscordWebhookEmbed[] // array of up to 10 embed objects
-  files?: any[] // file contents (type needs to be defined)
+  files?: unknown[] // file contents
   flags?: number // message flags combined as a bitfield
   payload_json?: string // JSON encoded body of non-file params
-  poll?: any // poll request object (type needs to be defined)
+  poll?: DiscordPoll // poll request object
   thread_name?: string // name of thread to create
   tts?: boolean // true if this is a TTS message
   username?: string // override the default username of the webhook
+}
+
+export interface DiscordAllowedMentions {
+  parse?: ('roles' | 'users' | 'everyone')[] // mention types to parse from the content
+  replied_user?: boolean // whether to ping the author of a replied message
+  roles?: string[] // role ids to mention
+  users?: string[] // user ids to mention
+}
+
+export interface DiscordPoll {
+  allow_multiselect?: boolean // whether a user can select multiple answers
+  answers: { answer_id?: number, poll_media: { text?: string, emoji?: { id?: string, name?: string } } }[] // answers a user can pick
+  duration?: number // hours the poll stays open
+  layout_type?: number // the layout of the poll
+  question: { text?: string } // the question of the poll
 }
 
 interface DiscordWebhookAttachment {

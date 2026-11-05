@@ -51,13 +51,13 @@ describe('isUrl rule', () => {
   })
 
   it('should return error message for null input', () => {
-    const result = Rules.isUrl(null as any)
+    const result = Rules.isUrl(null as never)
 
     expect(result).toBe('Must be a valid URL')
   })
 
   it('should return error message for undefined input', () => {
-    const result = Rules.isUrl(undefined as any)
+    const result = Rules.isUrl(undefined as never)
 
     expect(result).toBe('Must be a valid URL')
   })

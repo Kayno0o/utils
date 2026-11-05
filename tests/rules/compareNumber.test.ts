@@ -75,7 +75,7 @@ describe('compareNumber rule', () => {
   })
 
   it('should return default error message for invalid comparator', () => {
-    const isValid = Rules.compareNumber('invalid' as any, 5)(5)
+    const isValid = Rules.compareNumber('invalid' as never, 5)(5)
 
     expect(isValid).toBeString()
   })

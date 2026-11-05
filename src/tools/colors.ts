@@ -98,7 +98,7 @@ const styleMap = {
   },
 
   ansi256: (code: number, type: Appearance = 'fg') => [`${type === 'fg' ? 38 : 48};5;${code}`, type === 'fg' ? FG : BG],
-} satisfies Record<string, ColorStyle | ((...args: any) => ColorStyle)>
+} satisfies Record<string, ColorStyle | ((...args: never[]) => ColorStyle)>
 
 const FORCE_COLOR_ON = new Set(['', '1', '2', '3', 'true'])
 
@@ -142,7 +142,7 @@ function makeProxy(options: ColorsOptions, styles: ColorStyle[] = []): ColorsTyp
       }
 
       if (typeof val === 'function') {
-        return (...args: any) => {
+        return (...args: unknown[]) => {
           const key = `${prop}:${args.join(',')}`
           let child = children.get(key)
 
@@ -151,7 +151,7 @@ function makeProxy(options: ColorsOptions, styles: ColorStyle[] = []): ColorsTyp
             if (children.size >= MAX_CACHED)
               children.clear()
 
-            child = makeProxy(options, [...styles, (val as any)(...args) as ColorStyle])
+            child = makeProxy(options, [...styles, (val as (...args: unknown[]) => ColorStyle)(...args)])
             children.set(key, child)
           }
 
