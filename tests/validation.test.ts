@@ -1,5 +1,6 @@
 import { describe, expect, test as it } from 'bun:test'
-import { isIP, isUUID } from '../src/validation'
+import { noop } from '../src/function'
+import { isArray, isDate, isFunction, isIP, isNumber, isObject, isPromise, isString, isUUID } from '../src/validation'
 
 describe('isIP', () => {
   it('checks IPv4 by default', () => {
@@ -26,5 +27,21 @@ describe('isUUID', () => {
     expect(isUUID('123e4567-e89b-12d3-a456-42661417400')).toBe(false)
     expect(isUUID('123e4567-e89b-12d3-a456-42661417400g')).toBe(false)
     expect(isUUID(' 123e4567-e89b-12d3-a456-426614174000')).toBe(false)
+  })
+})
+
+describe('type guards', () => {
+  const values = ['a', 1, Number.NaN, null, undefined, {}, [], noop, new Date(0), Promise.resolve(), { then: noop }]
+
+  it.each([
+    ['isString', isString, [0]],
+    ['isNumber', isNumber, [1, 2]],
+    ['isObject', isObject, [5, 6, 8, 9, 10]],
+    ['isFunction', isFunction, [7]],
+    ['isArray', isArray, [6]],
+    ['isDate', isDate, [8]],
+    ['isPromise', isPromise, [9, 10]],
+  ] as const)('%s accepts only its own type, never null', (_name, guard, accepted) => {
+    expect(values.flatMap((value, index) => guard(value) ? [index] : [])).toEqual([...accepted])
   })
 })

@@ -1,11 +1,11 @@
 import { STRICT_IPV4_REGEX, STRICT_IPV6_REGEX, STRICT_UUID_REGEX } from './regex'
 
 export function isString(val: unknown): val is string {
-  return val !== null && typeof val === 'string'
+  return typeof val === 'string'
 }
 
 export function isNumber(val: unknown): val is number {
-  return val !== null && typeof val === 'number'
+  return typeof val === 'number'
 }
 
 export function isObject(val: unknown): val is object {
@@ -14,15 +14,15 @@ export function isObject(val: unknown): val is object {
 
 // eslint-disable-next-line ts/no-unsafe-function-type
 export function isFunction(val: unknown): val is Function {
-  return val !== null && typeof val === 'function'
+  return typeof val === 'function'
 }
 
 export function isArray(val: unknown): val is unknown[] {
-  return val !== null && Array.isArray(val)
+  return Array.isArray(val)
 }
 
 export function isDate(val: unknown): val is Date {
-  return val !== null && val instanceof Date
+  return val instanceof Date
 }
 
 export function isPromise(val: unknown): val is Promise<unknown> {
