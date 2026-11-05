@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { Faker } from '../src/tools'
+import { createFaker, Faker } from '../src/tools'
 
 describe('faker.paragraph function', () => {
   const notEmpty = (value: any) => Boolean(value)
@@ -56,5 +56,37 @@ describe('faker.uuidV4 function', () => {
     const uuid2 = Faker.datatype.uuidV4()
 
     expect(uuid1).not.toEqual(uuid2)
+  })
+})
+
+describe('createFaker', () => {
+  it('repeats its output for the same seed', () => {
+    const run = (seed: string) => {
+      const faker = createFaker({ seed })
+
+      return [faker.name.fullname(), faker.internet.email(), faker.date.date(), faker.lorem.sentence(2), faker.datatype.uuidV4()]
+    }
+
+    expect(run('fixtures')).toEqual(run('fixtures'))
+    expect(run('fixtures')).not.toEqual(run('other'))
+  })
+
+  it('takes its own random source, names and providers', () => {
+    const faker = createFaker({ random: () => 0, firstNames: ['Jean Paul'], lastNames: ['Dupont'], emailProviders: ['@exemple.fr'] })
+
+    expect(faker.name.fullname()).toBe('Jean Paul Dupont')
+    expect(faker.internet.email()).toBe('jean.paul.dupont@exemple.fr')
+  })
+
+  it('only makes real days', () => {
+    const faker = createFaker({ seed: 1 })
+
+    for (let i = 0; i < 500; i++) {
+      const label = faker.date.date({ startYear: 2023, endYear: 2024 })
+      const [year, month, day] = label.split('-').map(Number)
+      const parsed = new Date(year!, month! - 1, day!)
+
+      expect(parsed.getMonth()).toBe(month! - 1)
+    }
   })
 })

@@ -1,4 +1,4 @@
-import { getRandomElement } from '../array'
+import { sfc32, xmur3 } from '../crypto'
 import { getDaysInMonth } from '../date'
 import { randomInt } from '../number'
 import { capitalize } from '../text'
@@ -11,74 +11,98 @@ const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 
 const ADJECTIVES = ['quick', 'bright', 'massive', 'ancient', 'fragile', 'smooth', 'silent', 'fierce', 'colorful', 'mysterious', 'epic', 'stealthy', 'legendary', 'agile', 'immersive']
 const OBJECTS = ['table', 'mountain', 'lamp', 'book', 'window', 'river', 'cloud', 'carpet', 'bottle', 'clock', 'controller', 'sword', 'avatar', 'quest', 'dungeon', 'rocket']
 
-const EMAIL_PROVIDER = ['@gmail.com', '@yahoo.com', '@orange.fr']
+const EMAIL_PROVIDERS = ['gmail.com', 'yahoo.com', 'orange.fr']
 const UUID_V4_TEMPLATE = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+const UUID_PLACEHOLDER_REGEX = /[xy]/g
+const SPACE_REGEX = / /g
+const LEADING_AT_REGEX = /^@/
 
-export class Faker {
-  static lorem = {
+export interface FakerOptions {
+  /** Makes every call that is not `isCrypto` deterministic, for fixtures and snapshots. */
+  seed?: string | number
+  /** A random source in `[0, 1)`, taking precedence over `seed`. Defaults to `Math.random`. */
+  random?: () => number
+  firstNames?: readonly string[]
+  lastNames?: readonly string[]
+  /** Domains for `internet.email`, with or without a leading `@`. */
+  emailProviders?: readonly string[]
+  /** Words `name.username` pairs, adjective first. */
+  adjectives?: readonly string[]
+  objects?: readonly string[]
+}
+
+/** A faker with its own random source and word lists; `Faker` is the unseeded default one. */
+export function createFaker({
+  seed,
+  random,
+  firstNames = FIRST_NAMES,
+  lastNames = LAST_NAMES,
+  emailProviders = EMAIL_PROVIDERS,
+  adjectives = ADJECTIVES,
+  objects = OBJECTS,
+}: FakerOptions = {}) {
+  const hash = seed === undefined ? undefined : xmur3(String(seed))
+  const next = random ?? (hash ? sfc32(hash(), hash(), hash(), hash()) : Math.random)
+
+  const int = (min: number, max: number, isCrypto = false): number => isCrypto ? randomInt(min, max, true) : min + Math.floor(next() * (max - min))
+  const pick = <T>(values: readonly T[], isCrypto = false): T => values[int(0, values.length, isCrypto)]!
+
+  const lorem = {
     paragraph: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
-      Array.from({ length: Math.max(1, length) }, () => {
-        const count = randomInt(3, 7, isCrypto)
-
-        return Faker.lorem.sentence(count, isCrypto, dictionary)
-      }).join('\n'),
+      Array.from({ length: Math.max(1, length) }, () => lorem.sentence(int(3, 7, isCrypto), isCrypto, dictionary)).join('\n'),
     sentence: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
       Array.from({ length: Math.max(1, length) }, () => {
-        const count = randomInt(5, 15, isCrypto)
-        const sentence = Faker.lorem.word(count, isCrypto, dictionary).replace(/ /g, () => Math.random() < 0.1 ? ', ' : ' ')
+        const sentence = lorem.word(int(5, 15, isCrypto), isCrypto, dictionary).replace(SPACE_REGEX, () => next() < 0.1 ? ', ' : ' ')
 
         return `${capitalize(sentence)}.`
       }).join(' '),
     word: (length = 1, isCrypto = false, dictionary = LOREM_WORDS): string =>
-      Array.from({ length: Math.max(1, length) }, () => getRandomElement(dictionary, isCrypto)).join(' '),
+      Array.from({ length: Math.max(1, length) }, () => pick(dictionary, isCrypto)).join(' '),
   }
 
-  static date = {
-    date: ({
-      endYear = new Date().getFullYear() + 4,
-      startYear = new Date().getFullYear() - 4,
-    }: { endYear?: number, startYear?: number } = {}): string => {
-      const year = Number(Faker.date.year({ endYear, startYear }))
-      const month = Number(Faker.date.month())
-      const daysInMonth = getDaysInMonth(year, month)
-
-      const day = Math.floor(Math.random() * daysInMonth) + 1
+  const date = {
+    date: ({ endYear = new Date().getFullYear() + 4, startYear = new Date().getFullYear() - 4 }: { endYear?: number, startYear?: number } = {}): string => {
+      const year = Number(date.year({ endYear, startYear }))
+      const month = Number(date.month())
+      const day = int(1, getDaysInMonth(month, year) + 1)
 
       return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
     },
-    month: (): string => {
-      const month = Math.floor(Math.random() * 12) + 1
-
-      return month.toString().padStart(2, '0')
-    },
-    year: ({ endYear = new Date().getFullYear() + 4, startYear = new Date().getFullYear() - 4 }: { endYear?: number, startYear?: number } = {}): string => {
-      const year = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear
-
-      return year.toString()
-    },
+    month: (): string => int(1, 13).toString().padStart(2, '0'),
+    year: ({ endYear = new Date().getFullYear() + 4, startYear = new Date().getFullYear() - 4 }: { endYear?: number, startYear?: number } = {}): string =>
+      int(startYear, endYear + 1).toString(),
   }
 
-  static name = {
-    firstName: () => getRandomElement(FIRST_NAMES),
-    fullname: () => `${Faker.name.firstName()} ${Faker.name.lastName()}`,
-    lastName: () => getRandomElement(LAST_NAMES),
-    username: () => capitalize(getRandomElement(ADJECTIVES)) + capitalize(getRandomElement(OBJECTS)),
+  const name = {
+    firstName: (): string => pick(firstNames),
+    fullname: (): string => `${name.firstName()} ${name.lastName()}`,
+    lastName: (): string => pick(lastNames),
+    username: (): string => capitalize(pick(adjectives)) + capitalize(pick(objects)),
   }
 
-  static internet = {
-    email: () => {
-      return Faker.name.fullname().toLocaleLowerCase().replace(' ', '.') + getRandomElement(EMAIL_PROVIDER)
-    },
+  const internet = {
+    email: (): string => `${name.fullname().toLocaleLowerCase().replace(SPACE_REGEX, '.')}@${pick(emailProviders).replace(LEADING_AT_REGEX, '')}`,
   }
 
-  static datatype = {
-    uuidV4: (isCrypto = false): string => {
-      return UUID_V4_TEMPLATE.replace(/[xy]/g, (c) => {
-        const r = randomInt(0, 16, isCrypto)
-        const v = c === 'x' ? r : (r & 0x3 | 0x8)
+  const datatype = {
+    uuidV4: (isCrypto = false): string => UUID_V4_TEMPLATE.replace(UUID_PLACEHOLDER_REGEX, (c) => {
+      const r = int(0, 16, isCrypto)
 
-        return v.toString(16)
-      })
-    },
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+    }),
   }
+
+  return { lorem, date, name, internet, datatype }
+}
+
+export type FakerInstance = ReturnType<typeof createFaker>
+
+const defaultFaker = createFaker()
+
+export class Faker {
+  static lorem = defaultFaker.lorem
+  static date = defaultFaker.date
+  static name = defaultFaker.name
+  static internet = defaultFaker.internet
+  static datatype = defaultFaker.datatype
 }
