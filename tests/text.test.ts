@@ -1260,6 +1260,7 @@ describe('truncate', () => {
 
     expect(result).toBe('hello...')
     expect(result.length).toBeLessThanOrEqual(8)
+    expect(truncate('hello world', 2, { includeSuffix: true })).toBe('..')
   })
 
   it('cuts at a word boundary, or mid-word for a single long word', () => {

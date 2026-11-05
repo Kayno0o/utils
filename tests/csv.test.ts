@@ -89,6 +89,18 @@ describe('parseCsv options', () => {
     expect(parseCsv('name , age\n Ana ,  3', { trim: true })).toEqual([{ name: 'Ana', age: '3' }])
   })
 
+  it('trims around a quoted field but keeps what it holds', () => {
+    expect(parseCsv('a,b\n " x " , y', { trim: true })).toEqual([{ a: ' x ', b: 'y' }])
+  })
+
+  it('keeps a last row of empty fields with skipEmptyLines off', () => {
+    expect(parseCsv('a,b\n1,2\n,', { skipEmptyLines: false })).toEqual([{ a: '1', b: '2' }, { a: '', b: '' }])
+  })
+
+  it('keys rows by column index with empty headers', () => {
+    expect(parseCsv('a,b', { headers: [] })).toEqual([{ 0: 'a', 1: 'b' }])
+  })
+
   it('keeps empty lines with skipEmptyLines off, but not the trailing line break', () => {
     expect(parseCsv('a\n1\n\n2\n', { skipEmptyLines: false })).toEqual([{ a: '1' }, { a: '' }, { a: '2' }])
     expect(parseCsv('a\n1\n\n2\n')).toEqual([{ a: '1' }, { a: '2' }])
@@ -100,6 +112,7 @@ describe('stringifyCsv options', () => {
     const csv = stringifyCsv([{ a: 1 }, { a: 2 }], { newline: '\r\n', bom: true })
 
     expect(csv).toBe('\uFEFFa\r\n1\r\n2')
+    expect(parseCsv(csv)).toEqual([{ a: '1' }, { a: '2' }])
   })
 
   it('quotes fields holding a carriage return, and headers holding the separator', () => {

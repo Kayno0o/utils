@@ -186,7 +186,7 @@ export interface FetchJsonOptions extends Omit<RequestInit, 'body' | 'headers'> 
   parse?: (text: string) => unknown
   /** Writes a plain object or array body. Defaults to `JSON.stringify`. */
   serialize?: (body: Record<string, unknown> | unknown[]) => string
-  /** Retries a failed request, a count or `retry`'s options; by default network errors, timeouts, 408, 429 and 5xx. Off by default. */
+  /** Retries a failed request, a count or `retry`'s options; by default network errors, timeouts, 408, 429 and 5xx, whatever the method, so mind a POST that is not idempotent, and a stream body cannot be sent twice. Off by default. */
   retry?: number | Omit<RetryOptions, 'signal'>
 }
 
@@ -204,13 +204,15 @@ export async function fetchJson<T>(url: string, options: FetchJsonOptions = {}):
   const { signal } = request
 
   try {
+    const prepared = prepareJsonRequest(url, request)
+
     if (!retry)
-      return await fetchJsonOnce<T>(url, request)
+      return await sendJsonRequest<T>(prepared)
 
     const { attempts = 3, shouldRetry = isRetryable, ...retryOptions } = typeof retry === 'number' ? { attempts: retry } : retry
 
     // The last try is refused a retry so its own error is thrown, not retry's summary.
-    return await retryCall(() => fetchJsonOnce<T>(url, request), {
+    return await retryCall(() => sendJsonRequest<T>(prepared), {
       ...retryOptions,
       attempts,
       signal: signal ?? undefined,
@@ -224,7 +226,18 @@ export async function fetchJson<T>(url: string, options: FetchJsonOptions = {}):
   }
 }
 
-async function fetchJsonOnce<T>(url: string, options: Omit<FetchJsonOptions, 'retry' | 'onError'>): Promise<T> {
+interface PreparedJsonRequest {
+  fullUrl: string
+  init: RequestInit
+  fetcher: typeof fetch
+  parse: (text: string) => unknown
+  onResponse?: (response: Response) => void
+  timeout?: number
+  signal?: AbortSignal | null
+}
+
+// Built once, outside the retries, so a bad body or a throwing `serialize` fails at once instead of being retried.
+function prepareJsonRequest(url: string, options: Omit<FetchJsonOptions, 'retry' | 'onError'>): PreparedJsonRequest {
   const { baseUrl, token, query, body, headers, timeout, signal, onResponse, fetch: fetcher = fetch, parse = JSON.parse, serialize = JSON.stringify, ...init } = options
 
   const fullUrl = applyQuery(baseUrl ? new URL(url, baseUrl).href : url, query)
@@ -243,14 +256,25 @@ async function fetchJsonOnce<T>(url: string, options: Omit<FetchJsonOptions, 're
     headers,
   )
 
-  const res = await fetcher(fullUrl, {
-    ...init,
-    headers: finalHeaders,
-    signal: combineSignals(signal, timeout),
-    body: body === undefined || body === null
-      ? undefined
-      : jsonBody ? serialize(body as Record<string, unknown> | unknown[]) : body as BodyInit,
-  })
+  return {
+    fullUrl,
+    init: {
+      ...init,
+      headers: finalHeaders,
+      body: body === undefined || body === null
+        ? undefined
+        : jsonBody ? serialize(body as Record<string, unknown> | unknown[]) : body as BodyInit,
+    },
+    fetcher,
+    parse,
+    onResponse,
+    timeout,
+    signal,
+  }
+}
+
+async function sendJsonRequest<T>({ fullUrl, init, fetcher, parse, onResponse, timeout, signal }: PreparedJsonRequest): Promise<T> {
+  const res = await fetcher(fullUrl, { ...init, signal: combineSignals(signal, timeout) })
 
   onResponse?.(res)
 

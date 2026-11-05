@@ -1,7 +1,7 @@
 import type { RgbArrayType } from './tools/ColorConverter'
 import { hashString } from './crypto'
 import { clamp, mapRange, randomInt } from './number'
-import { Color } from './tools/ColorConverter'
+import { ACHROMATIC_CHROMA, Color } from './tools/ColorConverter'
 
 export function randomHex(isCrypto = false) {
   return `#${Math.floor(randomInt(0, 16777215, isCrypto)).toString(16).padStart(6, '0')}`.toUpperCase()
@@ -80,8 +80,6 @@ export function darken(color: string, amount: number): string {
 }
 
 export type MixSpace = 'rgb' | 'hsl' | 'oklab' | 'oklch'
-
-const ACHROMATIC_CHROMA = 1e-4
 
 /** Hue from `a` toward `b` the short way round the wheel. */
 function blendHue(a: number, b: number, w: number): number {

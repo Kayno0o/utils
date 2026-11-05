@@ -234,7 +234,7 @@ function oklabToRgb(L: number, a: number, b: number): RgbArrayType {
 }
 
 // Below this a grey's float noise in a and b would hand it an arbitrary hue.
-const ACHROMATIC_CHROMA = 5e-5
+export const ACHROMATIC_CHROMA = 5e-5
 
 function rgbToOklch(rgb: RgbArrayType): OklchArrayType {
   const [l, a, b] = rgbToOklab(rgb)

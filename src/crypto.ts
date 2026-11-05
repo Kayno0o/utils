@@ -81,8 +81,13 @@ export interface PasswordHashParams {
   timeCost?: number
 }
 
+/** The defaults under `params`, a key left `undefined` keeping its default. */
+function passwordHashTarget(params: PasswordHashParams): Required<PasswordHashParams> {
+  return { ...PASSWORD_HASH_PARAMS, ...Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined)) }
+}
+
 export async function hashPassword(password: string, params: PasswordHashParams = {}): Promise<string> {
-  return Bun.password.hash(password, { ...PASSWORD_HASH_PARAMS, ...params })
+  return Bun.password.hash(password, passwordHashTarget(params))
 }
 
 /** Verifies against any supported hash format; a malformed or unknown one is a mismatch, not a throw. */
@@ -99,12 +104,9 @@ function argonCost(params: string, key: 'm' | 't'): number {
   return Number(params.split(',').find(p => p.startsWith(`${key}=`))?.slice(2))
 }
 
-/**
- * True when `hashedPassword` was made with anything weaker than `PASSWORD_HASH_PARAMS`, or `params` when given -
- * call it after a successful `comparePasswords` to re-hash the plaintext while you hold it.
- */
+/** True when `hashedPassword` was made with anything weaker than `PASSWORD_HASH_PARAMS`, or `params` when given: call it after a successful `comparePasswords` to re-hash the plaintext while you hold it. */
 export function passwordNeedsRehash(hashedPassword: string, params: PasswordHashParams = {}): boolean {
-  const target = { ...PASSWORD_HASH_PARAMS, ...params }
+  const target = passwordHashTarget(params)
   const [, algorithm, , costs = ''] = hashedPassword.split('$')
 
   // Negated comparisons so an absent or unparsable cost reads as NaN and needs a rehash.

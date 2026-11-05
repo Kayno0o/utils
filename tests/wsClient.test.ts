@@ -200,6 +200,16 @@ describe('createWsClient', () => {
     jest.advanceTimersByTime(600)
     expect(MockWebSocket.instances).toHaveLength(1)
   })
+
+  it('cancels a pending reconnect when closed during the backoff wait', () => {
+    const client = createWsClient({ path: '/ws', reconnect: 500, onMessage: () => undefined })
+
+    last().close()
+    client.close()
+
+    jest.advanceTimersByTime(600)
+    expect(MockWebSocket.instances).toHaveLength(1)
+  })
 })
 
 describe('createWsClient options', () => {

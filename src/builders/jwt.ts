@@ -57,16 +57,11 @@ export type JwtVerification<Payload>
 
 const EXPIRED_ERROR_REGEX = /expired/i
 
-/** jsonwebtoken names it `TokenExpiredError`, jose codes it `ERR_JWT_EXPIRED`; otherwise the token's own `exp` tells. */
-function isExpiry(error: unknown, token: string): boolean {
+/** jsonwebtoken names it `TokenExpiredError`, jose codes it `ERR_JWT_EXPIRED`; the unverified `exp` claim is never trusted, so a forged token reads `invalid`. */
+function isExpiry(error: unknown): boolean {
   const { name, code } = (error ?? {}) as { name?: unknown, code?: unknown }
 
-  if ((typeof name === 'string' && EXPIRED_ERROR_REGEX.test(name)) || code === 'ERR_JWT_EXPIRED')
-    return true
-
-  const exp = decodeJwt(token)?.payload.exp
-
-  return typeof exp === 'number' && exp * 1000 <= Date.now()
+  return (typeof name === 'string' && EXPIRED_ERROR_REGEX.test(name)) || code === 'ERR_JWT_EXPIRED'
 }
 
 export class JWTBuilder<Payload, SignOptions extends object = JwtSignOptions> {
@@ -98,7 +93,7 @@ export class JWTBuilder<Payload, SignOptions extends object = JwtSignOptions> {
       if (!decodeJwt(token))
         return { ok: false, reason: 'malformed', error }
 
-      return { ok: false, reason: isExpiry(error, token) ? 'expired' : 'invalid', error }
+      return { ok: false, reason: isExpiry(error) ? 'expired' : 'invalid', error }
     }
   }
 }

@@ -525,6 +525,17 @@ describe('fetchJson retry', () => {
     expect(fetcher.calls).toHaveLength(3)
   })
 
+  it('does not retry a body it cannot send', async () => {
+    const fetcher = scriptedFetch(Response.json(1))
+    const serialize = () => {
+      throw new TypeError('cyclic')
+    }
+
+    await expect(fetchJson('http://example.com/api', { fetch: fetcher, body: { a: 1 }, serialize, retry: { delay: 1 } })).rejects.toThrow('cyclic')
+    await expect(fetchJson('http://example.com/api', { fetch: fetcher, body: new Date() as never, retry: { delay: 1 } })).rejects.toThrow('Unsupported body type')
+    expect(fetcher.calls).toHaveLength(0)
+  })
+
   it('does not retry a 4xx, and throws the last FetchError itself once retries run out', async () => {
     const notFound = scriptedFetch(new Response('', { status: 404 }))
 

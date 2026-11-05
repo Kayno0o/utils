@@ -71,12 +71,17 @@ describe('JWTBuilder', () => {
     expect(builder.verify(expired)).toBeUndefined()
   })
 
-  it('reads expiry from the claims when the library names its error otherwise', () => {
+  it('reads a forged token with a past exp as invalid, never trusting its unverified claims', () => {
+    const forgedExpired = new JWTBuilder(fakeJwt, 'other').generate({ sub: 'ana' }, { expiresIn: -10 })
+
+    expect(new JWTBuilder(fakeJwt, 's3cret').validate(forgedExpired)).toMatchObject({ reason: 'invalid' })
+  })
+
+  it('reads jose\'s expiry code as expired', () => {
     const builder = new JWTBuilder({ ...fakeJwt, verify: () => {
-      throw new Error('nope')
+      throw Object.assign(new Error('"exp" claim timestamp check failed'), { code: 'ERR_JWT_EXPIRED' })
     } }, 's3cret')
 
-    expect(builder.validate(builder.generate({ sub: 'ana' }, { expiresIn: -10 }))).toMatchObject({ reason: 'expired' })
-    expect(builder.validate(builder.generate({ sub: 'ana' }))).toMatchObject({ reason: 'invalid' })
+    expect(builder.validate(builder.generate({ sub: 'ana' }))).toMatchObject({ reason: 'expired' })
   })
 })

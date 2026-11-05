@@ -4,7 +4,7 @@ export interface ParseCsvOptions {
   separator?: string
   /** `true` reads them off the first row, `false` keys every row by column index, an array names the columns of every row. Defaults to true. */
   headers?: boolean | string[]
-  /** Trims each field. Defaults to false. */
+  /** Trims the whitespace around each field, keeping what a quoted field holds. Defaults to false. */
   trim?: boolean
   /** Drops lines whose fields are all empty. Defaults to true. */
   skipEmptyLines?: boolean
@@ -20,26 +20,38 @@ export interface StringifyCsvOptions {
 }
 
 const LINE_BREAK_REGEX = /\r\n?/g
+const BOM = '\uFEFF'
 
 export function parseCsv<T extends Record<string, string>>(str: string, { separator = ',', headers = true, trim = false, skipEmptyLines = true }: ParseCsvOptions = {}): T[] {
   const rows: string[][] = []
   let cur = ''
   let inQuotes = false
   let row: string[] = []
+  let quoteStart: number | undefined
+  let quoteEnd: number | undefined
 
   const endField = (): void => {
-    row.push(trim ? cur.trim() : cur)
+    if (trim && quoteStart !== undefined)
+      row.push(cur.slice(0, quoteStart).trimStart() + cur.slice(quoteStart, quoteEnd) + cur.slice(quoteEnd ?? cur.length).trimEnd())
+    else
+      row.push(trim ? cur.trim() : cur)
+
     cur = ''
+    quoteStart = quoteEnd = undefined
   }
 
   // A trailing line break ends the last row, it does not start an empty one.
   const endRow = (last: boolean): void => {
-    if (row.some(f => f.length) || (!skipEmptyLines && !last))
+    const emptyLine = row.length === 1 && !row[0]
+
+    if (row.some(f => f.length) || (!skipEmptyLines && !(last && emptyLine)))
       rows.push(row)
 
     row = []
   }
-  const s = str.includes('\r') ? str.replace(LINE_BREAK_REGEX, '\n') : str
+
+  const unmarked = str.startsWith(BOM) ? str.slice(BOM.length) : str
+  const s = unmarked.includes('\r') ? unmarked.replace(LINE_BREAK_REGEX, '\n') : unmarked
   const separatorCode = separator.charCodeAt(0)
   let i = 0
 
@@ -61,6 +73,7 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
       }
       else {
         inQuotes = false
+        quoteEnd = cur.length
         i = quote + 1
       }
 
@@ -87,6 +100,7 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
 
     if (s[i] === '"') {
       inQuotes = true
+      quoteStart = cur.length
       i++
     }
     else if (s.startsWith(separator, i)) {
@@ -103,7 +117,7 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
   endField()
   endRow(true)
 
-  const columns = headers === true ? rows.shift() : headers || undefined
+  const columns = headers === true ? rows.shift() : headers && headers.length ? headers : undefined
   const result: T[] = []
 
   for (const values of rows) {
@@ -132,5 +146,5 @@ export function stringifyCsv(rows: Record<string, unknown>[], { separator = ',',
 
   const lines = [keys, ...rows.map(row => keys.map(k => row[k] ?? ''))]
 
-  return (bom ? '\uFEFF' : '') + lines.map(line => line.map(value => escapeCSV(String(value), separator)).join(separator)).join(newline)
+  return (bom ? BOM : '') + lines.map(line => line.map(value => escapeCSV(String(value), separator)).join(separator)).join(newline)
 }

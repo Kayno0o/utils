@@ -377,7 +377,7 @@ describe('triadic function', () => {
 
 describe('mix color spaces', () => {
   it('keeps the RGB blend by default', () => {
-    expect(mix('#ff0000', '#0000ff')).toBe(mix('#ff0000', '#0000ff', 0.5, 'rgb'))
+    expect(mix('#ff0000', '#0000ff')).toBe('#800080')
   })
 
   it('blends hues the short way in hsl and oklch, and takes a grey\'s partner hue', () => {
@@ -423,7 +423,7 @@ describe('stringToHexColor ranges', () => {
   })
 
   it('is unchanged without options', () => {
-    expect(stringToHexColor('ana')).toBe(stringToHexColor('ana', { hueRange: [0, 360], l: 65 }))
+    expect(stringToHexColor('ana')).toBe('#9081CA')
   })
 })
 

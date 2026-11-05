@@ -70,6 +70,7 @@ export function createWsClient<TMsg extends { type: string }>(opts: WsClientOpti
   let isReady = false
   let closed = false
   let attempt = 0
+  let reconnectTimer: ReturnType<typeof setTimeout> | undefined
   const queue: WsFrame[] = []
 
   function socketUrl(): string {
@@ -90,6 +91,11 @@ export function createWsClient<TMsg extends { type: string }>(opts: WsClientOpti
   }
 
   function connect() {
+    reconnectTimer = undefined
+
+    if (closed)
+      return
+
     isReady = false
     ws = new WebSocket(socketUrl(), opts.protocols)
 
@@ -134,7 +140,7 @@ export function createWsClient<TMsg extends { type: string }>(opts: WsClientOpti
       if (!reconnect || closed || attempt >= reconnect.attempts)
         return
 
-      setTimeout(connect, typeof reconnect.delay === 'function' ? reconnect.delay(attempt) : reconnect.delay)
+      reconnectTimer = setTimeout(connect, typeof reconnect.delay === 'function' ? reconnect.delay(attempt) : reconnect.delay)
       attempt++
     }
   }
@@ -153,6 +159,7 @@ export function createWsClient<TMsg extends { type: string }>(opts: WsClientOpti
     ready: () => isReady,
     close() {
       closed = true
+      clearTimeout(reconnectTimer)
       ws?.close()
     },
   }

@@ -64,7 +64,7 @@ export interface TimeoutOptions {
 }
 
 /** Runs `fn` within a deadline. `fn` gets a signal aborted on expiry, so the work itself can stop instead of running on unseen. */
-export async function timeout<T>(fn: (signal: AbortSignal) => Promise<T>, msOrOptions: number | TimeoutOptions = 5000): Promise<T> {
+export async function timeout<T>(fn: (signal: AbortSignal) => Promise<T>, msOrOptions: number | TimeoutOptions = {}): Promise<T> {
   const { ms = 5000, message = 'Method took too long to process', signal } = typeof msOrOptions === 'number' ? { ms: msOrOptions } : msOrOptions
   const controller = new AbortController()
   const onAbort = () => controller.abort(signal!.reason)
@@ -93,12 +93,6 @@ export async function timeout<T>(fn: (signal: AbortSignal) => Promise<T>, msOrOp
   }
 }
 
-/**
- * Maps over `items` with at most `limit` calls in flight, keeping the results in input order.
- *
- * Unlike a chunked `Promise.all`, a worker takes the next item as soon as it is free, so one slow
- * item does not hold up the rest of its batch.
- */
 export interface MapConcurrentOptions {
   /** Calls in flight at once. Defaults to all of them. */
   limit?: number
@@ -110,7 +104,13 @@ export interface MapConcurrentOptions {
 
 export async function mapConcurrent<T, R>(items: T[], limit: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]>
 export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions & { settle: true }, fn: (item: T, index: number) => Promise<R>): Promise<PromiseSettledResult<R>[]>
-export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions, fn: (item: T, index: number) => Promise<R>): Promise<R[]>
+export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions & { settle?: false }, fn: (item: T, index: number) => Promise<R>): Promise<R[]>
+export async function mapConcurrent<T, R>(items: T[], options: MapConcurrentOptions, fn: (item: T, index: number) => Promise<R>): Promise<R[] | PromiseSettledResult<R>[]>
+/**
+ * Maps over `items` with at most `limit` calls in flight, keeping the results in input order.
+ *
+ * Unlike a chunked `Promise.all`, a worker takes the next item as soon as it is free, so one slow item does not hold up the rest of its batch.
+ */
 export async function mapConcurrent<T, R>(items: T[], limitOrOptions: number | MapConcurrentOptions, fn: (item: T, index: number) => Promise<R>): Promise<R[] | PromiseSettledResult<R>[]> {
   const { limit = Infinity, signal, settle = false } = typeof limitOrOptions === 'number' ? { limit: limitOrOptions } : limitOrOptions
   const results = Array.from({ length: items.length }) as (R | PromiseSettledResult<R>)[]

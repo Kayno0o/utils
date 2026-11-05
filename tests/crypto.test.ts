@@ -87,6 +87,10 @@ describe('password hashing', () => {
     expect(passwordNeedsRehash('')).toBe(true)
   }, HASHING_TIMEOUT)
 
+  it('keeps the defaults for parameters given as undefined', () => {
+    expect(passwordNeedsRehash('$argon2id$v=19$m=65536,t=2,p=1$c2FsdA$aGFzaA', { memoryCost: undefined, timeCost: undefined })).toBe(false)
+  })
+
   it('accepts parameters stronger than the current ones', () => {
     expect(passwordNeedsRehash('$argon2id$v=19$m=131072,t=4,p=1$c2FsdA$aGFzaA')).toBe(false)
   }, HASHING_TIMEOUT)

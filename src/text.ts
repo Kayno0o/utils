@@ -623,7 +623,7 @@ export interface TruncateOptions {
 const LAST_WHITESPACE_REGEX = /\s+\S*$/
 const WHITESPACE_CHAR_REGEX = /\s/
 
-/** Cuts `str` past `len` characters and appends the suffix. */
+/** Cuts `str` past `len` characters and appends the suffix; with `includeSuffix` the result never exceeds `len`, even when the suffix alone would. */
 export function truncate(str: string, len: number, suffixOrOptions: string | TruncateOptions = '...'): string {
   const { suffix = '...', includeSuffix = false, wordBoundary = false } = typeof suffixOrOptions === 'string' ? { suffix: suffixOrOptions } : suffixOrOptions
 
@@ -639,7 +639,7 @@ export function truncate(str: string, len: number, suffixOrOptions: string | Tru
   if (wordBoundary)
     cut = cut.trimEnd()
 
-  return cut + suffix
+  return includeSuffix ? (cut + suffix).slice(0, len) : cut + suffix
 }
 
 export function stripHtml(str: string): string {
