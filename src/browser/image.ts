@@ -1,4 +1,5 @@
 import type { CropRect } from './canvas'
+import { base64DecodeBytes } from '../text'
 
 export async function convertImage(imageUrl: string, options?: {
   format?: 'image/webp' | 'image/png' | 'image/jpeg'
@@ -156,11 +157,7 @@ export async function transformImage(src: string, transform: ImageTransform, opt
 export function dataUrlToBlob(src: string): Blob {
   const comma = src.indexOf(',')
   const head = comma < 0 ? src : src.slice(0, comma)
-  const binary = atob(comma < 0 ? '' : src.slice(comma + 1))
-  const bytes = new Uint8Array(binary.length)
-
-  for (let i = 0; i < binary.length; i++)
-    bytes[i] = binary.charCodeAt(i)
+  const bytes = base64DecodeBytes(comma < 0 ? '' : src.slice(comma + 1))
 
   return new Blob([bytes], { type: head.slice(head.indexOf(':') + 1).split(';')[0] || 'application/octet-stream' })
 }

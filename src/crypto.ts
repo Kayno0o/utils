@@ -1,3 +1,5 @@
+import { base64Encode } from './text'
+
 const NANOID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 
 /** Random id of `size` symbols drawn uniformly from `alphabet`, which must hold 1-256 of them. */
@@ -40,20 +42,12 @@ export type DigestEncoding = 'hex' | 'base64' | 'base64url'
 /** Text as its UTF-8 bytes, bytes as they are. */
 export type CryptoInput = string | BufferSource
 
-const BASE64_PADDING_REGEX = /=+$/
-const BASE64_URL_UNSAFE_REGEX = /[+/]/g
-
 function toBytes(input: CryptoInput): BufferSource {
   return typeof input === 'string' ? new TextEncoder().encode(input) : input
 }
 
 function encodeDigest(buffer: ArrayBuffer, encoding: DigestEncoding): string {
-  if (encoding === 'hex')
-    return toHex(buffer)
-
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)))
-
-  return encoding === 'base64' ? base64 : base64.replace(BASE64_PADDING_REGEX, '').replace(BASE64_URL_UNSAFE_REGEX, char => (char === '+' ? '-' : '_'))
+  return encoding === 'hex' ? toHex(buffer) : base64Encode(buffer, encoding === 'base64url')
 }
 
 export async function hmac(key: CryptoInput, message: CryptoInput, algorithm: HashAlgorithm = 'SHA-256', encoding: DigestEncoding = 'hex'): Promise<string> {

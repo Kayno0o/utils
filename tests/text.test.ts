@@ -1,5 +1,5 @@
 import { describe, expect, test as it, spyOn } from 'bun:test'
-import { base64Decode, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
+import { base64Decode, base64DecodeBytes, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUuidFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, progressBar, randomString, removeComments, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, splitList, toCamel, toCase, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -1191,6 +1191,23 @@ describe('base64', () => {
 
   it('throws on base64 that is not UTF-8', () => {
     expect(() => base64Decode('/w==')).toThrow()
+  })
+
+  it('encodes and decodes bytes, views over a larger buffer included', () => {
+    const bytes = new Uint8Array([0xFB, 0xFF, 0x00, 0x7E])
+
+    expect(base64Encode(bytes)).toBe('+/8Afg==')
+    expect(base64Encode(bytes.buffer, true)).toBe('-_8Afg')
+    expect(base64Encode(bytes.subarray(1, 3))).toBe('/wA=')
+    expect([...base64DecodeBytes('-_8Afg')]).toEqual([...bytes])
+  })
+})
+
+describe('splitList', () => {
+  it('trims the items and drops the empty ones', () => {
+    expect(splitList(' a, ,b ,')).toEqual(['a', 'b'])
+    expect(splitList('')).toEqual([])
+    expect(splitList('a | b', /\|/)).toEqual(['a', 'b'])
   })
 })
 

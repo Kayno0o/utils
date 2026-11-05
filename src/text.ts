@@ -138,6 +138,11 @@ export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+/** Splits on `separator`, trimming each item and dropping the empty ones: `' a, ,b '` gives `['a', 'b']`. */
+export function splitList(text: string, separator: string | RegExp = ','): string[] {
+  return text.split(separator).map(item => item.trim()).filter(Boolean)
+}
+
 export interface SearchOptions {
   /** Tells `A` from `a`. Defaults to false. */
   caseSensitive?: boolean
@@ -314,9 +319,16 @@ const TRAILING_PADDING = /=+$/
 const PLUS = /\+/g
 const SLASH = /\//g
 
-/** Base64 of the text's UTF-8 bytes, so any character encodes where `btoa` throws past Latin-1; `url` gives the url-safe alphabet without padding. */
-export function base64Encode(text: string, url = false): string {
-  const bytes = utf8Encoder.encode(text)
+function asBytes(input: string | BufferSource): Uint8Array {
+  if (typeof input === 'string')
+    return utf8Encoder.encode(input)
+
+  return ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : new Uint8Array(input)
+}
+
+/** Base64 of text's UTF-8 bytes, so any character encodes where `btoa` throws past Latin-1, or of bytes as they are; `url` gives the url-safe alphabet without padding. */
+export function base64Encode(input: string | BufferSource, url = false): string {
+  const bytes = asBytes(input)
   let binary = ''
 
   for (let i = 0; i < bytes.length; i += BASE64_CHUNK)
@@ -327,8 +339,8 @@ export function base64Encode(text: string, url = false): string {
   return url ? encoded.replace(PLUS, '-').replace(SLASH, '_').replace(TRAILING_PADDING, '') : encoded
 }
 
-/** The UTF-8 text behind base64, in either alphabet, with or without padding; throws when it is not base64 or not UTF-8. */
-export function base64Decode(encoded: string): string {
+/** The bytes behind base64, in either alphabet, with or without padding; throws when it is not base64. */
+export function base64DecodeBytes(encoded: string): Uint8Array<ArrayBuffer> {
   const normal = encoded.replace(WHITESPACE, '').replace(BASE64URL_CHARS, char => (char === '-' ? '+' : '/'))
   const binary = atob(normal.padEnd(Math.ceil(normal.length / 4) * 4, '='))
 
@@ -337,7 +349,12 @@ export function base64Decode(encoded: string): string {
   for (let i = 0; i < binary.length; i++)
     bytes[i] = binary.charCodeAt(i)
 
-  return utf8StrictDecoder.decode(bytes)
+  return bytes
+}
+
+/** The UTF-8 text behind base64, in either alphabet, with or without padding; throws when it is not base64 or not UTF-8. */
+export function base64Decode(encoded: string): string {
+  return utf8StrictDecoder.decode(base64DecodeBytes(encoded))
 }
 
 /** Quotes a CSV field holding a quote, the delimiter or a line break, doubling its quotes. */
@@ -520,27 +537,23 @@ export function uniqueName(base: string, taken: ReadonlySet<string> | readonly s
 }
 
 const MINIFIED_REGEX = /^[\w-]+$/
+const HEX_PAIR_REGEX = /.{1,2}/g
 
 export function minifyUUID(uuid: string): string {
   if (!STRICT_UUID_REGEX.test(uuid))
     throw new Error('Invalid UUID format')
 
-  const hex = uuid.replace(/-/g, '')
-  const bytes = new Uint8Array(hex.match(/.{1,2}/g)!.map(byte => Number.parseInt(byte, 16)))
+  const hex = uuid.replaceAll('-', '')
+  const bytes = new Uint8Array(hex.match(HEX_PAIR_REGEX)!.map(byte => Number.parseInt(byte, 16)))
 
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
+  return base64Encode(bytes, true)
 }
 
 export function expandUUID(minified: string): string {
   if (!MINIFIED_REGEX.test(minified))
     throw new Error('Invalid minified format')
 
-  const base64 = minified.replace(/-/g, '+').replace(/_/g, '/')
-  const binary = atob(base64)
-  const hex = Array.from(binary, char => char.charCodeAt(0).toString(16).padStart(2, '0')).join('')
+  const hex = Array.from(base64DecodeBytes(minified), byte => byte.toString(16).padStart(2, '0')).join('')
 
   if (hex.length !== 32)
     throw new Error('Invalid minified format')

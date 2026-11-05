@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { coalesce, compose, createMutex, curry, debounce, identity, negate, noop, partial, pipe, tap, throttle, tryCatch } from '../src'
+import { coalesce, compose, createMutex, createRateLimiter, curry, debounce, identity, negate, noop, partial, pipe, tap, throttle, tryCatch } from '../src'
 
 describe('identity / noop', () => {
   it('identity returns its argument', () => {
@@ -172,6 +172,35 @@ describe('coalesce', () => {
 
     expect(runs).toBe(2)
     expect(errors).toHaveLength(2)
+  })
+})
+
+describe('createRateLimiter', () => {
+  it('spaces concurrent calls by the interval, in call order', async () => {
+    const wait = createRateLimiter(30)
+    const start = Date.now()
+    const times: number[] = []
+
+    await Promise.all([0, 1, 2].map(async () => {
+      await wait()
+      times.push(Date.now() - start)
+    }))
+
+    expect(times[0]).toBeLessThan(15)
+    expect(times[1]).toBeGreaterThanOrEqual(25)
+    expect(times[2]).toBeGreaterThanOrEqual(55)
+  })
+
+  it('rejects an aborted wait with the signal reason', async () => {
+    const wait = createRateLimiter(1000)
+    const controller = new AbortController()
+
+    await wait()
+
+    const waiting = wait({ signal: controller.signal })
+
+    controller.abort(new Error('stop'))
+    await expect(waiting).rejects.toThrow('stop')
   })
 })
 

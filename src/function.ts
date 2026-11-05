@@ -214,6 +214,23 @@ export function createMutex(): <T>(task: () => Promise<T>) => Promise<T> {
   }
 }
 
+/** Returns a gate resolving each call at least `interval` after the one before, slots reserved at call time so concurrent callers spread out; an aborted `signal` rejects only its own wait. */
+export function createRateLimiter(interval: number): (options?: { signal?: AbortSignal }) => Promise<void> {
+  let nextSlot = 0
+
+  return async ({ signal } = {}) => {
+    signal?.throwIfAborted()
+
+    const now = Date.now()
+    const slot = Math.max(now, nextSlot)
+
+    nextSlot = slot + interval
+
+    if (slot > now)
+      await sleep(slot - now, { signal })
+  }
+}
+
 /** Runs `func` at most once per `delay`; by default on the first call of each window, dropping the rest. */
 export function throttle<T extends (...args: any[]) => any>(func: T, delay: number, { leading = true, trailing = false, maxWait = delay }: DebounceOptions = {}): Debounced<T> {
   return debounce(func, delay, { leading, trailing, maxWait })
