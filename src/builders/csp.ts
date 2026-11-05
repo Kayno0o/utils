@@ -7,17 +7,30 @@ export type CspName
 
 export type CspType = Partial<Record<CspName, string[]>>
 
-function normalizeDomain(domainName: string): string {
-  const domain = String(domainName.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0])
+export interface CspBuilderOptions {
+  /** Directives whose values replace the defaults rather than add to them; `undefined` drops one. */
+  replace?: CspType
+  /** Allows Google Fonts in `style-src` and `font-src`. Defaults to true. */
+  googleFonts?: boolean
+  /** Adds `'unsafe-inline'` to `style-src`. Defaults to true. */
+  unsafeInlineStyles?: boolean
+}
 
-  if (!(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i).test(domain))
+const PROTOCOL_PREFIX_REGEX = /^https?:\/\//
+const TRAILING_SLASH_REGEX = /\/$/
+const DOMAIN_REGEX = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i
+
+function normalizeDomain(domainName: string): string {
+  const domain = String(domainName.replace(PROTOCOL_PREFIX_REGEX, '').replace(TRAILING_SLASH_REGEX, '').split('/')[0])
+
+  if (!DOMAIN_REGEX.test(domain))
     throw new Error(`Domain is invalid: ${domain}`)
 
   return domain
 }
 
-/** Pass several domains to cover every apex a site is served on; each directive lists them in the given order. */
-export function cspBuilder(domainName: string | string[], siteCsp?: CspType): string {
+/** Pass several domains to cover every apex a site is served on; each directive lists them in the given order. `siteCsp` adds to the defaults, `options.replace` overrides them. */
+export function cspBuilder(domainName: string | string[], siteCsp?: CspType, { replace, googleFonts = true, unsafeInlineStyles = true }: CspBuilderOptions = {}): string {
   const domains = (Array.isArray(domainName) ? domainName : [domainName]).map(normalizeDomain)
 
   if (!domains.length)
@@ -31,7 +44,7 @@ export function cspBuilder(domainName: string | string[], siteCsp?: CspType): st
     'base-uri': ['\'self\''],
     'connect-src': ['\'self\'', ...https, ...wss],
     'default-src': ['\'self\'', ...bare],
-    'font-src': ['\'self\'', 'data:', 'https://fonts.gstatic.com'],
+    'font-src': ['\'self\'', 'data:', ...(googleFonts ? ['https://fonts.gstatic.com'] : [])],
     'form-action': ['\'self\''],
     'frame-ancestors': ['\'self\'', ...https],
     'img-src': ['\'self\'', 'data:', ...https],
@@ -39,13 +52,14 @@ export function cspBuilder(domainName: string | string[], siteCsp?: CspType): st
     'media-src': ['\'self\'', 'blob:', ...bare],
     'object-src': ['\'self\'', ...https],
     'script-src': ['\'self\'', ...https],
-    'style-src': ['\'self\'', ...https, 'https://fonts.googleapis.com', '\'unsafe-inline\''],
+    'style-src': ['\'self\'', ...https, ...(googleFonts ? ['https://fonts.googleapis.com'] : []), ...(unsafeInlineStyles ? ['\'unsafe-inline\''] : [])],
     'upgrade-insecure-requests': [],
     'worker-src': ['\'self\'', 'blob:', 'data:', ...https],
   }
 
+  Object.assign(csp, replace)
+
   if (siteCsp) {
-    // append and merge new values to existing directives or create new ones
     for (const [key, value] of Object.entries(siteCsp) as [CspName, string[]][])
       csp[key] = csp[key] ? [...(csp[key] as string[]), ...value] : value
   }
@@ -55,6 +69,7 @@ export function cspBuilder(domainName: string | string[], siteCsp?: CspType): st
   csp['style-src-elem'] ??= csp['style-src']
 
   return Object.entries(csp)
+    .filter(([, value]) => value !== undefined)
     .map(([key, value]) => {
       const directiveValues = Array.isArray(value) ? value.join(' ') : value
 

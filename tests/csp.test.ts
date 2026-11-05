@@ -107,3 +107,30 @@ describe('cspBuilder function with several domains', () => {
     expect(() => cspBuilder([])).toThrow('At least one domain is required')
   })
 })
+
+describe('cspBuilder options', () => {
+  it('replaces a directive instead of appending, and drops one set to undefined', () => {
+    const csp = cspBuilder('example.com', { 'script-src': ['https://cdn.example.org'] }, {
+      replace: { 'script-src': ['\'none\''], 'upgrade-insecure-requests': undefined },
+    })
+
+    expect(csp).toContain('script-src \'none\' https://cdn.example.org;')
+    expect(csp).not.toContain('upgrade-insecure-requests')
+  })
+
+  it('turns off Google Fonts and inline styles', () => {
+    const csp = cspBuilder('example.com', undefined, { googleFonts: false, unsafeInlineStyles: false })
+
+    expect(csp).not.toContain('fonts.googleapis.com')
+    expect(csp).not.toContain('fonts.gstatic.com')
+    expect(csp).not.toContain('unsafe-inline')
+    expect(csp).toContain('style-src \'self\' https://*.example.com;')
+  })
+
+  it('keeps both by default', () => {
+    const csp = cspBuilder('example.com')
+
+    expect(csp).toContain('https://fonts.googleapis.com \'unsafe-inline\'')
+    expect(csp).toContain('https://fonts.gstatic.com')
+  })
+})
