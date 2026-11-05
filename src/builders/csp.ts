@@ -9,7 +9,7 @@ export type CspType = Partial<Record<CspName, string[]>>
 
 export interface CspBuilderOptions {
   /** Directives whose values replace the defaults rather than add to them; `undefined` drops one. */
-  replace?: CspType
+  replace?: Partial<Record<CspName, string[] | undefined>>
   /** Allows Google Fonts in `style-src` and `font-src`. Defaults to true. */
   googleFonts?: boolean
   /** Adds `'unsafe-inline'` to `style-src`. Defaults to true. */
@@ -65,8 +65,11 @@ export function cspBuilder(domainName: string | string[], siteCsp?: CspType, { r
   }
 
   // sync element-specific directives with their shorthand counterparts
-  csp['script-src-elem'] ??= csp['script-src']
-  csp['style-src-elem'] ??= csp['style-src']
+  if (csp['script-src'])
+    csp['script-src-elem'] ??= csp['script-src']
+
+  if (csp['style-src'])
+    csp['style-src-elem'] ??= csp['style-src']
 
   return Object.entries(csp)
     .filter(([, value]) => value !== undefined)

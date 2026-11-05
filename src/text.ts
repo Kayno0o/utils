@@ -153,7 +153,7 @@ export interface SearchOptions {
   accentSensitive?: boolean
 }
 
-type SearchArgs = string[] | [values: string[], options?: SearchOptions]
+type SearchArgs = string[] | [values: string[], options?: SearchOptions | undefined]
 
 /** Splits the variadic form from the `(values, options)` one. */
 function readSearchArgs(args: SearchArgs): { values: string[], fold: (str: string) => string } {

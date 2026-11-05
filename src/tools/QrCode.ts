@@ -42,10 +42,10 @@ export interface QrLogoOptions {
 export interface QrCodeSvgOptions {
   /** Error correction level. Defaults to `'H'` when a logo is set, otherwise `'M'`. */
   ecc?: 'L' | 'M' | 'Q' | 'H'
-  minVersion?: number
-  maxVersion?: number
-  boostEcc?: boolean
-  maskPattern?: number
+  minVersion?: number | undefined
+  maxVersion?: number | undefined
+  boostEcc?: boolean | undefined
+  maskPattern?: number | undefined
 
   /** Quiet zone around the code, in modules. @default 4 */
   margin?: number
@@ -239,7 +239,14 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
   const ecc = options.ecc ?? (logo ? 'H' : 'M')
   const safeId = id.replace(UNSAFE_ID_CHARS_REGEX, '') || 'qr'
 
-  const result = encode(data, { ecc, minVersion, maxVersion, boostEcc, maskPattern, border: 0 })
+  const result = encode(data, {
+    ecc,
+    ...(minVersion === undefined ? {} : { minVersion }),
+    ...(maxVersion === undefined ? {} : { maxVersion }),
+    ...(boostEcc === undefined ? {} : { boostEcc }),
+    ...(maskPattern === undefined ? {} : { maskPattern }),
+    border: 0,
+  })
   const count = result.size
   const total = count + margin * 2
 

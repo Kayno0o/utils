@@ -74,15 +74,15 @@ export const PASSWORD_HASH_PARAMS = { algorithm: 'argon2id', memoryCost: 65536, 
 
 /** Argon2 costs to hash with, e.g. cheap ones in tests; unset ones keep `PASSWORD_HASH_PARAMS`. */
 export interface PasswordHashParams {
-  algorithm?: 'argon2id' | 'argon2i' | 'argon2d'
+  algorithm?: 'argon2id' | 'argon2i' | 'argon2d' | undefined
   /** KiB of memory per hash. */
-  memoryCost?: number
+  memoryCost?: number | undefined
   /** Passes over that memory. */
-  timeCost?: number
+  timeCost?: number | undefined
 }
 
 /** The defaults under `params`, a key left `undefined` keeping its default. */
-function passwordHashTarget(params: PasswordHashParams): Required<PasswordHashParams> {
+function passwordHashTarget(params: PasswordHashParams): { algorithm: NonNullable<PasswordHashParams['algorithm']>, memoryCost: number, timeCost: number } {
   return { ...PASSWORD_HASH_PARAMS, ...Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined)) }
 }
 

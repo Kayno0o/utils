@@ -57,7 +57,7 @@ export function streamOllamaJson(url: string, opts: StreamOllamaJsonOptions): Re
           think: opts.think,
           ...(opts.format ? { format: opts.format } : {}),
           options: opts.options,
-        }, { ...opts.fetchOptions, signal: opts.signal })
+        }, { ...opts.fetchOptions, ...(opts.signal ? { signal: opts.signal } : {}) })
 
         for await (const chunk of chunks) {
           const c = chunk.message.content ?? ''
@@ -115,6 +115,8 @@ export async function readOllamaJsonStream<T>(
   body: BodyInit,
   opts: ReadOllamaJsonStreamOptions = {},
 ): Promise<T & { __meta?: OllamaMeta }> {
+  const combined = combineSignals(opts.signal, opts.timeout)
+
   const res = await (opts.fetch ?? fetch)(url, {
     method: 'POST',
     headers: mergeHeaders(
@@ -122,7 +124,7 @@ export async function readOllamaJsonStream<T>(
       opts.headers,
     ),
     body,
-    signal: combineSignals(opts.signal, opts.timeout),
+    ...(combined ? { signal: combined } : {}),
   })
 
   if (!res.ok)

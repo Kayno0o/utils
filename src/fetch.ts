@@ -25,5 +25,7 @@ export interface FetchWithTimeoutInit extends RequestInit {
 export async function fetchWithTimeout(url: string | URL, init: FetchWithTimeoutInit = {}): Promise<Response> {
   const { timeout = DEFAULT_FETCH_TIMEOUT_MS, signal, ...rest } = init
 
-  return await fetch(url, { ...rest, signal: combineSignals(signal, timeout) })
+  const combined = combineSignals(signal, timeout)
+
+  return await fetch(url, { ...rest, ...(combined ? { signal: combined } : {}) })
 }

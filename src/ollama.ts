@@ -225,7 +225,7 @@ export function buildOllamaMeta(res: OllamaOutputChatResponse, rawInput: string)
     tokensPerSec: res.eval_duration ? (res.eval_count ?? 0) / (res.eval_duration / NS_PER_S) : 0,
     rawInput,
     rawOutput: res.message.content,
-    thinking: res.message.thinking,
+    ...(res.message.thinking === undefined ? {} : { thinking: res.message.thinking }),
   }
 }
 
@@ -236,6 +236,8 @@ export async function* streamOllama(
   options: OllamaFetchOptions = {},
 ): AsyncGenerator<OllamaOutputResponse, void> {
   const { timeout, signal, headers, token, fetch: fetcher = fetch } = options
+
+  const combined = combineSignals(signal, timeout)
 
   const res = await fetcher(url, {
     method: 'POST',
@@ -248,7 +250,7 @@ export async function* streamOllama(
       headers,
     ),
     body: JSON.stringify({ ...input, stream: true }),
-    signal: combineSignals(signal, timeout),
+    ...(combined ? { signal: combined } : {}),
   })
 
   if (!res.ok)

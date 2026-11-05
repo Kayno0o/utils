@@ -10,7 +10,7 @@ export interface FormatFileSizeOptions {
   /** Digits after the decimal point. Defaults to `1`. */
   dp?: number
   /** Writes the number with this locale's separators, e.g. `1,5 MB`. Defaults to a plain `.`. */
-  locale?: string | string[]
+  locale?: string | string[] | undefined
 }
 
 /**
@@ -41,7 +41,7 @@ export function formatFileSize(bytes: number, { units: unitSystem = 'iec', dp = 
 
 export interface FormatUnitOptions {
   /** Writes the number with this locale's separators, e.g. `1,5k`. Defaults to a plain `.`. */
-  locale?: string | string[]
+  locale?: string | string[] | undefined
 }
 
 /** A count shortened to one decimal and a k, M, B or T suffix, rounding up to the next unit when it would print 1000. */

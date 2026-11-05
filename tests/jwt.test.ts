@@ -24,7 +24,7 @@ describe('decodeJwt', () => {
 describe('JWTBuilder', () => {
   const part = (value: object) => base64Encode(JSON.stringify(value), true)
   const now = () => Math.floor(Date.now() / 1000)
-  const calls: { secret: string, options?: JwtSignOptions }[] = []
+  const calls: { secret: string, options?: JwtSignOptions | undefined }[] = []
 
   // A stand-in for jsonwebtoken: signs nothing, checks only the "signature" text and `exp`.
   const fakeJwt = {

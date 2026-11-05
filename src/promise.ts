@@ -17,7 +17,7 @@ export interface RetryOptions {
   /** Fires before each wait. */
   onRetry?: (error: unknown, attempt: number, nextDelay: number) => void
   /** Stops before the next try or during a wait, rejecting with the signal's reason. */
-  signal?: AbortSignal
+  signal?: AbortSignal | undefined
 }
 
 export async function retry<T>(

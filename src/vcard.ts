@@ -13,15 +13,15 @@ const NOTE_NL_RE = /\\n/g
 
 export interface VCardContact {
   given_name: string
-  family_name?: string
-  birth_day?: number
-  birth_month?: number
-  birth_year?: number
-  contact_phone?: string
-  contact_email?: string
-  contact_social?: string
-  nicknames?: string
-  notes?: string
+  family_name?: string | undefined
+  birth_day?: number | undefined
+  birth_month?: number | undefined
+  birth_year?: number | undefined
+  contact_phone?: string | undefined
+  contact_email?: string | undefined
+  contact_social?: string | undefined
+  nicknames?: string | undefined
+  notes?: string | undefined
 }
 
 export function normalizePhone(phone: string): string {

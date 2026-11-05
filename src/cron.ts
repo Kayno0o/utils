@@ -302,7 +302,7 @@ export function cronExpressionExplainer(input: string, options: CronExpressionEx
   const description = command ? `${describe(fields)}, running \`${command}\`` : describe(fields)
   const nextRuns = computeRuns(fields, from, count, true)
 
-  return { expression, command, description, nextRuns }
+  return { expression, ...(command === undefined ? {} : { command }), description, nextRuns }
 }
 
 /**

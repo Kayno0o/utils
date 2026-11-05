@@ -1,5 +1,5 @@
 /** Resolves after `ms`; an aborted `signal` rejects with its reason and clears the timer. */
-export function sleep(ms: number, { signal }: { signal?: AbortSignal } = {}): Promise<void> {
+export function sleep(ms: number, { signal }: { signal?: AbortSignal | undefined } = {}): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted)
       return reject(signal.reason)
@@ -215,7 +215,7 @@ export function createMutex(): <T>(task: () => Promise<T>) => Promise<T> {
 }
 
 /** Returns a gate resolving each call at least `interval` after the one before, slots reserved at call time so concurrent callers spread out; an aborted `signal` rejects only its own wait, and its slot stays taken. */
-export function createRateLimiter(interval: number): (options?: { signal?: AbortSignal }) => Promise<void> {
+export function createRateLimiter(interval: number): (options?: { signal?: AbortSignal | undefined }) => Promise<void> {
   let nextSlot = 0
 
   return async ({ signal } = {}) => {

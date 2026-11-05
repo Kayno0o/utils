@@ -162,32 +162,32 @@ export class FetchParseError extends Error {
 
 export interface FetchJsonOptions extends Omit<RequestInit, 'body' | 'headers'> {
   /** Overrides the URL base. */
-  baseUrl?: string
+  baseUrl?: string | undefined
   /** Adds `Authorization: Bearer <token>` header. */
-  token?: string
+  token?: string | undefined
   /** Query params appended to the URL; undefined values are skipped, arrays repeat the key. */
-  query?: QueryInput
+  query?: QueryInput | undefined
   /** Plain objects/arrays are JSON-encoded (with a JSON content type); `BodyInit` values pass through. */
-  body?: BodyInit | Record<string, unknown> | unknown[] | null
+  body?: BodyInit | Record<string, unknown> | unknown[] | null | undefined
   /** Header-shaped input merged over the defaults; undefined values are skipped. */
-  headers?: HeadersInput
+  headers?: HeadersInput | undefined
   /** Aborts the request after this many milliseconds, combined with any caller `signal`. */
-  timeout?: number
+  timeout?: number | undefined
   /**
    * Every response, ok or not, before it is read. Where a session that has expired under the
    * page is noticed once rather than at each call site - the body is still untouched here.
    */
-  onResponse?: (res: Response) => void
+  onResponse?: ((res: Response) => void) | undefined
   /** Gets the error `fetchJson` is about to throw, after any retries. */
-  onError?: (error: unknown) => void
+  onError?: ((error: unknown) => void) | undefined
   /** The `fetch` to call, for tests, SSR or a runtime-specific client. Defaults to the global `fetch`. */
-  fetch?: typeof fetch
+  fetch?: typeof fetch | undefined
   /** Reads a non-empty response body. Defaults to `JSON.parse`. */
-  parse?: (text: string) => unknown
+  parse?: ((text: string) => unknown) | undefined
   /** Writes a plain object or array body. Defaults to `JSON.stringify`. */
-  serialize?: (body: Record<string, unknown> | unknown[]) => string
+  serialize?: ((body: Record<string, unknown> | unknown[]) => string) | undefined
   /** Retries a failed request, a count or `retry`'s options; by default network errors, timeouts, 408, 429 and 5xx, whatever the method, so mind a POST that is not idempotent, and a stream body cannot be sent twice. Off by default. */
-  retry?: number | Omit<RetryOptions, 'signal'>
+  retry?: number | Omit<RetryOptions, 'signal'> | undefined
 }
 
 /** Network failures, per-attempt timeouts and statuses a later try may get past. */
@@ -231,9 +231,9 @@ interface PreparedJsonRequest {
   init: RequestInit
   fetcher: typeof fetch
   parse: (text: string) => unknown
-  onResponse?: (response: Response) => void
-  timeout?: number
-  signal?: AbortSignal | null
+  onResponse?: ((response: Response) => void) | undefined
+  timeout?: number | undefined
+  signal?: AbortSignal | null | undefined
 }
 
 // Built once, outside the retries, so a bad body or a throwing `serialize` fails at once instead of being retried.
@@ -262,7 +262,7 @@ function prepareJsonRequest(url: string, options: Omit<FetchJsonOptions, 'retry'
       ...init,
       headers: finalHeaders,
       body: body === undefined || body === null
-        ? undefined
+        ? null
         : jsonBody ? serialize(body as Record<string, unknown> | unknown[]) : body as BodyInit,
     },
     fetcher,
@@ -274,7 +274,8 @@ function prepareJsonRequest(url: string, options: Omit<FetchJsonOptions, 'retry'
 }
 
 async function sendJsonRequest<T>({ fullUrl, init, fetcher, parse, onResponse, timeout, signal }: PreparedJsonRequest): Promise<T> {
-  const res = await fetcher(fullUrl, { ...init, signal: combineSignals(signal, timeout) })
+  const combined = combineSignals(signal, timeout)
+  const res = await fetcher(fullUrl, { ...init, ...(combined ? { signal: combined } : {}) })
 
   onResponse?.(res)
 

@@ -83,12 +83,14 @@ function watchProp(instance: object, prop: string) {
     const originalSetter = existing.set
 
     Object.defineProperty(instance, prop, {
-      get: existing.get,
+      get() {
+        return existing.get?.call(this)
+      },
       set(value: any) {
         originalSetter.call(this, value)
         clearDependents(this, prop)
       },
-      enumerable: existing.enumerable,
+      ...(existing.enumerable === undefined ? {} : { enumerable: existing.enumerable }),
       configurable: true,
     })
 

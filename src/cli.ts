@@ -11,11 +11,11 @@ export interface SpawnOptions {
   /** Kills the process past this deadline, which then counts as a failed exit. */
   timeout?: number
   /** Working directory. Defaults to the current one. */
-  cwd?: string
+  cwd?: string | undefined
   /** The whole environment the process sees. Defaults to `process.env`; spread it to add to it. */
   env?: Record<string, string | undefined>
   /** Kills the process when aborted, rejecting with the signal's reason. */
-  signal?: AbortSignal
+  signal?: AbortSignal | undefined
 }
 
 export interface SpawnTextOptions extends SpawnOptions {
@@ -42,7 +42,7 @@ async function feed(sink: Bun.FileSink | number | undefined, input: SpawnOptions
 async function run<T>(argv: string[], opts: SpawnOptions, read: (stdout: ReadableStream<Uint8Array>) => Promise<T>): Promise<{ out: T, err: string, code: number }> {
   opts.signal?.throwIfAborted()
 
-  const proc = Bun.spawn(argv, { stdout: 'pipe', stderr: 'pipe', stdin: opts.stdin === undefined ? 'ignore' : 'pipe', cwd: opts.cwd, env: opts.env, signal: opts.signal })
+  const proc = Bun.spawn(argv, { stdout: 'pipe', stderr: 'pipe', stdin: opts.stdin === undefined ? 'ignore' : 'pipe', ...(opts.cwd === undefined ? {} : { cwd: opts.cwd }), ...(opts.env === undefined ? {} : { env: opts.env }), ...(opts.signal === undefined ? {} : { signal: opts.signal }) })
 
   const timer = opts.timeout === undefined ? undefined : setTimeout(() => proc.kill(), opts.timeout)
 

@@ -12,6 +12,7 @@
     "types": ["bun-types"],
     "allowJs": false,
     "strict": true,
+    "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
