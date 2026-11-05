@@ -10,9 +10,8 @@ class MockWebSocket {
   onopen: (() => void) | null = null
   onmessage: ((e: { data: string }) => void) | null = null
   onerror: (() => void) | null = null
-  onclose: (() => void) | null = null
 
-  constructor(public url: string) {
+  constructor(public url: string, public protocols?: string | string[]) {
     MockWebSocket.instances.push(this)
   }
 
@@ -20,9 +19,11 @@ class MockWebSocket {
     this.sent.push(data)
   }
 
-  close() {
+  onclose: ((event?: { code: number }) => void) | null = null
+
+  close(code = 1000) {
     this.readyState = 3
-    this.onclose?.()
+    this.onclose?.({ code })
   }
 
   open() {
@@ -198,5 +199,79 @@ describe('createWsClient', () => {
 
     jest.advanceTimersByTime(600)
     expect(MockWebSocket.instances).toHaveLength(1)
+  })
+})
+
+describe('createWsClient options', () => {
+  it('connects to a given url, read again at each reconnect, with protocols', () => {
+    let n = 0
+
+    createWsClient({ url: () => `wss://api.example.org/ws?n=${n++}`, protocols: ['v1'], reconnect: 10, onMessage: () => undefined })
+    expect(last().url).toBe('wss://api.example.org/ws?n=0')
+    expect(last().protocols).toEqual(['v1'])
+
+    last().close()
+    jest.advanceTimersByTime(10)
+    expect(last().url).toBe('wss://api.example.org/ws?n=1')
+  })
+
+  it('backs off with a delay function and stops after the given attempts', () => {
+    const delays: number[] = []
+
+    createWsClient({ path: '/ws', reconnect: { delay: (attempt) => {
+      delays.push(attempt)
+
+      return 100 * 2 ** attempt
+    }, attempts: 2 }, onMessage: () => undefined })
+
+    last().close()
+    jest.advanceTimersByTime(100)
+    last().close()
+    jest.advanceTimersByTime(200)
+    last().close()
+    jest.advanceTimersByTime(10_000)
+
+    expect(delays).toEqual([0, 1])
+    expect(MockWebSocket.instances).toHaveLength(3)
+  })
+
+  it('resets the attempt count once a reconnect opens', () => {
+    createWsClient({ path: '/ws', reconnect: { delay: 10, attempts: 1 }, onMessage: () => undefined })
+
+    last().close()
+    jest.advanceTimersByTime(10)
+    last().open()
+    last().close()
+    jest.advanceTimersByTime(10)
+
+    expect(MockWebSocket.instances).toHaveLength(3)
+  })
+
+  it('uses the given codec and ready type, and hands close events over', () => {
+    const received: unknown[] = []
+    const closes: unknown[] = []
+    const client = createWsClient<{ type: string }>({
+      path: '/ws',
+      authMessage: () => ({ token: 't' }),
+      readyType: 'welcome',
+      parse: data => ({ type: String(data).split(':')[0]! }),
+      serialize: data => `json:${JSON.stringify(data)}`,
+      onMessage: msg => received.push(msg),
+      onClose: event => closes.push(event),
+    })
+
+    last().open()
+    expect(last().sent).toEqual(['json:{"token":"t"}'])
+
+    client.send({ a: 1 })
+    last().onmessage?.({ data: 'welcome:' })
+    expect(client.ready()).toBe(true)
+    expect(last().sent.at(-1)).toBe('json:{"a":1}')
+
+    last().onmessage?.({ data: 'chat:hi' })
+    expect(received).toEqual([{ type: 'chat' }])
+
+    last().close(4001)
+    expect(closes).toEqual([{ code: 4001 }])
   })
 })
