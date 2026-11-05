@@ -165,3 +165,148 @@ describe('within', () => {
     expect(within(Promise.reject(new Error('boom')), 50)).rejects.toThrow('boom')
   })
 })
+
+describe('sleep signal', () => {
+  it('rejects with the reason once aborted, and at once when already aborted', async () => {
+    const controller = new AbortController()
+    const started = Date.now()
+    const pending = sleep(1000, { signal: controller.signal })
+
+    controller.abort(new Error('stop'))
+    await expect(pending).rejects.toThrow('stop')
+    expect(Date.now() - started).toBeLessThan(100)
+
+    await expect(sleep(1000, { signal: AbortSignal.abort(new Error('already')) })).rejects.toThrow('already')
+  })
+})
+
+describe('retry options', () => {
+  it('rethrows at once when shouldRetry says no', async () => {
+    const thrown = new Error('400')
+    let calls = 0
+
+    await expect(retry(async () => {
+      calls++
+
+      throw thrown
+    }, { delay: 0, shouldRetry: e => e !== thrown })).rejects.toBe(thrown)
+
+    expect(calls).toBe(1)
+  })
+
+  it('reports each retry with its wait, capped by maxDelay', async () => {
+    const seen: [number, number][] = []
+
+    await expect(retry(async () => {
+      throw new Error('nope')
+    }, { attempts: 3, delay: 1, backoff: 10, maxDelay: 5, onRetry: (_e, attempt, wait) => seen.push([attempt, wait]) })).rejects.toThrow()
+
+    expect(seen).toEqual([[0, 1], [1, 5], [2, 5]])
+  })
+
+  it('shortens waits by up to the jitter share', async () => {
+    const waits: number[] = []
+
+    await expect(retry(async () => {
+      throw new Error('nope')
+    }, { attempts: 20, delay: 1, backoff: 1, jitter: 0.5, onRetry: (_e, _a, wait) => waits.push(wait) })).rejects.toThrow()
+
+    for (const wait of waits) {
+      expect(wait).toBeGreaterThan(0.5)
+      expect(wait).toBeLessThanOrEqual(1)
+    }
+  })
+
+  it('stops during a wait when the signal aborts', async () => {
+    const controller = new AbortController()
+    let calls = 0
+    const pending = retry(async () => {
+      calls++
+
+      throw new Error('nope')
+    }, { delay: 1000, signal: controller.signal })
+
+    await sleep(10)
+    controller.abort(new Error('cancelled'))
+
+    await expect(pending).rejects.toThrow('cancelled')
+    expect(calls).toBe(1)
+  })
+})
+
+describe('timeout options', () => {
+  it('rejects with the given message and aborts the signal handed to fn', async () => {
+    let seen: AbortSignal | undefined
+
+    await expect(timeout(async (signal) => {
+      seen = signal
+      await sleep(200)
+    }, { ms: 20, message: 'fetching users timed out' })).rejects.toThrow('fetching users timed out')
+
+    expect(seen?.aborted).toBe(true)
+    expect(seen?.reason).toBeInstanceOf(TimeoutError)
+  })
+
+  it('rejects with the caller signal reason when it aborts first', async () => {
+    const controller = new AbortController()
+    const pending = timeout(signal => sleep(1000, { signal }), { ms: 500, signal: controller.signal })
+
+    controller.abort(new Error('user left'))
+    await expect(pending).rejects.toThrow('user left')
+  })
+})
+
+describe('mapConcurrent options', () => {
+  it('settles every call with settle', async () => {
+    const results = await mapConcurrent([1, 2, 3], { limit: 2, settle: true }, async (n) => {
+      if (n === 2)
+        throw new Error('boom')
+
+      return n
+    })
+
+    expect(results.map(r => r.status)).toEqual(['fulfilled', 'rejected', 'fulfilled'])
+    expect(results[0]).toEqual({ status: 'fulfilled', value: 1 })
+  })
+
+  it('stops taking items after the first failure', async () => {
+    const started: number[] = []
+
+    await expect(mapConcurrent([1, 2, 3, 4, 5], 1, async (n) => {
+      started.push(n)
+
+      if (n === 2)
+        throw new Error('boom')
+    })).rejects.toThrow('boom')
+
+    expect(started).toEqual([1, 2])
+  })
+
+  it('stops taking items once the signal aborts', async () => {
+    const controller = new AbortController()
+    const started: number[] = []
+    const pending = mapConcurrent([1, 2, 3, 4], { limit: 1, signal: controller.signal }, async (n) => {
+      started.push(n)
+      await sleep(10)
+    })
+
+    await sleep(15)
+    controller.abort(new Error('stop'))
+
+    await expect(pending).rejects.toThrow('stop')
+    expect(started).toEqual([1, 2])
+  })
+
+  it('runs every item at once without a limit', async () => {
+    let peak = 0
+    let inFlight = 0
+
+    await mapConcurrent([1, 2, 3, 4], {}, async () => {
+      peak = Math.max(peak, ++inFlight)
+      await sleep(5)
+      inFlight--
+    })
+
+    expect(peak).toBe(4)
+  })
+})

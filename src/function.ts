@@ -1,5 +1,21 @@
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+/** Resolves after `ms`; an aborted `signal` rejects with its reason and clears the timer. */
+export function sleep(ms: number, { signal }: { signal?: AbortSignal } = {}): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted)
+      return reject(signal.reason)
+
+    const pid = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+
+    function onAbort() {
+      clearTimeout(pid)
+      reject(signal!.reason)
+    }
+
+    signal?.addEventListener('abort', onAbort, { once: true })
+  })
 }
 
 export function delay<T extends (...args: any[]) => any>(ms: number, callback?: T, ...args: Parameters<T>): Promise<T extends undefined ? void : ReturnType<T>> {
