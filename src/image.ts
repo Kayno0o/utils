@@ -16,7 +16,9 @@ export function getPlaceholderUrl(props: {
     text: props.text?.replaceAll('\n', '\\n'),
   })
 
-  const path = [props.backgroundColor, props.color, props.format].filter(v => Boolean(v)).join('/')
+  // The text color is the second path segment, so it needs a background before it: placehold.co's own grey.
+  const colors = props.color ? [props.backgroundColor || 'DDDDDD', props.color] : [props.backgroundColor]
+  const path = [...colors, props.format].filter(Boolean).join('/')
 
   return `https://placehold.co/${props.width ?? 100}x${props.height ?? 100}${path ? `/${path}` : ''}${queryString}`
 }

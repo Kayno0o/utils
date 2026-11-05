@@ -1,11 +1,12 @@
 import type { Key, RecursivePartial } from './types'
 import { mapRange } from './number'
 
+/** `object[key]` when the key exists, a falsy value included, else the value at its dotted path; a non-object, `null` included, is returned as is. */
 export function getObjectValue(object: any, key: Key): any {
-  if (typeof object !== 'object')
+  if (typeof object !== 'object' || object === null)
     return object
 
-  return object[key] ? object[key] : String(key).split('.').reduce((acc, key) => acc?.[key], object)
+  return key in object ? object[key] : String(key).split('.').reduce((acc, key) => acc?.[key], object)
 }
 
 /** True for `{}` literals and `Object.create(null)`, false for arrays, class instances and `null`. */
@@ -84,19 +85,15 @@ function cloneValue(value: unknown): unknown {
 export function interpolate<T extends number>(start: T, end: T, framesNb: number): T[]
 export function interpolate<T extends object>(start: RecursivePartial<T>, end: RecursivePartial<T>, framesNb: number): T[]
 
+/** `framesNb + 1` frames from `start` to `end`, numbers and number arrays eased linearly; zero frames gives `end` alone. */
 export function interpolate<T extends object | number>(start: RecursivePartial<T>, end: RecursivePartial<T>, framesNb: number): T[] {
   const frames: any[] = []
+  // A missing start value holds at the end value.
+  const step = (i: number, from: number | undefined, to: number): number => framesNb === 0 || typeof from !== 'number' ? to : mapRange(i, 0, framesNb, from, to)
 
   if (typeof start === 'number' && typeof end === 'number') {
-    for (let i = 0; i <= framesNb; i++) {
-      frames.push(mapRange(
-        i,
-        0,
-        framesNb,
-        start,
-        end,
-      ))
-    }
+    for (let i = 0; i <= framesNb; i++)
+      frames.push(step(i, start, end))
 
     return frames
   }
@@ -108,22 +105,12 @@ export function interpolate<T extends object | number>(start: RecursivePartial<T
       for (const key in end) {
         if (Object.hasOwn(end, key)) {
           if (typeof end[key] === 'number' && typeof start[key] === 'number') {
-            interpolatedFrame[key] = mapRange(
-              i,
-              0,
-              framesNb,
-              start[key],
-              end[key],
-            ) as any
+            interpolatedFrame[key] = step(i, start[key], end[key]) as any
           }
           else if (Array.isArray(end[key]) && Array.isArray(start[key])) {
-            interpolatedFrame[key] = end[key].map((_: any, index: number) => mapRange(
-              i,
-              0,
-              framesNb,
-              (start[key] as any)[index],
-              (end[key] as any)[index],
-            )) as any
+            const from = start[key] as unknown[]
+
+            interpolatedFrame[key] = (end[key] as unknown[]).map((to, index) => typeof to === 'number' ? step(i, from[index] as number | undefined, to) : to) as any
           }
           else {
             interpolatedFrame[key] = end[key] as any

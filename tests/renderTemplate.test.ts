@@ -30,3 +30,14 @@ describe('renderTemplate function', () => {
     expect(renderTemplate('Hello {name}!', { name: '' })).toBe('Hello !')
   })
 })
+
+describe('renderTemplate values', () => {
+  it('inserts values as is, never reading them as replace patterns or variables', () => {
+    expect(renderTemplate('{a} {b}', { a: '$& {b}', b: 'x' })).toBe('$& {b} x')
+    expect(renderTemplate('{price}', { price: '$$5' })).toBe('$$5')
+  })
+
+  it('keeps a placeholder with no value', () => {
+    expect(renderTemplate('{a} {b}', { a: '1' } as never)).toBe('1 {b}')
+  })
+})

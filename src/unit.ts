@@ -56,12 +56,12 @@ export function encodePath(path: [number, number][]): string {
 }
 
 function encodeSignedNumber(num: number): string {
-  let sgn_num = num << 1
+  let signed = num << 1
 
   if (num < 0)
-    sgn_num = ~sgn_num
+    signed = ~signed
 
-  return encodeUnsignedNumber(sgn_num)
+  return encodeUnsignedNumber(signed)
 }
 
 function encodeUnsignedNumber(num: number): string {
@@ -112,7 +112,13 @@ function decodeUnsignedNumber(encoded: string, index: number): [ value: number, 
   let shift = 0
 
   while (true) {
+    if (index >= encoded.length)
+      throw new SyntaxError('Truncated polyline')
+
     const b = encoded.charCodeAt(index++) - 63
+
+    if (b < 0 || b > 0x3F)
+      throw new SyntaxError(`Invalid polyline character at ${index - 1}`)
 
     result |= (b & 0x1F) << shift
 

@@ -26,6 +26,10 @@ describe('getPlaceholderUrl function', () => {
     expect(result).toEqual('https://placehold.co/200x300/000000/FFFFFF')
   })
 
+  it('keeps a text color without a background in the text color slot', () => {
+    expect(getPlaceholderUrl({ color: 'FF0000', format: 'png' })).toBe('https://placehold.co/100x100/DDDDDD/FF0000/png')
+  })
+
   it('should include font and format in the query string', () => {
     const result = getPlaceholderUrl({
       font: 'roboto',

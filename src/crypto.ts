@@ -7,8 +7,7 @@ export function nanoid(size = 21, alphabet = NANOID_ALPHABET): string {
   if (alphabet.length < 1 || alphabet.length > 256)
     throw new RangeError('nanoid alphabet must hold 1-256 symbols')
 
-  // Bytes past the last whole run over the alphabet fold back onto its first symbols and
-  // skew them, so they are drawn again rather than taken modulo.
+  // Bytes past the last whole run over the alphabet fold back onto its first symbols and skew them, so they are drawn again rather than taken modulo.
   const limit = 256 - (256 % alphabet.length)
   let id = ''
 

@@ -1,4 +1,5 @@
 import type { DotNotation, ExtractVariables } from '../types'
+import { renderTemplate } from '../text'
 
 export interface TranslationObject {
   [key: string]: string | TranslationObject
@@ -73,7 +74,7 @@ export function declareI18n<
   function t<K extends I18nKey>(locale: LocaleType, key: K, variables?: Record<string, string | number>): string {
     const localeTranslations = translations[locale]
 
-    let template = getNestedValue(localeTranslations, key) as string
+    const template = getNestedValue(localeTranslations, key) as string
 
     if (!template) {
       console.warn(`Translation key "${key}" not found for locale "${locale}"`)
@@ -81,13 +82,7 @@ export function declareI18n<
       return key
     }
 
-    // replace variables in template
-    if (variables) {
-      for (const [varName, value] of Object.entries(variables))
-        template = template.replaceAll(`{${varName}}`, () => String(value))
-    }
-
-    return template
+    return variables ? renderTemplate(template, variables as never) : template
   }
 
   function translate(locale: LocaleType) {

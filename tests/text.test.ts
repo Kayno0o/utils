@@ -29,6 +29,12 @@ describe('randomString function', () => {
     spy.mockRestore()
   })
 
+  it('draws whole code points, and refuses a crypto charset past 256 characters', () => {
+    expect(Array.from(randomString(5, '👋🎉'))).toHaveLength(5)
+    expect(Array.from(randomString(5, '👋🎉', true)).every(char => char === '👋' || char === '🎉')).toBe(true)
+    expect(() => randomString(4, 'x'.repeat(257), true)).toThrow(RangeError)
+  })
+
   it('should generate a random string from default charset', () => {
     const length = 10
 

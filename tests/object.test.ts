@@ -1,9 +1,31 @@
 import { describe, expect, test as it } from 'bun:test'
-import { interpolate, isPlainObject, mergeObjects, omit, pick } from '../src'
+import { getObjectValue, interpolate, isPlainObject, mergeObjects, omit, pick } from '../src'
 
 describe('interpolate function', () => {
   it('keeps keys only present in start', () => {
     expect(interpolate<{ a: number, b: number }>({ a: 0, b: 5 }, { a: 10 }, 2)).toEqual([{ a: 0, b: 5 }, { a: 5, b: 5 }, { a: 10, b: 5 }])
+  })
+
+  it('gives the end alone for zero frames', () => {
+    expect(interpolate(0, 10, 0)).toEqual([10])
+    expect(interpolate<{ a: number }>({ a: 0 }, { a: 10 }, 0)).toEqual([{ a: 10 }])
+  })
+
+  it('eases arrays index by index, holding an index start lacks at its end value', () => {
+    expect(interpolate<{ p: number[] }>({ p: [0] }, { p: [10, 4] }, 2)).toEqual([{ p: [0, 4] }, { p: [5, 4] }, { p: [10, 4] }])
+  })
+})
+
+describe('getObjectValue', () => {
+  it('reads an own key, a falsy value included, else a dotted path', () => {
+    expect(getObjectValue({ a: 0 }, 'a')).toBe(0)
+    expect(getObjectValue({ 'a': { b: '' }, 'a.b': undefined }, 'a.b')).toBeUndefined()
+    expect(getObjectValue({ a: { b: 'x' } }, 'a.b')).toBe('x')
+  })
+
+  it('returns a non-object, null included, as is', () => {
+    expect(getObjectValue(null, 'a')).toBeNull()
+    expect(getObjectValue(5, 'a')).toBe(5)
   })
 })
 

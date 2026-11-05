@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { notNullish, toArray } from './array'
+import { escapeRegExp } from './text'
 import { colors } from './tools/colors'
 
 export interface SpawnResult { stdout: string, stderr: string, exitCode: number }
@@ -175,58 +176,18 @@ function parseBoolOption(option: TypedOptionDefinition<'boolean', boolean>, valu
   throw new OptionFormatError(option, String(value))
 }
 
-function parseFloatOption(option: TypedOptionDefinition<NumberOptionType, number>, value: string | undefined): number | undefined {
-  if (value === undefined)
-    return undefined
+const INT_OPTION_REGEX = /^[-+]?\d+$/
+const NUMBER_OPTION_REGEX = /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?$/i
 
-  if (typeof value === 'number')
+/** Signed, with a fraction and an exponent unless `integer`. */
+function parseNumericOption(option: TypedOptionDefinition<NumberOptionType, number>, value: string | number | undefined, integer: boolean): number | undefined {
+  if (value === undefined || typeof value === 'number')
     return value
 
-  if (typeof value === 'string' && !(/^\d+(?:\.\d+)?$/).test(value))
+  if (!(integer ? INT_OPTION_REGEX : NUMBER_OPTION_REGEX).test(value))
     throw new OptionFormatError(option, value)
 
-  const nb = Number.parseFloat(value)
-
-  if (Number.isNaN(nb))
-    throw new OptionFormatError(option, value)
-
-  return nb
-}
-
-function parseIntOption(option: TypedOptionDefinition<NumberOptionType, number>, value: string | undefined): number | undefined {
-  if (value === undefined)
-    return undefined
-
-  if (typeof value === 'number')
-    return value
-
-  if (typeof value === 'string' && !(/^\d+$/).test(value))
-    throw new OptionFormatError(option, value)
-
-  const nb = Number.parseInt(value)
-
-  if (Number.isNaN(nb))
-    throw new OptionFormatError(option, value)
-
-  return nb
-}
-
-function parseNumberOption(option: TypedOptionDefinition<NumberOptionType, number>, value: string | undefined): number | undefined {
-  if (value === undefined)
-    return undefined
-
-  if (typeof value === 'number')
-    return value
-
-  if (typeof value === 'string' && !(/^\d+(?:\.\d+)?$/).test(value))
-    throw new OptionFormatError(option, value)
-
-  const nb = Number(value)
-
-  if (Number.isNaN(nb))
-    throw new OptionFormatError(option, value)
-
-  return nb
+  return Number(value)
 }
 
 function parseDateOption(option: TypedOptionDefinition<StringOptionType, string>, value: string | undefined): Date | undefined {
@@ -262,14 +223,11 @@ function parseOption(option: OptionDefinition & { name: string }, value: string 
   if (option.type === 'boolean')
     return parseBoolOption(option, value)
 
-  if (option.type === 'float')
-    return parseFloatOption(option, value)
+  if (option.type === 'float' || option.type === 'number')
+    return parseNumericOption(option, value, false)
 
   if (option.type === 'int')
-    return parseIntOption(option, value)
-
-  if (option.type === 'number')
-    return parseNumberOption(option, value)
+    return parseNumericOption(option, value, true)
 
   if (option.type === 'string')
     return value
@@ -289,7 +247,7 @@ function block(name: string, content: string | (string | undefined)[], keywords:
   let filteredContent = toArray(content).filter(notNullish)
 
   if (keywords.length) {
-    const source = `\\b${keywords.join('\\b|\\b')}\\b`
+    const source = `\\b${keywords.map(escapeRegExp).join('\\b|\\b')}\\b`
 
     let regexp = keywordRegexes.get(source)
 
@@ -339,13 +297,15 @@ function help(config: ArgsHelpConfig, options: (OptionDefinition & { name: strin
   output += block('options', optionsContent)
 
   if (footerBlocks)
-    output += footerBlocks.map(b => block(b.title, b.content, keywords ?? []))
+    output += footerBlocks.map(b => block(b.title, b.content, keywords ?? [])).join('')
 
   console.log(output)
   process.exit()
 }
 
-const argRegexp = /^--?([\w-]+)(?:=(.*))?/
+// A flag name starts with a letter, so `-5` reads as a value.
+const argRegexp = /^--?([a-z_][\w-]*)(?:=(.*))?/i
+const BOOLEAN_VALUE_REGEX = /^(?:true|false|1|0)$/
 
 export function parseArgs<
   T extends Record<string, OptionDefinition>,
@@ -374,18 +334,16 @@ export function parseArgs<
       continue
 
     let [, name, content] = match as [string, string, string?]
-
-    if (content === undefined && i + 1 < config.args.length) {
-      const nextArg = config.args[i + 1]!
-
-      if (!argRegexp.test(nextArg))
-        content = nextArg
-    }
-
     const option = options.find(o => o.name === name || toArray(o.alias ?? []).includes(name) || o.short === name)
 
     if (!option)
       continue
+
+    const nextArg = config.args[i + 1]
+
+    // A boolean only takes the next token when it spells a boolean, so `--verbose file.txt` keeps the file.
+    if (content === undefined && nextArg !== undefined && !argRegexp.test(nextArg) && (option.type !== 'boolean' || BOOLEAN_VALUE_REGEX.test(nextArg)))
+      content = nextArg
 
     if (content !== undefined) {
       result[option.name!] = parseOption(option, content)

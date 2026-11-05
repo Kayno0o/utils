@@ -334,3 +334,28 @@ describe('parseArgs function', () => {
     })).toThrow('Option invalid must have either a \'type\' or \'format\' function')
   })
 })
+
+describe('parseArgs values', () => {
+  it('leaves a boolean flag\'s next token alone unless it spells a boolean', () => {
+    const result = parseArgs({
+      args: ['--verbose', 'file.txt', '--debug', 'false'],
+      options: { verbose: { type: 'boolean' }, debug: { type: 'boolean' } },
+    })
+
+    expect(result.verbose).toBe(true)
+    expect(result.debug).toBe(false)
+  })
+
+  it('reads negative, leading-dot and exponent numbers', () => {
+    const result = parseArgs({
+      args: ['--offset', '-5', '--ratio=.5', '--big=1e3', '--step=-2'],
+      options: { offset: { type: 'int' }, ratio: { type: 'float' }, big: { type: 'number' }, step: { type: 'int' } },
+    })
+
+    expect(result).toMatchObject({ offset: -5, ratio: 0.5, big: 1000, step: -2 })
+  })
+
+  it('refuses a fraction for an int option', () => {
+    expect(() => parseArgs({ args: ['--count=1.5'], options: { count: { type: 'int' } } })).toThrow()
+  })
+})

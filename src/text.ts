@@ -1,22 +1,28 @@
 import type { ExtractParams } from './types'
 import { randomInt } from './number'
-import { typedObjectEntries } from './object'
 import { STRICT_UUID_REGEX, UUID_REGEX } from './regex'
 
 const wordChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
+/** `length` characters of `charset`, read by code point so emoji count as one; `isCrypto` needs at most 256 of them. */
 export function randomString(length: number, charset?: string, isCrypto = false): string {
-  charset ||= wordChars
+  const chars = Array.from(charset || wordChars)
 
   if (isCrypto) {
-    let id = ''
-    // rejection sampling: discard bytes in the biased tail so every char is equiprobable
-    const limit = Math.floor(256 / charset.length) * charset.length
+    if (chars.length > 256)
+      throw new RangeError('randomString needs at most 256 characters with isCrypto')
 
-    while (id.length < length) {
-      for (const byte of crypto.getRandomValues(new Uint8Array(length - id.length))) {
-        if (byte < limit)
-          id += charset[byte % charset.length]
+    let id = ''
+    let count = 0
+    // rejection sampling: discard bytes in the biased tail so every char is equiprobable
+    const limit = Math.floor(256 / chars.length) * chars.length
+
+    while (count < length) {
+      for (const byte of crypto.getRandomValues(new Uint8Array(length - count))) {
+        if (byte < limit) {
+          id += chars[byte % chars.length]
+          count++
+        }
       }
     }
 
@@ -26,7 +32,7 @@ export function randomString(length: number, charset?: string, isCrypto = false)
   let result = ''
 
   for (let i = 0; i < length; i++)
-    result += charset[randomInt(0, charset.length)]
+    result += chars[randomInt(0, chars.length)]
 
   return result
 }
@@ -646,12 +652,13 @@ export function stripHtml(str: string): string {
   return str.replace(/<[^>]+>/g, '')
 }
 
-export function renderTemplate<T extends string>(str: T, variables: ExtractParams<T>): string {
-  for (const [key, value] of typedObjectEntries(variables)) {
-    str = str.replaceAll(`{${key}}`, value) as T
-  }
+const TEMPLATE_VARIABLE_REGEX = /\{([^{}]+)\}/g
 
-  return str
+/** Replaces each `{key}` in one pass, so a value is inserted as is: its `$&` or `{other}` text is never read as a pattern or a variable. */
+export function renderTemplate<T extends string>(str: T, variables: ExtractParams<T>): string {
+  const values: Record<string, unknown> = variables
+
+  return str.replace(TEMPLATE_VARIABLE_REGEX, (match, key: string) => Object.hasOwn(values, key) ? String(values[key]) : match)
 }
 
 export type MaskKey = 'creditCard' | 'custom' | 'dbUrl' | 'email' | 'gitToken' | 'iban' | 'ip' | 'mac' | 'pem' | 'phone' | 'token' | 'url'

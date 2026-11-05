@@ -89,6 +89,8 @@ export function dateToObject(date: Date): DateObject {
   }
 }
 
+const FORMAT_TOKEN_REGEX = /y{1,4}|m{1,4}|d{1,3}|w{1,4}|h{1,2}|i{1,2}|s{1,2}/gi
+
 export function formatDate(date: Date, builder: DateBuilderFunction): string
 export function formatDate(date: Date, format: FormatType): string
 export function formatDate(date: Date, builderOrFormat: DateBuilderFunction | FormatType): string {
@@ -111,7 +113,15 @@ export function formatDate(date: Date, builderOrFormat: DateBuilderFunction | Fo
   if (builderOrFormat === 'iso-datetime' || builderOrFormat === 'iso8601-datetime')
     return `${d.year4}-${d.month2}-${d.day2}T${d.hour2}:${d.minute2}:${d.second2}`
 
-  return (builderOrFormat as string).replace(/y{1,4}|m{1,4}|d{1,3}|w{1,4}|h{1,2}|i{1,2}|s{1,2}/gi, format => reverseFormats[format] ?? format)
+  return (builderOrFormat as string).replace(FORMAT_TOKEN_REGEX, format => reverseFormats[format] ?? format)
+}
+
+const ISO_DATE_INPUT_REGEX = /^(\d{2}|\d{4})-?(\d{2})-?(\d{2})$/
+const SLASH_DATE_INPUT_REGEX = /^(\d{2})\/(\d{2})\/(\d{2}|\d{4})$/
+
+/** A local-midnight Date, a two-digit year read as 20xx. */
+function localDate(year: string, month: string, day: string): Date {
+  return new Date(Number(year.length === 2 ? `20${year}` : year), Number(month) - 1, Number(day))
 }
 
 export function buildDate(options?: FormatDateOption | FormatType): string
@@ -124,24 +134,13 @@ export function buildDate(dateOrOptions?: string | Date | FormatDateOption | For
     date = dateOrOptions
 
   if (typeof dateOrOptions === 'string') {
-    const iso = dateOrOptions.match(/^(\d{2}|\d{4})-?(\d{2})-?(\d{2})$/)
+    const iso = ISO_DATE_INPUT_REGEX.exec(dateOrOptions)
+    const slashed = SLASH_DATE_INPUT_REGEX.exec(dateOrOptions)
 
-    if (iso) {
-      if (iso[1]!.length === 2)
-        iso[1] = `20${iso[1]}`
-
-      date = new Date(iso.slice(1, 4).join('-'))
-    }
-    else {
-      const generic = dateOrOptions.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4})$/)
-
-      if (generic) {
-        if (generic[3]!.length === 2)
-          generic[3] = `20${generic[3]}`
-
-        date = new Date(generic.slice(1, 3).reverse().join('-'))
-      }
-    }
+    if (iso)
+      date = localDate(iso[1]!, iso[2]!, iso[3]!)
+    else if (slashed)
+      date = localDate(slashed[3]!, slashed[2]!, slashed[1]!)
   }
 
   if (date === undefined) {

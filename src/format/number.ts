@@ -1,14 +1,10 @@
 import { getNumberFormat } from '../intlCache'
 
-/**
- * `iec` is 1024 with KiB/MiB labels, `si` is 1000 with kB/MB labels, and `binary` is the mix
- * interfaces usually mean by "GB": 1024 steps under the shorter labels.
- */
+/** `iec` is 1024 with KiB/MiB labels, `si` is 1000 with kB/MB labels, and `binary` is the mix interfaces usually mean by "GB": 1024 steps under the shorter labels. */
 export type FileSizeUnits = 'iec' | 'si' | 'binary'
 
 /**
- * Bytes as human-readable text. The boolean form is the original one, `si` choosing metric over
- * binary; the options form additionally reaches `binary`.
+ * Bytes as human-readable text. The boolean form is the original one, `si` choosing metric over binary; the options form additionally reaches `binary`.
  *
  * @author https://stackoverflow.com/users/65387/mpen
  * @see https://stackoverflow.com/a/14919494
@@ -38,6 +34,7 @@ export function formatFileSize(bytes: number, siOrOptions: boolean | { units?: F
   return `${bytes.toFixed(dp)} ${units[u]}`
 }
 
+/** A count shortened to one decimal and a k, M, B or T suffix, rounding up to the next unit when it would print 1000. */
 export function formatUnit(num: number): string {
   if (num < 0)
     return `-${formatUnit(-num)}`
@@ -49,7 +46,7 @@ export function formatUnit(num: number): string {
   let unitIndex = -1
   let scaledNum = num
 
-  while (scaledNum >= 1000 && unitIndex < units.length - 1) {
+  while (Math.round(scaledNum * 10) / 10 >= 1000 && unitIndex < units.length - 1) {
     scaledNum /= 1000
     unitIndex++
   }
@@ -66,8 +63,10 @@ export function formatEuro(amount: number, locale: string | string[] = 'fr-FR', 
   }).format(amount)
 }
 
+const NON_DIGIT_REGEX = /\D/g
+
 export function formatSiret(value: string): string {
-  const digits = value.replace(/\D/g, '')
+  const digits = value.replace(NON_DIGIT_REGEX, '')
   const limited = digits.slice(0, 14)
 
   return `${limited.slice(0, 3)} ${limited.slice(3, 6)} ${limited.slice(6, 9)} ${limited.slice(9)}`.trim()
