@@ -1,3 +1,5 @@
+import { getNumberFormat } from './intlCache'
+
 const arr32 = new Uint32Array(1)
 
 const randomUnit = (isCrypto: boolean) => isCrypto ? crypto.getRandomValues(arr32)[0]! / 2 ** 32 : Math.random()
@@ -78,7 +80,7 @@ export const numberFromString = (nb: number, min: number, max: number) => mapRan
 
 /** Format a number with locale grouping separators, e.g. `1234567` -> `"1,234,567"`. */
 export function formatNumber(value: number, locale?: string | string[], options?: Intl.NumberFormatOptions): string {
-  return new Intl.NumberFormat(locale, options).format(value)
+  return getNumberFormat(locale, options).format(value)
 }
 
 /** Percentage of `value` relative to `total` (0-100), rounded to `precision`. Returns `0` when `total` is `0`. */

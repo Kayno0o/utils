@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'bun:test'
-import { countBy, getRandomElement, keyBy, mean, median, notNullish, percentile, range, sum, unique } from '../src'
+import { countBy, getRandomElement, groupBy, keyBy, mean, median, notNullish, percentile, range, sum, unique } from '../src'
+
+describe('groupBy function', () => {
+  it('groups items and reads each key once', () => {
+    let calls = 0
+    const result = groupBy([1, 2, 3, 4], (n) => {
+      calls++
+
+      return n % 2 ? 'odd' : 'even'
+    })
+
+    expect(result).toEqual({ odd: [1, 3], even: [2, 4] })
+    expect(calls).toBe(4)
+  })
+})
 
 describe('keyBy function', () => {
   it('indexes items by a key', () => {

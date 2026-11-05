@@ -11,17 +11,21 @@ export function getObjectValue(object: any, key: Key): any {
 export function mergeObjects<T extends object>(obj1: T | RecursivePartial<T>, obj2: T | RecursivePartial<T>): T {
   const merged: T = JSON.parse(JSON.stringify(obj1)) as T
 
-  for (const key in obj2) {
-    if (Object.hasOwn(obj2, key)) {
-      // add from obj2 if undefined in merged object
-      if (!Object.hasOwn(merged, key))
-        merged[key] = obj2[key] as any
-      else if (typeof merged[key] === 'object' && typeof obj2[key] === 'object')
-        merged[key] = mergeObjects(merged[key] as any, obj2[key])
-    }
-  }
+  mergeInto(merged, obj2)
 
   return merged
+}
+
+function mergeInto(target: any, source: any): void {
+  for (const key in source) {
+    if (Object.hasOwn(source, key)) {
+      // add from source if undefined in target
+      if (!Object.hasOwn(target, key))
+        target[key] = source[key]
+      else if (typeof target[key] === 'object' && typeof source[key] === 'object')
+        mergeInto(target[key], source[key])
+    }
+  }
 }
 
 export function interpolate<T extends number>(start: T, end: T, framesNb: number): T[]
@@ -45,8 +49,6 @@ export function interpolate<T extends object | number>(start: RecursivePartial<T
   }
 
   if (typeof start === 'object' && typeof end === 'object') {
-    mergeObjects(end, start)
-
     for (let i = 0; i <= framesNb; i++) {
       const interpolatedFrame: T = {} as T
 

@@ -1,3 +1,5 @@
+import { getDateTimeFormat, getRelativeTimeFormat } from './intlCache'
+
 export const SECOND_MS = 1000
 export const MINUTE_MS = 60 * SECOND_MS
 export const HOUR_MS = 60 * MINUTE_MS
@@ -203,7 +205,7 @@ export interface FormatRelativeTimeOptions {
 export function formatRelativeTime(date: Date | string | number, options: FormatRelativeTimeOptions = {}): string {
   const { from = new Date(), locale, numeric = 'auto' } = options
   const diff = new Date(date).getTime() - new Date(from).getTime()
-  const formatter = new Intl.RelativeTimeFormat(locale, { numeric })
+  const formatter = getRelativeTimeFormat(locale, { numeric })
 
   for (const [factor, unit] of RELATIVE_TIME_DIVISIONS) {
     if (Math.abs(diff) >= factor || unit === 'second')
@@ -215,17 +217,17 @@ export function formatRelativeTime(date: Date | string | number, options: Format
 
 /** Short day-month label in day-before-month order, e.g. "15 Jan" (never the US month-first order). */
 export function formatDayMonth(d: Date): string {
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  return getDateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(d)
 }
 
 /** Short month-year label, e.g. "Jan 2026". */
 export function formatMonthYear(d: Date): string {
-  return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+  return getDateTimeFormat('en-GB', { month: 'short', year: 'numeric' }).format(d)
 }
 
 /** Short month label, e.g. "Jan". */
 export function formatMonthShort(d: Date): string {
-  return d.toLocaleDateString('en-GB', { month: 'short' })
+  return getDateTimeFormat('en-GB', { month: 'short' }).format(d)
 }
 
 /** Parse a date label in `YYYY-MM-DD`, `YYYYMMDD` or `D/M/Y` form into a local-midnight Date, or `null`. */
@@ -297,12 +299,12 @@ export function formatHour(hour: number): string {
 
 /** Localized short date-time label, e.g. "Jan 15, 03:04 PM". */
 export function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleString(undefined, {
+  return getDateTimeFormat(undefined, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  }).format(timestamp)
 }
 
 /** Return a new Date shifted by `days` (may be negative). Does not mutate the input. */
@@ -485,13 +487,13 @@ export function formatSessionTime(date: Date): string {
   const diffDays = Math.floor((Date.now() - date.getTime()) / DAY_MS)
 
   if (diffDays === 0)
-    return date.toLocaleString(undefined, { hour: '2-digit', minute: '2-digit' })
+    return getDateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(date)
 
   if (diffDays === 1)
     return 'Yesterday'
 
   if (diffDays < 7)
-    return date.toLocaleString(undefined, { weekday: 'short' })
+    return getDateTimeFormat(undefined, { weekday: 'short' }).format(date)
 
-  return date.toLocaleString(undefined, { month: 'short', day: 'numeric' })
+  return getDateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
 }

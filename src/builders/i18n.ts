@@ -84,7 +84,7 @@ export function declareI18n<
     // replace variables in template
     if (variables) {
       for (const [varName, value] of Object.entries(variables))
-        template = template.replace(new RegExp(`\\{${varName}\\}`, 'g'), String(value))
+        template = template.replaceAll(`{${varName}}`, String(value))
     }
 
     return template

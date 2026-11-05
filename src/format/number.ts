@@ -1,3 +1,5 @@
+import { getNumberFormat } from '../intlCache'
+
 /**
  * `iec` is 1024 with KiB/MiB labels, `si` is 1000 with kB/MB labels, and `binary` is the mix
  * interfaces usually mean by "GB": 1024 steps under the shorter labels.
@@ -53,7 +55,7 @@ export function formatUnit(num: number): string {
 }
 
 export function formatEuro(amount: number) {
-  return new Intl.NumberFormat('fr-FR', {
+  return getNumberFormat('fr-FR', {
     currency: 'EUR',
     style: 'currency',
   }).format(amount)

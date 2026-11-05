@@ -31,9 +31,11 @@ export function randomString(length: number, charset?: string, isCrypto = false)
   return result
 }
 
+const ASCII_ONLY = /^\p{ASCII}*$/u
+
 /** remove accents and diacritics */
 export function normalizeAccents(str: string): string {
-  return str.normalize('NFD').replace(/[\u0300-\u036F]/g, '')
+  return ASCII_ONLY.test(str) ? str : str.normalize('NFD').replace(/[\u0300-\u036F]/g, '')
 }
 
 export function escapeRegExp(str: string) {

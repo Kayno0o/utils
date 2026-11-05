@@ -24,8 +24,15 @@ export const HASH_ALGORITHMS = ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'] as con
 
 export type HashAlgorithm = (typeof HASH_ALGORITHMS)[number]
 
+const HEX_BYTES = Array.from({ length: 256 }, (_, byte) => byte.toString(16).padStart(2, '0'))
+
 function toHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer)).map(byte => byte.toString(16).padStart(2, '0')).join('')
+  let hex = ''
+
+  for (const byte of new Uint8Array(buffer))
+    hex += HEX_BYTES[byte]
+
+  return hex
 }
 
 export async function hmac(key: string, message: string, algorithm: HashAlgorithm = 'SHA-256'): Promise<string> {
