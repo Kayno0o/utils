@@ -1,3 +1,5 @@
+const MOBILE_UA_REGEX = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i
+
 export function isMobile(): boolean {
   return window.matchMedia('(pointer: coarse)').matches
 }
@@ -16,5 +18,5 @@ export function isMobileDevice(): boolean {
 
   const ua = navigator.userAgent || navigator.vendor || (window as any).opera
 
-  return (/android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i).test(ua)
+  return MOBILE_UA_REGEX.test(ua)
 }

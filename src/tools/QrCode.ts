@@ -1,5 +1,6 @@
 import type { QrCodeGenerateData } from 'uqr'
 import { encode, QrCodeDataType } from 'uqr'
+import { escapeXml } from '../text'
 
 export type QrModuleShape = 'square' | 'rounded' | 'chamfer' | 'dot'
 export type QrEyeShape = 'square' | 'rounded' | 'chamfer' | 'circle'
@@ -85,13 +86,8 @@ export interface QrCodeSvgOptions {
 /** Fraction of the code area each ECC level can lose and still decode. */
 const ECC_BUDGET: Record<'L' | 'M' | 'Q' | 'H', number> = { L: 0.07, M: 0.15, Q: 0.25, H: 0.3 }
 
-function escapeAttr(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
+const TRAILING_ZEROS_REGEX = /\.?0+$/
+const UNSAFE_ID_CHARS_REGEX = /[^\w-]/g
 
 const numberLabels = new Map<number, string>()
 
@@ -102,7 +98,7 @@ function n(value: number): string {
   let label = numberLabels.get(value)
 
   if (label === undefined) {
-    label = value.toFixed(3).replace(/\.?0+$/, '')
+    label = value.toFixed(3).replace(TRAILING_ZEROS_REGEX, '')
 
     if (numberLabels.size > 4096)
       numberLabels.clear()
@@ -169,7 +165,7 @@ function modulePath(x: number, y: number, tl: number, tr: number, br: number, bl
 
 function gradientDef(gradient: QrGradient, id: string): string {
   const stops = gradient.stops
-    .map(s => `<stop offset="${n(s.offset)}" stop-color="${escapeAttr(s.color)}"/>`)
+    .map(s => `<stop offset="${n(s.offset)}" stop-color="${escapeXml(s.color)}"/>`)
     .join('')
 
   if (gradient.type === 'radial')
@@ -241,7 +237,7 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
   } = options
 
   const ecc = options.ecc ?? (logo ? 'H' : 'M')
-  const safeId = id.replace(/[^\w-]/g, '') || 'qr'
+  const safeId = id.replace(UNSAFE_ID_CHARS_REGEX, '') || 'qr'
 
   const result = encode(data, { ecc, minVersion, maxVersion, boostEcc, maskPattern, border: 0 })
   const count = result.size
@@ -255,7 +251,7 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
       return `url(#${gradientId})`
     }
 
-    return escapeAttr(color)
+    return escapeXml(color)
   }
 
   const fgFill = fillFor(foreground, `${safeId}-fg`)
@@ -335,7 +331,7 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
   const parts: string[] = []
 
   if (background && background !== 'transparent')
-    parts.push(`<rect width="${n(total)}" height="${n(total)}" fill="${escapeAttr(background)}"/>`)
+    parts.push(`<rect width="${n(total)}" height="${n(total)}" fill="${escapeXml(background)}"/>`)
 
   parts.push(`<path fill="${fgFill}" d="${modules.join('')}"/>`)
   parts.push(...eyeParts)
@@ -349,8 +345,8 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
     const cy = margin + (count - knockout) / 2
     const bg = logoBg ?? (background && background !== 'transparent' ? background : 'white')
 
-    parts.push(`<path fill="${escapeAttr(bg)}" d="${roundedRectPath(cx, cy, knockout, knockout, borderRadius)}"/>`)
-    parts.push(`<image href="${escapeAttr(href)}" x="${n(cx + logoMargin)}" y="${n(cy + logoMargin)}" width="${n(dim)}" height="${n(dim)}" preserveAspectRatio="xMidYMid meet"/>`)
+    parts.push(`<path fill="${escapeXml(bg)}" d="${roundedRectPath(cx, cy, knockout, knockout, borderRadius)}"/>`)
+    parts.push(`<image href="${escapeXml(href)}" x="${n(cx + logoMargin)}" y="${n(cy + logoMargin)}" width="${n(dim)}" height="${n(dim)}" preserveAspectRatio="xMidYMid meet"/>`)
   }
 
   if (defs.length)
@@ -358,11 +354,11 @@ export function qrCodeSvg(data: QrCodeGenerateData, options: QrCodeSvgOptions = 
 
   const label = ariaLabel ?? title
   const a11y = title !== undefined || ariaLabel !== undefined
-    ? ` role="img"${label !== undefined ? ` aria-label="${escapeAttr(label)}"` : ''}`
+    ? ` role="img"${label !== undefined ? ` aria-label="${escapeXml(label)}"` : ''}`
     : ''
 
   if (title !== undefined)
-    parts.unshift(`<title>${escapeAttr(title)}</title>`)
+    parts.unshift(`<title>${escapeXml(title)}</title>`)
 
   const dimensions = size !== undefined ? ` width="${n(size)}" height="${n(size)}"` : ''
   const crisp = moduleShape === 'square' && eyeShape === 'square' ? ' shape-rendering="crispEdges"' : ''

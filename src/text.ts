@@ -38,14 +38,31 @@ export function randomString(length: number, charset?: string, isCrypto = false)
 }
 
 const ASCII_ONLY = /^\p{ASCII}*$/u
+const COMBINING_MARKS_REGEX = /[\u0300-\u036F]/g
+const REGEX_SPECIALS_REGEX = /[.*+?^${}()|[\]\\]/g
+const XML_UNSAFE_REGEX = /[<>&'"]/g
+const VOWEL_Y_ENDING_REGEX = /[aeiou]y$/
+const SEPARATORS_REGEX = /[_-]+/g
+const CAMEL_BOUNDARY_REGEX = /(\p{Ll})(\p{Lu})/gu
+const WHITESPACE_GLOBAL_REGEX = /\s+/g
+const SINGLE_SPACE_GLOBAL_REGEX = /\s/g
+const WORDS_REGEX = /[\p{L}\p{N}]+/gu
+const HTML_TAG_REGEX = /<[^>]+>/g
+const PHONE_PREFIX_REGEX = /^\+\d{1,3}/
+const NON_DIGIT_GLOBAL_REGEX = /\D/g
+const DIGIT_GLOBAL_REGEX = /\d/g
+const TOKEN_PREFIX_REGEX = /^(?:gh[pousr]_|github_pat_|glpat-|gldt-)/
+const COLON_DASH_REGEX = /[:-]/
+const HEX_GROUP_REGEX = /^[0-9a-f]{1,4}$/i
+const NEWLINE_REGEX = /\r?\n/
 
 /** remove accents and diacritics */
 export function normalizeAccents(str: string): string {
-  return ASCII_ONLY.test(str) ? str : str.normalize('NFD').replace(/[\u0300-\u036F]/g, '')
+  return ASCII_ONLY.test(str) ? str : str.normalize('NFD').replace(COMBINING_MARKS_REGEX, '')
 }
 
 export function escapeRegExp(str: string) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return str.replace(REGEX_SPECIALS_REGEX, '\\$&')
 }
 
 const SLUG_INVALID_RE = /[^A-Z0-9-]/gi
@@ -293,7 +310,7 @@ export function removeComments(content: string): string {
 }
 
 export function escapeXml(unsafe: string): string {
-  return unsafe.replace(/[<>&'"]/g, (char) => {
+  return unsafe.replace(XML_UNSAFE_REGEX, (char) => {
     switch (char) {
       case '<': return '&lt;'
 
@@ -510,7 +527,7 @@ export function plural(singular: string, count?: number, { plural: pluralForm, z
   if (pluralForm !== undefined)
     return pluralForm
 
-  if (singular.endsWith('y') && !(/[aeiou]y$/).test(singular))
+  if (singular.endsWith('y') && !VOWEL_Y_ENDING_REGEX.test(singular))
     return `${singular.slice(0, -1)}ies`
 
   if (singular.endsWith('s') || singular.endsWith('x') || singular.endsWith('z') || singular.endsWith('ch') || singular.endsWith('sh'))
@@ -574,12 +591,12 @@ export function toCase(str: string | string[]): string[] {
   // Replace separators with space, then match all word segments. Unicode-aware throughout:
   // matching ASCII only would drop `Ünal` to `nal`, silently changing which letter starts the word.
   const normalized = str
-    .replace(/[_-]+/g, ' ') // snake_case / kebab-case -> space
-    .replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2') // camelCase -> camel Case
-    .replace(/\s+/g, ' ') // collapse multiple spaces
+    .replace(SEPARATORS_REGEX, ' ') // snake_case / kebab-case -> space
+    .replace(CAMEL_BOUNDARY_REGEX, '$1 $2') // camelCase -> camel Case
+    .replace(WHITESPACE_GLOBAL_REGEX, ' ') // collapse multiple spaces
     .trim()
 
-  const words = normalized.match(/[\p{L}\p{N}]+/gu)
+  const words = normalized.match(WORDS_REGEX)
 
   return words ? words.map(w => w.toLocaleLowerCase()) : []
 }
@@ -649,7 +666,7 @@ export function truncate(str: string, len: number, suffixOrOptions: string | Tru
 }
 
 export function stripHtml(str: string): string {
-  return str.replace(/<[^>]+>/g, '')
+  return str.replace(HTML_TAG_REGEX, '')
 }
 
 const TEMPLATE_VARIABLE_REGEX = /\{([^{}]+)\}/g
@@ -735,10 +752,10 @@ function maskEmail(m: string, char: string): string {
 }
 
 function maskPhone(m: string, char: string): string {
-  const prefixMatch = m.match(/^\+\d{1,3}/)
+  const prefixMatch = m.match(PHONE_PREFIX_REGEX)
   const prefix = prefixMatch ? prefixMatch[0] : ''
   const body = prefix ? m.slice(prefix.length) : m
-  const d = body.replace(/\D/g, '')
+  const d = body.replace(NON_DIGIT_GLOBAL_REGEX, '')
   const groups = Math.max(0, Math.floor((d.length - 4) / 2))
   const masked = `${d.slice(0, 2)} ${`${char}${char} `.repeat(groups).trim()} ${d.slice(-2)}`
 
@@ -760,7 +777,7 @@ function maskIp(m: string, char: string): string {
 }
 
 function maskIban(m: string, char: string): string {
-  const clean = m.replace(/\s/g, '')
+  const clean = m.replace(SINGLE_SPACE_GLOBAL_REGEX, '')
   const end = clean.length - 4
   let idx = 0
 
@@ -768,11 +785,11 @@ function maskIban(m: string, char: string): string {
 }
 
 function maskCreditCard(m: string, char: string): string {
-  const digits = m.replace(/\D/g, '')
+  const digits = m.replace(NON_DIGIT_GLOBAL_REGEX, '')
   const masked = digits[0] + char.repeat(digits.length - 5) + digits.slice(-4)
   let i = 0
 
-  return m.replace(/\d/g, () => masked[i++]!)
+  return m.replace(DIGIT_GLOBAL_REGEX, () => masked[i++]!)
 }
 
 function maskJwt(m: string, char: string): string {
@@ -782,7 +799,7 @@ function maskJwt(m: string, char: string): string {
 }
 
 function maskBearer(m: string, char: string): string {
-  const token = m.slice(m.search(/\s/) + 1).trim()
+  const token = m.slice(m.search(WHITESPACE_CHAR_REGEX) + 1).trim()
 
   return `Bearer ${token.startsWith('eyJ') ? maskJwt(token, char) : char.repeat(3)}`
 }
@@ -794,13 +811,13 @@ function maskUrlParam(m: string, char: string): string {
 }
 
 function maskGitToken(m: string, char: string): string {
-  const prefix = m.match(/^(?:gh[pousr]_|github_pat_|glpat-|gldt-)/)?.[0] ?? m.slice(0, 7)
+  const prefix = m.match(TOKEN_PREFIX_REGEX)?.[0] ?? m.slice(0, 7)
 
   return `${prefix}${char.repeat(3)}`
 }
 
 function maskMac(m: string, char: string): string {
-  const groups = m.split(/[:-]/)
+  const groups = m.split(COLON_DASH_REGEX)
 
   return `${groups[0]}${char.repeat(2)} ${groups[2]}${char.repeat(2)} ${groups[4]}${char.repeat(2)}`
 }
@@ -868,7 +885,7 @@ function isValidIpv6(s: string): boolean {
       count += 2 // embedded IPv4 = two 16-bit groups
     }
     else {
-      if (!(/^[0-9a-f]{1,4}$/i).test(g))
+      if (!HEX_GROUP_REGEX.test(g))
         return false
 
       count += 1
@@ -1022,13 +1039,13 @@ export function mask(str: string, {
 
   if (iban) {
     collect(matches, str, IBAN_RE, applyMode((m) => {
-      return ibanCheck(m.replace(/\s/g, '')) ? maskIban(m, char) : null
+      return ibanCheck(m.replace(SINGLE_SPACE_GLOBAL_REGEX, '')) ? maskIban(m, char) : null
     }), 'iban', 40)
   }
 
   if (creditCard) {
     collect(matches, str, CREDIT_CARD_RE, applyMode((m) => {
-      return luhnCheck(m.replace(/\D/g, '')) ? maskCreditCard(m, char) : null
+      return luhnCheck(m.replace(NON_DIGIT_GLOBAL_REGEX, '')) ? maskCreditCard(m, char) : null
     }), 'creditCard', 50)
   }
 
@@ -1139,7 +1156,7 @@ function maskEnvValue(raw: string, options: MaskOptions, char: string): string {
  */
 export function maskEnv(str: string, { maskValues = false, ...options }: MaskEnvOptions = {}): MaskEnvResult {
   const eol = str.includes('\r\n') ? '\r\n' : '\n'
-  const lines = str.split(/\r?\n/)
+  const lines = str.split(NEWLINE_REGEX)
   const char = options.replace ?? '*'
   const keys: string[] = []
   const out: string[] = []

@@ -1,6 +1,8 @@
 import { notNullish } from './array'
 import { typedObjectEntries } from './object'
 
+const BRACKET_KEY_REGEX = /\[([^\]]+)\]/g
+
 export interface BuildUrlQueryOptions {
   /** URL-encode keys and values. Defaults to true; `false` writes them raw. */
   encode?: boolean
@@ -39,7 +41,7 @@ export function queryToNestedObject(query: Record<string, string>): Record<strin
       continue
     }
 
-    const matches = key.matchAll(/\[([^\]]+)\]/g).toArray()
+    const matches = key.matchAll(BRACKET_KEY_REGEX).toArray()
 
     key = key.split('[')[0]!
 

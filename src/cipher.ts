@@ -16,6 +16,9 @@ export function alphabetOf(chars: string): Alphabet {
   return { symbols, width: symbols.length < 2 ? 0 : Math.ceil(Math.log(256) / Math.log(symbols.length)) }
 }
 
+const utf8Encoder = new TextEncoder()
+const utf8StrictDecoder = new TextDecoder('utf-8', { fatal: true })
+
 const byteSymbols = new WeakMap<Alphabet, string[]>()
 const symbolIndexes = new WeakMap<Alphabet, Map<number, number>>()
 
@@ -53,7 +56,7 @@ export function encodeCipher(text: string, alphabet: Alphabet): string {
 
   let result = ''
 
-  for (const byte of new TextEncoder().encode(text))
+  for (const byte of utf8Encoder.encode(text))
     result += table[byte]!
 
   return result
@@ -106,7 +109,7 @@ export function decodeCipher(encoded: string, alphabet: Alphabet): string {
   }
 
   try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+    return utf8StrictDecoder.decode(bytes)
   }
   catch {
     throw new Error('It decodes to bytes that are not text, so it was written with another dictionary.')

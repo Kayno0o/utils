@@ -1,3 +1,7 @@
+const WHITESPACE_RUN_REGEX = /\s+/
+const STEP_REGEX = /^(\*|\d+(?:-\d+)?)\/(\d+)$/
+const SLASH_REGEX = /\//
+
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -102,7 +106,7 @@ function parseExpression(expression: string): {
   month: CronField
   dayOfWeek: CronField
 } {
-  const fields = expression.trim().split(/\s+/)
+  const fields = expression.trim().split(WHITESPACE_RUN_REGEX)
 
   if (fields.length !== 5)
     throw new Error(`Invalid cron expression: expected 5 fields, got ${fields.length}`)
@@ -200,7 +204,7 @@ function computeRuns(fields: ReturnType<typeof parseExpression>, from: Date, cou
 }
 
 function toExpression(input: string): string {
-  const tokens = input.trim().split(/\s+/)
+  const tokens = input.trim().split(WHITESPACE_RUN_REGEX)
 
   if (tokens.length < 5)
     throw new Error(`Invalid cron expression: expected at least 5 fields, got ${tokens.length}`)
@@ -216,7 +220,7 @@ function humanizeList(field: CronField, name?: (value: number) => string, aliase
     return format(alias ?? Number(token))
   }
 
-  const stepMatch = (/^(\*|\d+(?:-\d+)?)\/(\d+)$/).exec(field.raw)
+  const stepMatch = STEP_REGEX.exec(field.raw)
 
   if (stepMatch) {
     const [, range, step] = stepMatch
@@ -242,10 +246,10 @@ function describe(fields: ReturnType<typeof parseExpression>): string {
   const parts: string[] = []
 
   if (minute.restricted)
-    parts.push((/\//).test(minute.raw) ? `${humanizeList(minute)} minutes` : `minute ${humanizeList(minute)}`)
+    parts.push(SLASH_REGEX.test(minute.raw) ? `${humanizeList(minute)} minutes` : `minute ${humanizeList(minute)}`)
 
   if (hour.restricted)
-    parts.push((/\//).test(hour.raw) ? `${humanizeList(hour)} hours` : `at hour ${humanizeList(hour)}`)
+    parts.push(SLASH_REGEX.test(hour.raw) ? `${humanizeList(hour)} hours` : `at hour ${humanizeList(hour)}`)
 
   if (dayOfMonth.restricted)
     parts.push(`on day ${humanizeList(dayOfMonth)} of the month`)
@@ -290,7 +294,7 @@ function describe(fields: ReturnType<typeof parseExpression>): string {
 export function cronExpressionExplainer(input: string, options: CronExpressionExplainerOptions = {}): CronExplanation {
   const { count = 5, from = new Date() } = options
 
-  const tokens = input.trim().split(/\s+/)
+  const tokens = input.trim().split(WHITESPACE_RUN_REGEX)
 
   if (tokens.length < 5)
     throw new Error(`Invalid cron expression: expected at least 5 fields, got ${tokens.length}`)

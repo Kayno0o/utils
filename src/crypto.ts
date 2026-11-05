@@ -41,8 +41,10 @@ export type DigestEncoding = 'hex' | 'base64' | 'base64url'
 /** Text as its UTF-8 bytes, bytes as they are. */
 export type CryptoInput = string | BufferSource
 
+const utf8Encoder = new TextEncoder()
+
 function toBytes(input: CryptoInput): BufferSource {
-  return typeof input === 'string' ? new TextEncoder().encode(input) : input
+  return typeof input === 'string' ? utf8Encoder.encode(input) : input
 }
 
 function encodeDigest(buffer: ArrayBuffer, encoding: DigestEncoding): string {
