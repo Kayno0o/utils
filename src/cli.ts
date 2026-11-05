@@ -9,6 +9,17 @@ export interface SpawnOptions {
   stdin?: ArrayBuffer | Uint8Array | string
   /** Kills the process past this deadline, which then counts as a failed exit. */
   timeoutMs?: number
+  /** Working directory. Defaults to the current one. */
+  cwd?: string
+  /** The whole environment the process sees. Defaults to `process.env`; spread it to add to it. */
+  env?: Record<string, string | undefined>
+  /** Kills the process when aborted, rejecting with the signal's reason. */
+  signal?: AbortSignal
+}
+
+export interface SpawnTextOptions extends SpawnOptions {
+  /** Trims stdout. Defaults to true. */
+  trim?: boolean
 }
 
 class SpawnError extends Error {
@@ -28,12 +39,16 @@ async function feed(sink: Bun.FileSink | number | undefined, input: SpawnOptions
 
 // stdin feeds while stdout and stderr drain: a process filling a pipe nobody reads would block forever.
 async function run<T>(argv: string[], opts: SpawnOptions, read: (stdout: ReadableStream<Uint8Array>) => Promise<T>): Promise<{ out: T, err: string, code: number }> {
-  const proc = Bun.spawn(argv, { stdout: 'pipe', stderr: 'pipe', stdin: opts.stdin === undefined ? 'ignore' : 'pipe' })
+  opts.signal?.throwIfAborted()
+
+  const proc = Bun.spawn(argv, { stdout: 'pipe', stderr: 'pipe', stdin: opts.stdin === undefined ? 'ignore' : 'pipe', cwd: opts.cwd, env: opts.env, signal: opts.signal })
 
   const timer = opts.timeoutMs === undefined ? undefined : setTimeout(() => proc.kill(), opts.timeoutMs)
 
   try {
     const [out, err, code] = await Promise.all([read(proc.stdout), new Response(proc.stderr).text(), proc.exited, feed(proc.stdin, opts.stdin)])
+
+    opts.signal?.throwIfAborted()
 
     return { out, err, code }
   }
@@ -42,14 +57,14 @@ async function run<T>(argv: string[], opts: SpawnOptions, read: (stdout: Readabl
   }
 }
 
-/** Runs `argv` and resolves with trimmed stdout. Throws on non-zero exit, stderr in the message. */
-export async function spawnText(argv: string[], opts: SpawnOptions = {}): Promise<string> {
+/** Runs `argv` and resolves with stdout, trimmed unless `trim: false`. Throws on non-zero exit, stderr in the message. */
+export async function spawnText(argv: string[], { trim = true, ...opts }: SpawnTextOptions = {}): Promise<string> {
   const { out, err, code } = await run(argv, opts, async stdout => new Response(stdout).text())
 
   if (code !== 0)
     throw new SpawnError(argv, code, err)
 
-  return out.trim()
+  return trim ? out.trim() : out
 }
 
 /** Runs `argv` and resolves with raw stdout bytes. Throws on non-zero exit, stderr in the message. */
@@ -62,7 +77,7 @@ export async function spawnBytes(argv: string[], opts: SpawnOptions = {}): Promi
   return new Uint8Array(out)
 }
 
-/** Runs `argv` and resolves with the exit code, never throws. */
+/** Runs `argv` and resolves with the exit code; throws only when `signal` aborts it. */
 export async function spawnExit(argv: string[], opts: SpawnOptions = {}): Promise<number> {
   const { code } = await run(argv, opts, async stdout => new Response(stdout).arrayBuffer())
 

@@ -64,3 +64,26 @@ describe('spawnExit', () => {
     expect(await spawnExit(['sleep', '5'], { timeoutMs: 100 })).toBe(143)
   })
 })
+
+describe('spawn options', () => {
+  it('runs in cwd with the given env', async () => {
+    expect(await spawnText(['pwd'], { cwd: '/tmp' })).toBe('/tmp')
+    expect(await spawnText(['sh', '-c', 'echo "$GREETING"'], { env: { ...process.env, GREETING: 'salut' } })).toBe('salut')
+  })
+
+  it('keeps stdout untrimmed with trim off', async () => {
+    expect(await spawnText(['printf', '  a \\n'], { trim: false })).toBe('  a \n')
+  })
+
+  it('kills the process and rejects with the reason once the signal aborts', async () => {
+    const controller = new AbortController()
+    const started = Date.now()
+    const pending = spawnExit(['sleep', '5'], { signal: controller.signal })
+
+    setTimeout(() => controller.abort(new Error('stopped')), 20)
+
+    await expect(pending).rejects.toThrow('stopped')
+    expect(Date.now() - started).toBeLessThan(2000)
+    await expect(spawnText(['echo'], { signal: AbortSignal.abort(new Error('early')) })).rejects.toThrow('early')
+  })
+})
