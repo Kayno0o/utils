@@ -55,6 +55,10 @@ describe('stringifyCsv', () => {
     expect(stringifyCsv([])).toBe('')
   })
 
+  it('returns the header line for empty rows with explicit headers', () => {
+    expect(stringifyCsv([], { headers: ['a', 'b'], separator: ';' })).toBe('a;b')
+  })
+
   it('round-trips with parseCsv', () => {
     const data = [{ name: 'Alice', age: '30' }, { name: 'Bob', age: '25' }]
 

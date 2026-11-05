@@ -63,7 +63,7 @@ export function parseCsv<T extends Record<string, string>>(str: string, { separa
 export const csvStringify = stringifyCsv
 export function stringifyCsv(rows: Record<string, unknown>[], { separator = ',', headers }: { separator?: string, headers?: string[] } = {}): string {
   if (!rows.length)
-    return ''
+    return headers ? headers.join(separator) : ''
 
   const keys = headers ?? Object.keys(rows[0]!)
 
