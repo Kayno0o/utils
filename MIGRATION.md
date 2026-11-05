@@ -90,7 +90,6 @@ No alias is kept: the type checker flags each call site.
 ### Changed defaults
 
 - `Color.from('hex', number)` reads the number as a hex value instead of throwing on `.startsWith`.
-
 - `buildUrlQuery` and `declareGetEndpoint` URL-encode keys and values; pass `{ encode: false }` for the old output.
 - `formatSessionTime` counts calendar days, so 23:00 yesterday reads "Yesterday" at 01:00, and a future date reads as a short date.
 - `declareLogger` sends errors to `console.error` and warnings to `console.warn`, and an `Error` logs its stack.
