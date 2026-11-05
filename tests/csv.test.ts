@@ -99,7 +99,7 @@ describe('stringifyCsv options', () => {
   it('writes CRLF line endings and a BOM', () => {
     const csv = stringifyCsv([{ a: 1 }, { a: 2 }], { newline: '\r\n', bom: true })
 
-    expect(csv).toBe('﻿a\r\n1\r\n2')
+    expect(csv).toBe('\uFEFFa\r\n1\r\n2')
   })
 
   it('quotes fields holding a carriage return, and headers holding the separator', () => {
