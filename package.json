@@ -62,14 +62,14 @@
     "dist"
   ],
   "scripts": {
-    "check": "tsgo --noEmit --strict",
+    "check": "bun check --no-script --strict",
     "build": "rm -rf ./dist && bun run scripts/build.ts && tsgo -p tsconfig.build.json",
     "lint:fix": "keslint --fix --cache",
     "circular": "madge --circular --warning ./src/index.ts",
     "lint": "keslint --cache",
     "doc": "typedoc ./src/**/*.ts --plugin typedoc-github-theme --hostedBaseUrl https://pages.kaynooo.fr/kaynooo/utils/docs/ --useHostedBaseUrlForAbsoluteLinks",
     "duplicates": "jscpd ./src --threshold 2 --min-lines 10",
-    "test": "rm -rf coverage coverage-report && bun test && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null"
+    "test": "rm -rf coverage coverage-report && bun test --parallel && genhtml -o coverage -c ./assets/gcov.css ./coverage/lcov.info >/dev/null"
   },
   "peerDependencies": {
     "@joplin/turndown-plugin-gfm": "^1.0.68",
