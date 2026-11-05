@@ -1,5 +1,5 @@
 import { describe, expect, test as it, spyOn } from 'bun:test'
-import { comparePasswords, digestHex, hashPassword, hashString, hmac, nanoid, PASSWORD_HASH_PARAMS, passwordNeedsRehash } from '../src'
+import { comparePasswords, digest, digestHex, hashPassword, hashString, hmac, nanoid, PASSWORD_HASH_PARAMS, passwordNeedsRehash } from '../src'
 
 describe('nanoid', () => {
   it('returns default length of 21', () => {
@@ -143,5 +143,39 @@ describe('hashString', () => {
         expect(hashString(str, { algorithm })).toBe(hash)
       }
     }
+  })
+})
+
+describe('digest encodings', () => {
+  // RFC 4231 test case 2: key "Jefe", message "what do ya want for nothing?".
+  const RFC_HMAC_HEX = '5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843'
+
+  it('writes hmac as hex, base64 or base64url, from text or bytes', async () => {
+    const message = 'what do ya want for nothing?'
+
+    expect(await hmac('Jefe', message)).toBe(RFC_HMAC_HEX)
+    expect(await hmac(new TextEncoder().encode('Jefe'), new TextEncoder().encode(message))).toBe(RFC_HMAC_HEX)
+    expect(await hmac('Jefe', message, 'SHA-256', 'base64')).toBe(Buffer.from(RFC_HMAC_HEX, 'hex').toString('base64'))
+    expect(await hmac('Jefe', message, 'SHA-256', 'base64url')).toBe(Buffer.from(RFC_HMAC_HEX, 'hex').toString('base64url'))
+  })
+
+  it('digests text or bytes in each encoding', async () => {
+    const hex = await digestHex('SHA-256', 'abc')
+
+    expect(hex).toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
+    expect(await digest('SHA-256', new TextEncoder().encode('abc'))).toBe(hex)
+    expect(await digest('SHA-256', 'abc', 'base64url')).toBe(Buffer.from(hex, 'hex').toString('base64url'))
+  })
+})
+
+describe('password cost overrides', () => {
+  it('hashes with cheaper costs and judges rehash against the given ones', async () => {
+    const cheap = { memoryCost: 1024, timeCost: 1 }
+    const hash = await hashPassword('secret', cheap)
+
+    expect(hash).toContain('m=1024,t=1')
+    expect(await comparePasswords('secret', hash)).toBe(true)
+    expect(passwordNeedsRehash(hash, cheap)).toBe(false)
+    expect(passwordNeedsRehash(hash)).toBe(true)
   })
 })

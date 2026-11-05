@@ -35,16 +35,41 @@ function toHex(buffer: ArrayBuffer): string {
   return hex
 }
 
-export async function hmac(key: string, message: string, algorithm: HashAlgorithm = 'SHA-256'): Promise<string> {
-  const enc = new TextEncoder()
-  const cryptoKey = await crypto.subtle.importKey('raw', enc.encode(key), { name: 'HMAC', hash: algorithm }, false, ['sign'])
+export type DigestEncoding = 'hex' | 'base64' | 'base64url'
 
-  return toHex(await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(message)))
+/** Text as its UTF-8 bytes, bytes as they are. */
+export type CryptoInput = string | BufferSource
+
+const BASE64_PADDING_REGEX = /=+$/
+const BASE64_URL_UNSAFE_REGEX = /[+/]/g
+
+function toBytes(input: CryptoInput): BufferSource {
+  return typeof input === 'string' ? new TextEncoder().encode(input) : input
+}
+
+function encodeDigest(buffer: ArrayBuffer, encoding: DigestEncoding): string {
+  if (encoding === 'hex')
+    return toHex(buffer)
+
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)))
+
+  return encoding === 'base64' ? base64 : base64.replace(BASE64_PADDING_REGEX, '').replace(BASE64_URL_UNSAFE_REGEX, char => (char === '+' ? '-' : '_'))
+}
+
+export async function hmac(key: CryptoInput, message: CryptoInput, algorithm: HashAlgorithm = 'SHA-256', encoding: DigestEncoding = 'hex'): Promise<string> {
+  const cryptoKey = await crypto.subtle.importKey('raw', toBytes(key), { name: 'HMAC', hash: algorithm }, false, ['sign'])
+
+  return encodeDigest(await crypto.subtle.sign('HMAC', cryptoKey, toBytes(message)), encoding)
+}
+
+/** Digest of `data`, lowercase hex by default. */
+export async function digest(algorithm: HashAlgorithm, data: CryptoInput, encoding: DigestEncoding = 'hex'): Promise<string> {
+  return encodeDigest(await crypto.subtle.digest(algorithm, toBytes(data)), encoding)
 }
 
 /** Lowercase hex digest of the text's UTF-8 bytes. */
 export async function digestHex(algorithm: HashAlgorithm, text: string): Promise<string> {
-  return toHex(await crypto.subtle.digest(algorithm, new TextEncoder().encode(text)))
+  return digest(algorithm, text)
 }
 
 /**
@@ -53,8 +78,17 @@ export async function digestHex(algorithm: HashAlgorithm, text: string): Promise
  */
 export const PASSWORD_HASH_PARAMS = { algorithm: 'argon2id', memoryCost: 65536, timeCost: 2 } as const
 
-export async function hashPassword(password: string): Promise<string> {
-  return Bun.password.hash(password, PASSWORD_HASH_PARAMS)
+/** Argon2 costs to hash with, e.g. cheap ones in tests; unset ones keep `PASSWORD_HASH_PARAMS`. */
+export interface PasswordHashParams {
+  algorithm?: 'argon2id' | 'argon2i' | 'argon2d'
+  /** KiB of memory per hash. */
+  memoryCost?: number
+  /** Passes over that memory. */
+  timeCost?: number
+}
+
+export async function hashPassword(password: string, params: PasswordHashParams = {}): Promise<string> {
+  return Bun.password.hash(password, { ...PASSWORD_HASH_PARAMS, ...params })
 }
 
 /** Verifies against any supported hash format; a malformed or unknown one is a mismatch, not a throw. */
@@ -72,16 +106,17 @@ function argonCost(params: string, key: 'm' | 't'): number {
 }
 
 /**
- * True when `hashedPassword` was made with anything weaker than `PASSWORD_HASH_PARAMS` -
+ * True when `hashedPassword` was made with anything weaker than `PASSWORD_HASH_PARAMS`, or `params` when given -
  * call it after a successful `comparePasswords` to re-hash the plaintext while you hold it.
  */
-export function passwordNeedsRehash(hashedPassword: string): boolean {
-  const [, algorithm, , params = ''] = hashedPassword.split('$')
+export function passwordNeedsRehash(hashedPassword: string, params: PasswordHashParams = {}): boolean {
+  const target = { ...PASSWORD_HASH_PARAMS, ...params }
+  const [, algorithm, , costs = ''] = hashedPassword.split('$')
 
   // Negated comparisons so an absent or unparsable cost reads as NaN and needs a rehash.
-  return algorithm !== PASSWORD_HASH_PARAMS.algorithm
-    || !(argonCost(params, 'm') >= PASSWORD_HASH_PARAMS.memoryCost)
-    || !(argonCost(params, 't') >= PASSWORD_HASH_PARAMS.timeCost)
+  return algorithm !== target.algorithm
+    || !(argonCost(costs, 'm') >= target.memoryCost)
+    || !(argonCost(costs, 't') >= target.timeCost)
 }
 
 // string → seed hash (32-bit)
