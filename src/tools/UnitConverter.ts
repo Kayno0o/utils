@@ -11,7 +11,7 @@ export interface UnitType {
   area: 'mm2' | 'cm2' | 'm2' | 'ha' | 'km2' | 'in2' | 'ft2' | 'yd2' | 'ac' | 'mi2'
 }
 
-let unitFactors: { [Unit in keyof UnitType]?: Record<UnitType[Unit], number> } = {}
+let unitFactors: { [Unit in keyof UnitType]?: Record<UnitType[Unit], number> } | undefined
 
 function getUnitFactors() {
   unitFactors ??= {
@@ -126,7 +126,7 @@ let unitConverterFn: {
     from: (value: number) => number
     to: (value: number) => number
   }>
-} = {}
+} | undefined
 
 function getUnitConverterFn() {
   unitConverterFn ??= {
@@ -162,8 +162,8 @@ function getUnitConverterFn() {
 
 function baseUnitConverter(factor: number) {
   return {
-    from: (value: number) => value / factor,
-    to: (value: number) => value * factor,
+    from: (value: number) => value * factor,
+    to: (value: number) => value / factor,
   }
 }
 
