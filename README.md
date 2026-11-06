@@ -28,6 +28,8 @@ yarn add @kaynooo/utils
 npm install @kaynooo/utils
 ```
 
+Every source file is also a subpath (`@kaynooo/utils/number`, `@kaynooo/utils/text`, ...), so a client bundle can import `clamp` or `round` without pulling the root index.
+
 ## Quick Start
 
 ```typescript

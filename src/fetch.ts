@@ -15,6 +15,10 @@ export function combineSignals(signal: AbortSignal | null | undefined, timeout: 
 
 export interface FetchWithTimeoutInit extends RequestInit {
   timeout?: number
+  /** Bun only: a Unix socket path the request goes through. */
+  unix?: string | undefined
+  /** Bun only: TLS options for an https request. */
+  tls?: { rejectUnauthorized?: boolean | undefined, serverName?: string | undefined } | undefined
 }
 
 /**

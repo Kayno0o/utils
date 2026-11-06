@@ -231,3 +231,12 @@ describe('clipboard readers', () => {
     expect(getHtmlOrText([])).toBe('')
   })
 })
+
+describe('browser index', () => {
+  it('exports the anchor helpers', async () => {
+    const index = await import('../src/browser')
+
+    expect(index.clickAnchor).toBeFunction()
+    expect(index.clickBlobAnchor).toBeFunction()
+  })
+})

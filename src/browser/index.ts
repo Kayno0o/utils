@@ -1,3 +1,4 @@
+export * from './anchor'
 export * from './canvas'
 export * from './clipboard'
 export * from './color'

@@ -445,6 +445,26 @@ describe('fetchWithTimeout', () => {
     expect(error).toBeInstanceOf(Error)
   })
 
+  it('passes Bun options through to fetch', async () => {
+    let seen: Record<string, unknown> = {}
+
+    globalThis.fetch = Object.assign(
+      async (_url: RequestInfo | URL, init: RequestInit = {}) => {
+        seen = init as Record<string, unknown>
+
+        return new Response('ok')
+      },
+      // eslint-disable-next-line ts/no-empty-function
+      { preconnect: () => {} },
+    ) as unknown as typeof fetch
+
+    await fetchWithTimeout('https://example.test', { unix: '/run/x.sock', tls: { rejectUnauthorized: false } })
+
+    expect(seen.unix).toBe('/run/x.sock')
+    expect(seen.tls).toEqual({ rejectUnauthorized: false })
+    expect(seen.timeout).toBeUndefined()
+  })
+
   it('still aborts on the caller signal', async () => {
     const mock = mockHangingFetch()
     const controller = new AbortController()
