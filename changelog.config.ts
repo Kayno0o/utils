@@ -1,4 +1,4 @@
-import { defineConfig } from '@kaynooo/changelogitea'
+import { defineConfig } from '@kaynooo/cli-changelog'
 
 export default defineConfig({
   baseUrl: 'git.kaynooo.fr',

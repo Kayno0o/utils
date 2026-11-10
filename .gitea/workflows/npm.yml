@@ -47,7 +47,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Generate changelog
-        run: bun x @kaynooo/changelogitea@latest
+        run: bun x @kaynooo/cli-changelog@latest
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           DISCORD_WEBHOOK: ${{secrets.DISCORD_WEBHOOK}}
