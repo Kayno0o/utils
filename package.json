@@ -90,7 +90,7 @@
   "devDependencies": {
     "@joplin/turndown-plugin-gfm": "^1.0.68",
     "@kaynooo/cli-changelog": "2.3.5",
-    "@kaynooo/eslint": "8.0.2",
+    "@kaynooo/eslint": "8.0.3",
     "@paulmillr/qr": "^0.3.0",
     "@resvg/resvg-js": "^2.6.2",
     "@types/bun": "^1.4.4",
