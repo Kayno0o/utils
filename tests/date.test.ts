@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { addDays, addMonths, addYears, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, endOfDay, endOfMonth, formatDayMonth, formatHour, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, formatTime, fromISODate, getAge, getDaysBetween, getDaysInMonth, getFrenchHolidays, getHoursBetween, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, parseDateLabel, parseDuration, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, WEEK_MS } from '../src'
+import { addDays, addMonths, addYears, businessDaysBetween, calculateEaster, dateDifference, DAY_MS, endOfDay, endOfMonth, formatDayMonth, formatHour, formatMonthShort, formatMonthYear, formatRelativeTime, formatSessionTime, formatTime, fromISODate, getAge, getDaysBetween, getDaysInMonth, getFrenchHolidays, getHoursBetween, getQuarter, getWeekNumber, gridDays, HOUR_MS, isBetween, isHoliday, isLeapYear, isSameDay, isToday, isWeekend, MINUTE_MS, parseDateLabel, parseDuration, parseMonthName, SECOND_MS, SECONDS_IN_DAY, SECONDS_IN_HOUR, SECONDS_IN_MINUTE, SECONDS_IN_WEEK, startOfDay, startOfMonth, startOfWeekISO, WEEK_MS } from '../src'
 
 describe('formatRelativeTime function', () => {
   it('takes a bare locale', () => {
@@ -283,6 +283,31 @@ describe('parseDateLabel function', () => {
     expect(parseDateLabel('29/2/2027')).toBeNull()
     expect(parseDateLabel('29/2/28')).toEqual(new Date(2028, 1, 29))
     expect(parseDateLabel('')).toBeNull()
+  })
+})
+
+describe('parseMonthName function', () => {
+  it('reads the three-letter abbreviation', () => {
+    expect(parseMonthName('Jan')).toBe(1)
+    expect(parseMonthName('Dec')).toBe(12)
+  })
+
+  it('reads the full name', () => {
+    expect(parseMonthName('July')).toBe(7)
+    expect(parseMonthName('September')).toBe(9)
+  })
+
+  it('ignores case', () => {
+    expect(parseMonthName('jul')).toBe(7)
+    expect(parseMonthName('JULY')).toBe(7)
+    expect(parseMonthName('oCt')).toBe(10)
+  })
+
+  it('returns null for a non-month', () => {
+    expect(parseMonthName('Jux')).toBeNull()
+    expect(parseMonthName('')).toBeNull()
+    expect(parseMonthName('Ju')).toBeNull()
+    expect(parseMonthName('Julyy')).toBeNull()
   })
 })
 

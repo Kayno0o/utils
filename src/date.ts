@@ -24,6 +24,14 @@ export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', '
 
 export const pad = (n: number) => String(n).padStart(2, '0')
 
+/** Month number 1-12 of an English month name, short or full, in any case (`jul`, `Jul`, `JULY`), or `null` when it names no month. */
+export function parseMonthName(name: string): number | null {
+  const lower = name.toLowerCase()
+  const index = MONTHS.findIndex(month => lower === month.toLowerCase() || lower === month.slice(0, 3).toLowerCase())
+
+  return index === -1 ? null : index + 1
+}
+
 export function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month, 0).getDate()
 }
