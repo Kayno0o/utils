@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it } from 'bun:test'
 import { FetchError } from '../src/browser/fetch'
 import { sendGotify } from '../src/gotify'
+
+// Each test swaps fetch for a mock; the real one comes back so the next file, run in the same process, gets it.
+const realFetch = globalThis.fetch
+
+afterEach(() => {
+  globalThis.fetch = realFetch
+})
 
 interface MockCall {
   url: string

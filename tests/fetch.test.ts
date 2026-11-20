@@ -1,7 +1,14 @@
-import { describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it } from 'bun:test'
 import { createFetcher, FetchError, fetchJson, FetchParseError, mergeHeaders } from '../src/browser/fetch'
 import { combineSignals, fetchWithTimeout } from '../src/fetch'
 import { tryCatch } from '../src/function'
+
+// Each test swaps fetch for a mock; the real one comes back so the next file, run in the same process, gets it.
+const realFetch = globalThis.fetch
+
+afterEach(() => {
+  globalThis.fetch = realFetch
+})
 
 interface MockCall {
   url: string

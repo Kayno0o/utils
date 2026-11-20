@@ -1,8 +1,15 @@
 import type { OllamaMeta } from '../src/ollama'
 import type { OllamaStreamDelta } from '../src/ollamaStream'
-import { describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it } from 'bun:test'
 import { FetchError } from '../src/browser/fetch'
 import { readOllamaJsonStream, streamOllamaJson } from '../src/ollamaStream'
+
+// Each test swaps fetch for a mock; the real one comes back so the next file, run in the same process, gets it.
+const realFetch = globalThis.fetch
+
+afterEach(() => {
+  globalThis.fetch = realFetch
+})
 
 const OLLAMA = 'http://ollama.test/api/chat'
 const ROUTE = 'http://app.test/api/ai/tool'
