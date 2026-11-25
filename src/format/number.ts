@@ -42,12 +42,14 @@ export function formatFileSize(bytes: number, { units: unitSystem = 'iec', dp = 
 export interface FormatUnitOptions {
   /** Writes the number with this locale's separators, e.g. `1,5k`. Defaults to a plain `.`. */
   locale?: string | string[] | undefined
+  /** `'stripIfInteger'` writes `300k` rather than `300.0k`, as `Intl.NumberFormat` does. Defaults to `'auto'`, which keeps the decimal. */
+  trailingZeroDisplay?: 'auto' | 'stripIfInteger'
 }
 
 /** A count shortened to one decimal and a k, M, B or T suffix, rounding up to the next unit when it would print 1000. */
-export function formatUnit(num: number, { locale }: FormatUnitOptions = {}): string {
+export function formatUnit(num: number, { locale, trailingZeroDisplay = 'auto' }: FormatUnitOptions = {}): string {
   if (num < 0)
-    return `-${formatUnit(-num, { locale })}`
+    return `-${formatUnit(-num, { locale, trailingZeroDisplay })}`
 
   if (num < 1000)
     return locale ? getNumberFormat(locale, { maximumFractionDigits: 20 }).format(num) : num.toString()
@@ -61,7 +63,11 @@ export function formatUnit(num: number, { locale }: FormatUnitOptions = {}): str
     unitIndex++
   }
 
-  return `${locale ? getNumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(scaledNum) : scaledNum.toFixed(1)}${units[unitIndex]}`
+  const text = locale
+    ? getNumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1, trailingZeroDisplay }).format(scaledNum)
+    : scaledNum.toFixed(1)
+
+  return `${!locale && trailingZeroDisplay === 'stripIfInteger' ? String(Number(text)) : text}${units[unitIndex]}`
 }
 
 /** Euros in French notation by default; takes a locale or `{ locale, ...Intl.NumberFormatOptions }`, so `currency` can be overridden too. */

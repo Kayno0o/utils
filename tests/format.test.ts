@@ -38,6 +38,14 @@ describe('formatDuration', () => {
     expect(formatDuration(30_000, { units: ['h', 'm'] })).toBe('0m')
   })
 
+  it('rounds up to the smallest unit when asked, so a countdown never reads 0 before it ends', () => {
+    expect(formatDuration(30_000, { units: ['h', 'm'], roundUp: true })).toBe('1m')
+    expect(formatDuration(3_570_000, { units: ['h', 'm'], roundUp: true })).toBe('1h')
+    expect(formatDuration(-90_000, { units: ['m'], roundUp: true })).toBe('-2m')
+    expect(formatDuration(0, { units: ['m'], roundUp: true })).toBe('0m')
+    expect(formatDuration(1200, { roundUp: true })).toBe('2s')
+  })
+
   it('relabels units in both registers', () => {
     const labels = { d: { short: 'j', one: 'jour', other: 'jours' }, h: { one: 'heure', other: 'heures' } }
 
@@ -92,6 +100,13 @@ describe('formatUnit', () => {
   it('writes a count under 1000 in the locale too', () => {
     expect(formatUnit(1.5, { locale: 'fr-FR' })).toBe('1,5')
     expect(formatUnit(1.5)).toBe('1.5')
+  })
+
+  it('drops a zero decimal when asked, as Intl\'s stripIfInteger does', () => {
+    expect(formatUnit(299_960, { trailingZeroDisplay: 'stripIfInteger' })).toBe('300k')
+    expect(formatUnit(87_400, { trailingZeroDisplay: 'stripIfInteger' })).toBe('87.4k')
+    expect(formatUnit(-2_000_000, { locale: 'fr-FR', trailingZeroDisplay: 'stripIfInteger' })).toBe('-2M')
+    expect(formatUnit(2_000_000)).toBe('2.0M')
   })
 })
 

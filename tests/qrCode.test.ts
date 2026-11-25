@@ -249,10 +249,11 @@ describe('qrCodeSvg decode round-trip', () => {
     expect(scan(qrCodeSvg(payload, { moduleShape: 'chamfer', eyeShape: 'chamfer' }))).toBe(payload)
   })
 
+  // Two raster-and-decode passes run past bun's 5 s default on a slower machine
   it('gapped modules stay scannable', () => {
     expect(scan(qrCodeSvg(payload, { moduleShape: 'dot', moduleScale: 0.7, eyeShape: 'square' }))).toBe(payload)
     expect(scan(qrCodeSvg(payload, { moduleShape: 'rounded', moduleScale: 0.85 }))).toBe(payload)
-  })
+  }, 20_000)
 
   it('per-eye styling stays scannable', () => {
     const svg = qrCodeSvg(payload, {
