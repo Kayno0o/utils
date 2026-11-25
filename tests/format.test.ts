@@ -93,6 +93,13 @@ describe('formatUnit', () => {
     expect(formatUnit(1.5, { locale: 'fr-FR' })).toBe('1,5')
     expect(formatUnit(1.5)).toBe('1.5')
   })
+
+  it('drops a zero decimal when asked, as Intl\'s stripIfInteger does', () => {
+    expect(formatUnit(299_960, { trailingZeroDisplay: 'stripIfInteger' })).toBe('300k')
+    expect(formatUnit(87_400, { trailingZeroDisplay: 'stripIfInteger' })).toBe('87.4k')
+    expect(formatUnit(-2_000_000, { locale: 'fr-FR', trailingZeroDisplay: 'stripIfInteger' })).toBe('-2M')
+    expect(formatUnit(2_000_000)).toBe('2.0M')
+  })
 })
 
 describe('formatFileSize (defaults)', () => {
