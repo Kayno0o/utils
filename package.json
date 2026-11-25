@@ -47,6 +47,9 @@
       "types": "./dist/tools/index.d.ts",
       "import": "./dist/tools/index.js"
     },
+    "./internal": null,
+    "./intlCache": null,
+    "./chunk-*": null,
     "./*": {
       "types": "./dist/*.d.ts",
       "import": "./dist/*.js"

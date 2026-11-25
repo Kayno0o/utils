@@ -1,6 +1,5 @@
-import type { FetchJsonOptions } from './browser/fetch'
-import { fetchJson, mergeHeaders } from './browser/fetch'
-import { DEFAULT_FETCH_TIMEOUT_MS } from './fetch'
+import type { FetchJsonOptions } from './fetch'
+import { DEFAULT_FETCH_TIMEOUT_MS, fetchJson, mergeHeaders } from './fetch'
 
 export interface GotifyMessage {
   title: string

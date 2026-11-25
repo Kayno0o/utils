@@ -1,5 +1,6 @@
 import { describe, expect, test as it } from 'bun:test'
 import { formatMonthShort, formatTime, normalizeAccents } from '../src'
+import { getOrCreateCapped } from '../src/internal'
 import { formatDateTime, getDateTimeFormat, getNumberFormat } from '../src/intlCache'
 
 describe('intlCache', () => {
@@ -44,5 +45,21 @@ describe('normalizeAccents fast path', () => {
   it('keeps ASCII and strips accents', () => {
     expect(normalizeAccents('plain text')).toBe('plain text')
     expect(normalizeAccents('éàü')).toBe('eau')
+  })
+})
+
+describe('getOrCreateCapped', () => {
+  it('reuses cached entries and clears once the cap is reached', () => {
+    const cache = new Map<string, number>()
+
+    expect(getOrCreateCapped(cache, 'a', () => 1, 2)).toBe(1)
+    expect(getOrCreateCapped(cache, 'a', () => 99, 2)).toBe(1)
+    expect(getOrCreateCapped(cache, 'b', () => 2, 2)).toBe(2)
+    expect(cache.size).toBe(2)
+
+    expect(getOrCreateCapped(cache, 'c', () => 3, 2)).toBe(3)
+    expect(cache.size).toBe(1)
+    expect(cache.has('a')).toBe(false)
+    expect(cache.get('c')).toBe(3)
   })
 })

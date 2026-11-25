@@ -1,6 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { noop } from '../src/function'
-import { isArray, isDate, isFunction, isIP, isNumber, isObject, isPromise, isString, isUUID } from '../src/validation'
+import { isArray, isDate, isFunction, isIP, isNumber, isObject, isPromise, isString, isUUID, noop } from '../src'
 
 describe('isIP', () => {
   it('checks IPv4 by default', () => {

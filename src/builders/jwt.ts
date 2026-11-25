@@ -1,4 +1,4 @@
-import { base64Decode } from '../text'
+import { base64Decode } from '../encoding'
 
 export interface DecodedJwt {
   header: unknown

@@ -16,3 +16,26 @@ export const DURATION_UNIT_MS = {
   m: 60 * 1000,
   s: 1000,
 } as const
+
+const ASCII_ONLY = /^\p{ASCII}*$/u
+const COMBINING_MARKS_REGEX = /[\u0300-\u036F]/g
+
+/** Strips accents and diacritics; ASCII inputs short-circuit without NFD allocation. */
+export function stripAccents(str: string): string {
+  return ASCII_ONLY.test(str) ? str : str.normalize('NFD').replace(COMBINING_MARKS_REGEX, '')
+}
+
+/** Reads or inserts a cached entry, resetting the map once it reaches `maxEntries` so caches stay bounded. */
+export function getOrCreateCapped<K, V>(map: Map<K, V>, key: K, create: () => V, maxEntries = 256): V {
+  let cached = map.get(key)
+
+  if (cached === undefined) {
+    if (map.size >= maxEntries)
+      map.clear()
+
+    cached = create()
+    map.set(key, cached)
+  }
+
+  return cached
+}

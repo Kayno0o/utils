@@ -1,5 +1,5 @@
 import type { CanvasFormat, CropRect } from './canvas'
-import { base64DecodeBytes } from '../text'
+import { base64DecodeBytes } from '../encoding'
 
 const REMOTE_URL = /^(?:https?:)?\/\//i
 

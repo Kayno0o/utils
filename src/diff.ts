@@ -1,5 +1,5 @@
-import type { TextSpan } from './text'
-import { tokenizeLines, tokenizeWords } from './text'
+import type { TextSpan } from './spans'
+import { tokenizeLines, tokenizeWords } from './spans'
 
 export interface DiffHunk {
   aStart: number

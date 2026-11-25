@@ -1,5 +1,5 @@
+export * from './ansi'
 export * from './ColorConverter'
-export * from './colors'
 export * from './Faker'
 export * from './iconify'
 export * from './QrCode'

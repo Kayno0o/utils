@@ -1,11 +1,9 @@
-import type { Buffer } from 'node:buffer'
-import type { FetchJsonOptions } from './browser/fetch'
+import type { FetchJsonOptions } from './fetch'
 import type { DiscordWebhookPayload } from './types'
-import { fetchJson } from './browser/fetch'
-import { DEFAULT_FETCH_TIMEOUT_MS } from './fetch'
+import { DEFAULT_FETCH_TIMEOUT_MS, fetchJson } from './fetch'
 
 export interface DiscordWebhookFile {
-  buffer: Buffer
+  buffer: Uint8Array | ArrayBuffer
   filename: string
   /** @default 'image/png' */
   contentType?: string

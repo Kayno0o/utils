@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { afterEach, describe, expect, test as it, spyOn } from 'bun:test'
-import { FetchError } from '../src/browser/fetch'
 import { getDiscordAvatarUrl, getDiscordBannerUrl, sendDiscordWebhook } from '../src/discord'
+import { FetchError } from '../src/fetch'
 
 const URL = 'https://discord.test/api/webhooks/1/abc'
 
@@ -19,7 +19,7 @@ describe('sendDiscordWebhook', () => {
 
     await sendDiscordWebhook(URL, { content: 'hi' }, [
       { buffer: Buffer.from('a'), filename: 'a.png' },
-      { buffer: Buffer.from('b'), filename: 'b.pdf', contentType: 'application/pdf' },
+      { buffer: new Uint8Array([98]), filename: 'b.pdf', contentType: 'application/pdf' },
     ])
 
     const body = fetchSpy.mock.calls[0]![1]!.body as FormData

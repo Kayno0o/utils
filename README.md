@@ -105,7 +105,7 @@ Check out the [`examples/`](./examples) directory for comprehensive usage exampl
 
 ## Documentation
 
-Full API documentation is available at: https://kayno0o.github.io/utils/docs/
+Full API documentation is available at: https://pages.kaynooo.fr/kaynooo/utils/docs/
 
 ## Development
 

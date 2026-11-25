@@ -1,3 +1,5 @@
+import { getOrCreateCapped } from './internal'
+
 type Locale = string | string[] | undefined
 
 const MAX_DATE_MS = 8.64e15
@@ -14,14 +16,7 @@ function cacheKey(locale: Locale, options: object | undefined, extra?: string): 
 export function getDateTimeFormat(locale: Locale, options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
   const key = cacheKey(locale, options, options?.timeZone ? undefined : globalThis.process?.env?.TZ ?? '')
 
-  let cached = dateTimeFormats.get(key)
-
-  if (!cached) {
-    cached = new Intl.DateTimeFormat(locale, options)
-    dateTimeFormats.set(key, cached)
-  }
-
-  return cached
+  return getOrCreateCapped(dateTimeFormats, key, () => new Intl.DateTimeFormat(locale, options))
 }
 
 /** `format` that returns `'Invalid Date'` for a non-finite date like `toLocaleString`, instead of throwing. */
@@ -32,27 +27,13 @@ export function formatDateTime(date: Date | number, locale: Locale, options?: In
 export function getNumberFormat(locale: Locale, options?: Intl.NumberFormatOptions): Intl.NumberFormat {
   const key = cacheKey(locale, options)
 
-  let cached = numberFormats.get(key)
-
-  if (!cached) {
-    cached = new Intl.NumberFormat(locale, options)
-    numberFormats.set(key, cached)
-  }
-
-  return cached
+  return getOrCreateCapped(numberFormats, key, () => new Intl.NumberFormat(locale, options))
 }
 
 export function getRelativeTimeFormat(locale: Locale, options?: Intl.RelativeTimeFormatOptions): Intl.RelativeTimeFormat {
   const key = cacheKey(locale, options)
 
-  let cached = relativeTimeFormats.get(key)
-
-  if (!cached) {
-    cached = new Intl.RelativeTimeFormat(locale, options)
-    relativeTimeFormats.set(key, cached)
-  }
-
-  return cached
+  return getOrCreateCapped(relativeTimeFormats, key, () => new Intl.RelativeTimeFormat(locale, options))
 }
 
 /** A locale, or an options object that names one next to the `Intl` options of the formatter. */

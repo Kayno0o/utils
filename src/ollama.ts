@@ -1,6 +1,5 @@
-import type { FetchJsonOptions } from './browser/fetch'
-import { fetchJson, mergeHeaders, readNdjson, toFetchError } from './browser/fetch'
-import { combineSignals } from './fetch'
+import type { FetchJsonOptions } from './fetch'
+import { combineSignals, fetchJson, mergeHeaders, readNdjson, toFetchError } from './fetch'
 
 export interface OllamaOutputUsage {
   input_tokens: number

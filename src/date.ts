@@ -1,5 +1,5 @@
 import type { LocaleOrOptions } from './intlCache'
-import { DURATION_UNIT_MS } from './internal'
+import { DURATION_UNIT_MS, getOrCreateCapped } from './internal'
 import { formatDateTime, getRelativeTimeFormat, resolveLocale } from './intlCache'
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
@@ -87,17 +87,7 @@ export function getFrenchHolidays(year: number): string[] {
 const holidaySets = new Map<number, Set<string>>()
 
 function getHolidaySet(year: number): Set<string> {
-  let set = holidaySets.get(year)
-
-  if (!set) {
-    if (holidaySets.size >= 64)
-      holidaySets.clear()
-
-    set = new Set(getFrenchHolidays(year))
-    holidaySets.set(year, set)
-  }
-
-  return set
+  return getOrCreateCapped(holidaySets, year, () => new Set(getFrenchHolidays(year)), 64)
 }
 
 export function isHoliday(date: Date | string): boolean {

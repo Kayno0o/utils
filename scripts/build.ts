@@ -1,8 +1,10 @@
 import { Glob } from 'bun'
 import pkg from '../package.json'
 
+const INTERNAL_FILES = new Set(['src/internal.ts', 'src/intlCache.ts'])
+
 const entrypoints = [...new Glob('src/**/*.ts').scanSync('.')]
-  .filter(file => !file.endsWith('.test.ts') && !file.endsWith('.d.ts'))
+  .filter(file => !file.endsWith('.test.ts') && !file.endsWith('.d.ts') && !INTERNAL_FILES.has(file))
 
 const external = [
   ...Object.keys(pkg.dependencies ?? {}),

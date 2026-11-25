@@ -1,4 +1,4 @@
-import { colors } from '../tools/colors'
+import { colors } from '../tools/ansi'
 
 interface LogType { char: string, color?: (str: string) => string, level?: number, log?: (...args: unknown[]) => void | Promise<void> }
 

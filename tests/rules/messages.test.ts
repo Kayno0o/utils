@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test as it } from 'bun:test'
-import { Rules } from '../../src'
+import { createRules, Rules, withRuleMessage } from '../../src'
 
 afterEach(() => Rules.resetMessages())
 
@@ -32,7 +32,22 @@ describe('rule messages', () => {
 
     expect(rule('ab')).toBe('"ab" is too short')
     expect(rule('abcd')).toBe(true)
-    expect(Rules.withMessage(Rules.email, 'Adresse invalide')('nope')).toBe('Adresse invalide')
+    expect(withRuleMessage(Rules.email, 'Adresse invalide')('nope')).toBe('Adresse invalide')
+  })
+
+  it('keeps createRules instances isolated from global Rules and each other', () => {
+    const fr = createRules({ required: 'Requis', minLength: ({ length }) => `Au moins ${length} caractères` })
+    const es = createRules({ required: 'Obligatorio' })
+
+    expect(fr.required('')).toBe('Requis')
+    expect(fr.minLength(3)('a')).toBe('Au moins 3 caractères')
+    expect(fr.email('nope')).toBe('Invalid email')
+    expect(es.required('')).toBe('Obligatorio')
+    expect(Rules.required('')).toBe('Required')
+
+    Rules.setMessages({ required: 'Global' })
+    expect(fr.required('')).toBe('Requis')
+    expect(es.required('')).toBe('Obligatorio')
   })
 })
 

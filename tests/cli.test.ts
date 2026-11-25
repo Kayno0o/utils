@@ -358,4 +358,24 @@ describe('parseArgs values', () => {
   it('refuses a fraction for an int option', () => {
     expect(() => parseArgs({ args: ['--count=1.5'], options: { count: { type: 'int' } } })).toThrow()
   })
+
+  it('hands help output to onHelp instead of exiting or failing on required options', () => {
+    let captured = ''
+
+    parseArgs({
+      args: ['--help'],
+      help: {
+        name: 'demo',
+        shortDescription: 'test tool',
+        onHelp: output => (captured = output),
+      },
+      options: {
+        token: { type: 'string', required: true, description: 'auth token' },
+      },
+    })
+
+    expect(captured).toContain('demo')
+    expect(captured).toContain('--token')
+    expect(captured).toContain('auth token')
+  })
 })

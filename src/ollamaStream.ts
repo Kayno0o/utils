@@ -1,6 +1,5 @@
 import type { OllamaFetchOptions, OllamaInputMessage, OllamaInputOptions, OllamaMeta, OllamaOutputChatResponse } from './ollama'
-import { mergeHeaders, readNdjson, toFetchError } from './browser/fetch'
-import { combineSignals } from './fetch'
+import { combineSignals, mergeHeaders, readNdjson, toFetchError } from './fetch'
 import { buildOllamaMeta, streamOllama } from './ollama'
 
 /** Incremental text emitted while generating. */

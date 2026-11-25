@@ -1,7 +1,8 @@
 import { existsSync } from 'node:fs'
 import { notNullish, toArray } from './array'
+import { getOrCreateCapped } from './internal'
 import { escapeRegExp } from './text'
-import { colors } from './tools/colors'
+import { colors } from './tools/ansi'
 
 export interface SpawnResult { stdout: string, stderr: string, exitCode: number }
 
@@ -152,6 +153,8 @@ interface ArgsHelpConfig {
   keywords?: string[]
   description?: string
   footerBlocks?: { title: string, content: string | string[] }[]
+  /** Handles formatted help text instead of logging and calling `process.exit()`. */
+  onHelp?: (output: string) => void
 }
 
 interface ArgsConfig<T extends Record<string, OptionDefinition>> {
@@ -248,13 +251,7 @@ function block(name: string, content: string | (string | undefined)[], keywords:
 
   if (keywords.length) {
     const source = `\\b${keywords.map(escapeRegExp).join('\\b|\\b')}\\b`
-
-    let regexp = keywordRegexes.get(source)
-
-    if (!regexp) {
-      regexp = new RegExp(source, 'g')
-      keywordRegexes.set(source, regexp)
-    }
+    const regexp = getOrCreateCapped(keywordRegexes, source, () => new RegExp(source, 'g'))
 
     filteredContent = filteredContent.map(c => c.replace(regexp, colors.underline))
   }
@@ -298,6 +295,12 @@ function help(config: ArgsHelpConfig, options: (OptionDefinition & { name: strin
 
   if (footerBlocks)
     output += footerBlocks.map(b => block(b.title, b.content, keywords ?? [])).join('')
+
+  if (config.onHelp) {
+    config.onHelp(output)
+
+    return
+  }
 
   console.log(output)
   process.exit()
@@ -383,8 +386,11 @@ export function parseArgs<
     }
   }
 
-  if (result.help && config.help)
+  if (result.help && config.help) {
     help(config.help, options)
+
+    return result as ParsedValues<T>
+  }
 
   const missingRequired = options.filter(o => o.required && result[o.name] === undefined)
 

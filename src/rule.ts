@@ -77,14 +77,6 @@ const DEFAULT_RULE_MESSAGES: RuleMessages = {
     : `Date must be between ${minDate.toDateString()} and ${maxDate.toDateString()}`,
 }
 
-let ruleMessages: RuleMessages = { ...DEFAULT_RULE_MESSAGES }
-
-function say<K extends keyof RuleMessages>(key: K, ...[params]: RuleMessages[K] extends RuleMessage<infer P> ? (P extends void ? [] : [P]) : never): string {
-  const message = ruleMessages[key] as RuleMessage<unknown>
-
-  return typeof message === 'function' ? message(params) : message
-}
-
 const EMAIL_REGEX = /^(?:[^<>()[\]\\.,;:\s@"]+(?:\.[^<>()[\]\\.,;:\s@"]+)*|".+")@(?:\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]|(?:[a-z\-0-9]+\.)+[a-z]{2,})$/i
 const CODE_REGEX = /^[a-z_]+$/
 const SLUG_REGEX = /^[a-z0-9_]+$/
@@ -103,36 +95,259 @@ export interface IsUrlOptions {
   protocols?: string[]
 }
 
-function compareNumber(comparator: 'lt' | 'gt' | 'gte' | 'lte' | 'eq' | 'neq', nb: number): RuleFunction<number | undefined | null> {
-  return (value: number | undefined | null) => {
-    value ??= 0
+/** Wraps any rule so a failure reads `message` instead, built from the value when a function. */
+export function withRuleMessage<T>(rule: RuleFunction<T>, message: string | ((value: T) => string)): RuleFunction<T> {
+  return (value: T) => {
+    const result = rule(value)
 
-    switch (comparator) {
-      case 'eq':
-        return value === nb || say('eq', { nb })
+    if (typeof result !== 'string')
+      return result
 
-      case 'neq':
-        return value !== nb || say('neq', { nb })
-
-      case 'gt':
-        return value > nb || say('gt', { nb })
-
-      case 'gte':
-        return value >= nb || say('gte', { nb })
-
-      case 'lt':
-        return value < nb || say('lt', { nb })
-
-      case 'lte':
-        return value <= nb || say('lte', { nb })
-      default:
-        return `Invalid comparator`
-    }
+    return typeof message === 'function' ? message(value) : message
   }
 }
 
+function buildRules(getMessages: () => RuleMessages) {
+  function say<K extends keyof RuleMessages>(key: K, ...[params]: RuleMessages[K] extends RuleMessage<infer P> ? (P extends void ? [] : [P]) : never): string {
+    const message = getMessages()[key] as RuleMessage<unknown>
+
+    return typeof message === 'function' ? message(params) : message
+  }
+
+  function compareNumber(comparator: 'lt' | 'gt' | 'gte' | 'lte' | 'eq' | 'neq', nb: number): RuleFunction<number | undefined | null> {
+    return (value: number | undefined | null) => {
+      value ??= 0
+
+      switch (comparator) {
+        case 'eq':
+          return value === nb || say('eq', { nb })
+
+        case 'neq':
+          return value !== nb || say('neq', { nb })
+
+        case 'gt':
+          return value > nb || say('gt', { nb })
+
+        case 'gte':
+          return value >= nb || say('gte', { nb })
+
+        case 'lt':
+          return value < nb || say('lt', { nb })
+
+        case 'lte':
+          return value <= nb || say('lte', { nb })
+        default:
+          return `Invalid comparator`
+      }
+    }
+  }
+
+  return {
+    compareNumber,
+    withMessage: withRuleMessage,
+
+    email: (value?: string | null): boolean | string => {
+      if (!value)
+        return true
+
+      return EMAIL_REGEX.test(value) || say('email')
+    },
+
+    isCode: (value?: string | null): boolean | string => {
+      if (!value)
+        return true
+
+      return CODE_REGEX.test(value) || say('isCode')
+    },
+
+    isDateBetweenHours: (minHour = 0, maxHour = 24, include = true) => (date?: Date | null) => {
+      if (!date)
+        return true
+
+      const hour = date.getHours()
+
+      return (include ? (hour >= minHour && hour <= maxHour) : (hour > minHour && hour < maxHour))
+        || say('isDateBetweenHours', { minHour, maxHour, include })
+    },
+
+    isInteger: (strict = false) => (value?: string | number | null): boolean | string => {
+      if (value === null || value === undefined)
+        return true
+
+      return (strict ? Number.isInteger(Number(value)) : Math.floor(Number(value)) === Number(value) * 1.0)
+        || say('isInteger')
+    },
+
+    isNumber: (value?: string | number | null): boolean | string => {
+      if (value === null || value === undefined)
+        return true
+
+      return !Number.isNaN(Number(value)) || say('isNumber')
+    },
+
+    isSlug: (value?: string | null): boolean | string => {
+      if (!value)
+        return true
+
+      return SLUG_REGEX.test(value) || say('isSlug')
+    },
+
+    isWeekDay: (date?: Date | null) => {
+      if (!date)
+        return true
+
+      return (date.getDay() >= 1 && date.getDay() <= 5) || say('isWeekDay')
+    },
+
+    lowercase: (value?: string | null): boolean | string => {
+      if (!value)
+        return true
+
+      return value.toLowerCase() === value || say('lowercase')
+    },
+
+    /** `secured` alone requires `https:`; options pick the accepted protocols. */
+    isUrl: (str: string, secured: boolean | IsUrlOptions = false): true | string => {
+      try {
+        const url = new URL(str)
+
+        if (secured === true && url.protocol !== 'https:')
+          return say('isUrlSecured')
+
+        const protocols = (typeof secured === 'object' && secured.protocols) || DEFAULT_URL_PROTOCOLS
+
+        if (!protocols.includes(url.protocol))
+          return say('isUrlProtocol', { protocols })
+
+        return true
+      }
+      catch {
+        return say('isUrl')
+      }
+    },
+
+    max: (nb: number, eq = true) => compareNumber(eq ? 'lte' : 'lt', nb),
+
+    maxLength: (length: number) =>
+      (value?: string | readonly unknown[] | null) => {
+        if (!value)
+          return true
+
+        return ((value?.length || 0) <= length) || say('maxLength', { length })
+      },
+
+    min: (nb: number, eq = true) => compareNumber(eq ? 'gte' : 'gt', nb),
+
+    minLength: (length: number) =>
+      (value?: string | readonly unknown[] | null) => {
+        if (!value)
+          return true
+
+        return ((value?.length || 0) >= length) || say('minLength', { length })
+      },
+
+    nonEmptyString: (value?: string | null): boolean | string => {
+      return !value ? say('required') : value.trim().length > 0 || say('required')
+    },
+
+    nonZero: (value?: number | null): boolean | string => {
+      return typeof value === 'number' ? (value !== 0) || say('required') : Boolean(value) || say('required')
+    },
+
+    /** French numbers by default; `format` takes `E164` or a pattern of your own. */
+    phone: (value?: string | number | null, format: PhoneFormat = 'FR'): boolean | string => {
+      if (!value)
+        return true
+
+      const text = value.toString()
+      const valid = format === 'E164'
+        ? PHONE_FORMATS.E164.test(text.replace(PHONE_SEPARATORS_REGEX, ''))
+        : (typeof format === 'string' ? PHONE_FORMATS[format] : format).test(text)
+
+      return valid || say('phone')
+    },
+
+    required: (value?: unknown): boolean | string => {
+      if (value === undefined || value === null)
+        return say('required')
+
+      if (typeof value === 'number')
+        return true
+
+      if (Array.isArray(value))
+        return value.length > 0 || say('required')
+
+      if (typeof value === 'string')
+        return value.trim().length > 0 || say('required')
+
+      return typeof value === 'object' ? Object.keys(value).length > 0 || say('required') : Boolean(value) || say('required')
+    },
+
+    isAfterDay: (date: Date, include = true) => (value?: Date | null) => {
+      if (!value)
+        return true
+
+      const normalizedDate = new Date(date)
+
+      normalizedDate.setHours(0, 0, 0, 0)
+
+      const comparison = include
+        ? value >= normalizedDate
+        : value > normalizedDate
+
+      return comparison || say('isAfterDay', { date: normalizedDate, include })
+    },
+
+    isAfterToday: (include = true) => (value?: Date | null) => {
+      if (!value)
+        return true
+
+      const today = new Date()
+
+      today.setHours(0, 0, 0, 0)
+
+      const comparison = include
+        ? value >= today
+        : value > today
+
+      return comparison || say('isAfterToday', { include })
+    },
+
+    isBetweenDays: (minDate: Date, maxDate: Date, include = true) => (value?: Date | null) => {
+      if (!value)
+        return true
+
+      const normalizedMinDate = new Date(minDate)
+
+      normalizedMinDate.setHours(0, 0, 0, 0)
+
+      const normalizedMaxDate = new Date(maxDate)
+
+      normalizedMaxDate.setHours(0, 0, 0, 0)
+
+      const comparison = include
+        ? value >= normalizedMinDate && value <= normalizedMaxDate
+        : value > normalizedMinDate && value < normalizedMaxDate
+
+      return comparison || say('isBetweenDays', { minDate: normalizedMinDate, maxDate: normalizedMaxDate, include })
+    },
+  }
+}
+
+export type Ruleset = ReturnType<typeof buildRules>
+
+/** Creates an isolated ruleset with its own message table, leaving the global `Rules` untouched. */
+export function createRules(messages: Partial<RuleMessages> = {}): Ruleset {
+  const table: RuleMessages = { ...DEFAULT_RULE_MESSAGES, ...messages }
+
+  return buildRules(() => table)
+}
+
+let ruleMessages: RuleMessages = { ...DEFAULT_RULE_MESSAGES }
+const defaultRules = buildRules(() => ruleMessages)
+
 export class Rules {
-  static compareNumber = compareNumber
+  static compareNumber = defaultRules.compareNumber
 
   /** Replaces some or all of the default messages, e.g. with translations; later rule calls use them. */
   static setMessages = (messages: Partial<RuleMessages>): void => {
@@ -145,198 +360,25 @@ export class Rules {
   }
 
   /** Wraps any rule so a failure reads `message` instead, built from the value when a function. */
-  static withMessage = <T>(rule: RuleFunction<T>, message: string | ((value: T) => string)): RuleFunction<T> => (value: T) => {
-    const result = rule(value)
-
-    if (typeof result !== 'string')
-      return result
-
-    return typeof message === 'function' ? message(value) : message
-  }
-
-  static email = (value?: string | null): boolean | string => {
-    if (!value)
-      return true
-
-    return EMAIL_REGEX.test(value) || say('email')
-  }
-
-  static isCode = (value?: string | null): boolean | string => {
-    if (!value)
-      return true
-
-    return CODE_REGEX.test(value) || say('isCode')
-  }
-
-  static isDateBetweenHours = (minHour = 0, maxHour = 24, include = true) => (date?: Date | null) => {
-    if (!date)
-      return true
-
-    const hour = date.getHours()
-
-    return (include ? (hour >= minHour && hour <= maxHour) : (hour > minHour && hour < maxHour))
-      || say('isDateBetweenHours', { minHour, maxHour, include })
-  }
-
-  static isInteger = (strict = false) => (value?: string | number | null): boolean | string => {
-    if (value === null || value === undefined)
-      return true
-
-    return (strict ? Number.isInteger(Number(value)) : Math.floor(Number(value)) === Number(value) * 1.0)
-      || say('isInteger')
-  }
-
-  static isNumber = (value?: string | number | null): boolean | string => {
-    if (value === null || value === undefined)
-      return true
-
-    return !Number.isNaN(Number(value)) || say('isNumber')
-  }
-
-  static isSlug = (value?: string | null): boolean | string => {
-    if (!value)
-      return true
-
-    return SLUG_REGEX.test(value) || say('isSlug')
-  }
-
-  static isWeekDay = (date?: Date | null) => {
-    if (!date)
-      return true
-
-    return (date.getDay() >= 1 && date.getDay() <= 5) || say('isWeekDay')
-  }
-
-  static lowercase = (value?: string | null): boolean | string => {
-    if (!value)
-      return true
-
-    return value.toLowerCase() === value || say('lowercase')
-  }
-
-  /** `secured` alone requires `https:`; options pick the accepted protocols. */
-  static isUrl = (str: string, secured: boolean | IsUrlOptions = false): true | string => {
-    try {
-      const url = new URL(str)
-
-      if (secured === true && url.protocol !== 'https:')
-        return say('isUrlSecured')
-
-      const protocols = (typeof secured === 'object' && secured.protocols) || DEFAULT_URL_PROTOCOLS
-
-      if (!protocols.includes(url.protocol))
-        return say('isUrlProtocol', { protocols })
-
-      return true
-    }
-    catch {
-      return say('isUrl')
-    }
-  }
-
-  static max = (nb: number, eq = true) => compareNumber(eq ? 'lte' : 'lt', nb)
-
-  static maxLength = (length: number) =>
-    (value?: string | readonly unknown[] | null) => {
-      if (!value)
-        return true
-
-      return ((value?.length || 0) <= length) || say('maxLength', { length })
-    }
-
-  static min = (nb: number, eq = true) => compareNumber(eq ? 'gte' : 'gt', nb)
-
-  static minLength = (length: number) =>
-    (value?: string | readonly unknown[] | null) => {
-      if (!value)
-        return true
-
-      return ((value?.length || 0) >= length) || say('minLength', { length })
-    }
-
-  static nonEmptyString = (value?: string | null): boolean | string => {
-    return !value ? say('required') : value.trim().length > 0 || say('required')
-  }
-
-  static nonZero = (value?: number | null): boolean | string => {
-    return typeof value === 'number' ? (value !== 0) || say('required') : Boolean(value) || say('required')
-  }
-
-  /** French numbers by default; `format` takes `E164` or a pattern of your own. */
-  static phone = (value?: string | number | null, format: PhoneFormat = 'FR'): boolean | string => {
-    if (!value)
-      return true
-
-    const text = value.toString()
-    const valid = format === 'E164'
-      ? PHONE_FORMATS.E164.test(text.replace(PHONE_SEPARATORS_REGEX, ''))
-      : (typeof format === 'string' ? PHONE_FORMATS[format] : format).test(text)
-
-    return valid || say('phone')
-  }
-
-  static required = (value?: unknown): boolean | string => {
-    if (value === undefined || value === null)
-      return say('required')
-
-    if (typeof value === 'number')
-      return true
-
-    if (Array.isArray(value))
-      return value.length > 0 || say('required')
-
-    if (typeof value === 'string')
-      return value.trim().length > 0 || say('required')
-
-    return typeof value === 'object' ? Object.keys(value).length > 0 || say('required') : Boolean(value) || say('required')
-  }
-
-  static isAfterDay = (date: Date, include = true) => (value?: Date | null) => {
-    if (!value)
-      return true
-
-    const normalizedDate = new Date(date)
-
-    normalizedDate.setHours(0, 0, 0, 0)
-
-    const comparison = include
-      ? value >= normalizedDate
-      : value > normalizedDate
-
-    return comparison || say('isAfterDay', { date: normalizedDate, include })
-  }
-
-  static isAfterToday = (include = true) => (value?: Date | null) => {
-    if (!value)
-      return true
-
-    const today = new Date()
-
-    today.setHours(0, 0, 0, 0)
-
-    const comparison = include
-      ? value >= today
-      : value > today
-
-    return comparison || say('isAfterToday', { include })
-  }
-
-  static isBetweenDays = (minDate: Date, maxDate: Date, include = true) => (value?: Date | null) => {
-    if (!value)
-      return true
-
-    const normalizedMinDate = new Date(minDate)
-
-    normalizedMinDate.setHours(0, 0, 0, 0)
-
-    const normalizedMaxDate = new Date(maxDate)
-
-    normalizedMaxDate.setHours(0, 0, 0, 0)
-
-    const comparison = include
-      ? value >= normalizedMinDate && value <= normalizedMaxDate
-      : value > normalizedMinDate && value < normalizedMaxDate
-
-    return comparison || say('isBetweenDays', { minDate: normalizedMinDate, maxDate: normalizedMaxDate, include })
-  }
+  static withMessage = withRuleMessage
+  static email = defaultRules.email
+  static isCode = defaultRules.isCode
+  static isDateBetweenHours = defaultRules.isDateBetweenHours
+  static isInteger = defaultRules.isInteger
+  static isNumber = defaultRules.isNumber
+  static isSlug = defaultRules.isSlug
+  static isWeekDay = defaultRules.isWeekDay
+  static lowercase = defaultRules.lowercase
+  static isUrl = defaultRules.isUrl
+  static max = defaultRules.max
+  static maxLength = defaultRules.maxLength
+  static min = defaultRules.min
+  static minLength = defaultRules.minLength
+  static nonEmptyString = defaultRules.nonEmptyString
+  static nonZero = defaultRules.nonZero
+  static phone = defaultRules.phone
+  static required = defaultRules.required
+  static isAfterDay = defaultRules.isAfterDay
+  static isAfterToday = defaultRules.isAfterToday
+  static isBetweenDays = defaultRules.isBetweenDays
 }

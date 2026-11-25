@@ -1,5 +1,5 @@
+import { base64Encode } from './encoding'
 import { utf8Encoder } from './internal'
-import { base64Encode } from './text'
 
 const NANOID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 
