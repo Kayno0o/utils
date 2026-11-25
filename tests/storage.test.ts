@@ -110,6 +110,18 @@ describe('storage that fails', () => {
     expect(json.getOrSet('k', () => 5)).toBe(5)
   })
 
+  it('a JsonStorage over no storage answers every method with its fallback', () => {
+    const json = new JsonStorage(undefined)
+
+    expect(json.get('k', 0)).toBe(0)
+    expect(json.set('k', 1)).toBe(false)
+    expect(json.remove('k')).toBe(false)
+    expect(json.has('k')).toBe(false)
+    expect(json.update('k', (n: number) => n + 1, 0)).toBe(false)
+    expect(json.consume('k')).toBeNull()
+    expect(json.getOrSet('k', () => 5)).toBe(5)
+  })
+
   it('the default storage is resolved at call time and missing under SSR', () => {
     delete (globalThis as { localStorage?: Storage }).localStorage
 

@@ -34,13 +34,13 @@ export function removeStorage(key: string, storage?: Storage): boolean {
   }
 }
 
-/** JSON-serializing wrapper bound to a single `Storage` (e.g. `localStorage`, `sessionStorage`); no method throws. */
+/** JSON-serializing wrapper bound to a single `Storage` (e.g. `localStorage`, `sessionStorage`), or to none under SSR; no method throws. */
 export class JsonStorage {
-  constructor(private readonly storage: Storage) {}
+  constructor(private readonly storage: Storage | undefined) {}
 
   get<T>(key: string, fallback: T): T {
     try {
-      const raw = this.storage.getItem(key)
+      const raw = this.storage?.getItem(key) ?? null
 
       return raw === null ? fallback : JSON.parse(raw) as T
     }
@@ -51,6 +51,9 @@ export class JsonStorage {
 
   /** Stores the value; returns `false` if the write fails (e.g. quota exceeded, private mode). */
   set<T>(key: string, value: T): boolean {
+    if (!this.storage)
+      return false
+
     try {
       this.storage.setItem(key, JSON.stringify(value))
 
@@ -63,6 +66,9 @@ export class JsonStorage {
 
   /** Removes the value; returns `false` if storage is unavailable. */
   remove(key: string): boolean {
+    if (!this.storage)
+      return false
+
     try {
       this.storage.removeItem(key)
 
@@ -76,7 +82,7 @@ export class JsonStorage {
   /** Whether `key` holds a value; `false` if storage is unavailable. */
   has(key: string): boolean {
     try {
-      return this.storage.getItem(key) !== null
+      return this.storage !== undefined && this.storage.getItem(key) !== null
     }
     catch {
       return false
@@ -86,7 +92,7 @@ export class JsonStorage {
   /** Reads the value; if absent or unparseable, computes it via `factory`, stores it, and returns it. */
   getOrSet<T>(key: string, factory: () => T): T {
     try {
-      const raw = this.storage.getItem(key)
+      const raw = this.storage?.getItem(key) ?? null
 
       if (raw !== null)
         return JSON.parse(raw) as T
@@ -126,7 +132,7 @@ function lazyJsonStorage(resolveStorage: () => Storage | undefined): JsonStorage
     const storage = resolveStorage()
 
     if (!storage)
-      return new JsonStorage(storage as unknown as Storage) // every method catches the missing storage
+      return new JsonStorage(undefined)
 
     return instance = new JsonStorage(storage)
   }
