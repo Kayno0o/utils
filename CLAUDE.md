@@ -51,14 +51,15 @@ This is a TypeScript utility library (`@kaynooo/utils`) that provides a collecti
 - **Tools** (`src/tools/`) - Specialized utilities:
   - `ColorConverter.ts` - Color format conversion utilities
   - `Faker.ts` - Data generation utilities
-  - `QrCode.ts` - SVG QR code generator
+  - `QrCode.ts` - SVG QR code generator (subpath `@kaynooo/utils/qr`, optional peer `uqr`)
   - `UnitConverter.ts` - Unit conversion utilities
-  - `ansi.ts` - ANSI terminal styling (also re-exported from `tools/colors.ts`)
+  - `ansi.ts` - ANSI terminal styling
   - `iconify.ts` - Iconify SVG rendering
 - **Decorators** (`src/decorators/`) - Function decorators like memoization
 - **Cache** (`src/cache.ts`) - the single caching core. `createTtlCache({ ttl, maxEntries, lru })`
   (TTL store, FIFO or LRU eviction, `getOrLoad` in-flight dedup) and `memoize` (fn wrapper).
   Backs the `@Memoize` decorator - don't add another cache.
+- **Runtime-specific subpaths** (excluded from root `src/index.ts`) - `src/browser/` (DOM), `src/cli.ts` (`Bun.spawn` + `node:fs`), `src/password.ts` (`Bun.password`), `src/security.ts` (`node:fs` + `node:path`)
 - **Text submodules** - `src/encoding.ts`, `src/mask.ts`, `src/search.ts`, `src/spans.ts` (all also re-exported from `src/text.ts`)
 - **Domain-specific utilities** - Colors, crypto, date, fetch, image, rule, text, validation, etc.
 

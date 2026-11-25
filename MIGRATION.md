@@ -1,5 +1,23 @@
 # Migrating
 
+## 4.0.0
+
+### Zero-dependency root & moved subpaths
+
+`@kaynooo/utils` no longer ships any runtime dependencies (`uqr` is now an optional peer dependency alongside `turndown`), and runtime-specific or optional-peer modules live on their own subpaths:
+
+| Before | After |
+| --- | --- |
+| `import { qrCodeSvg, qrCodeDataUri } from '@kaynooo/utils'` or `'@kaynooo/utils/tools'` | `import { qrCodeSvg, qrCodeDataUri } from '@kaynooo/utils/qr'` (install `uqr` as a dependency) |
+| `import { htmlToMarkdown } from '@kaynooo/utils/browser'` or `'@kaynooo/utils/browser/clipboard'` | `import { htmlToMarkdown } from '@kaynooo/utils/browser/markdown'` (install `turndown` + `@joplin/turndown-plugin-gfm`) |
+| `import { fetchJson, createFetcher, FetchError, readNdjson, ... } from '@kaynooo/utils/browser'` or `'@kaynooo/utils/browser/fetch'` | `import { ... } from '@kaynooo/utils'` or `'@kaynooo/utils/fetch'` |
+| `import { colors, createColors } from '@kaynooo/utils/tools/colors'` | `import { colors, createColors } from '@kaynooo/utils/tools/ansi'` (or `'@kaynooo/utils/tools'` / `'@kaynooo/utils'`) |
+| `import { hashPassword, comparePasswords, passwordNeedsRehash, PASSWORD_HASH_PARAMS } from '@kaynooo/utils'` or `'@kaynooo/utils/crypto'` | `import { ... } from '@kaynooo/utils/password'` (Bun-only) |
+
+### Locked internal exports
+
+`@kaynooo/utils/internal`, `@kaynooo/utils/intlCache`, and internal `chunk-*` files are now blocked in `package.json` `exports`.
+
 ## 3.0.0
 
 ### Removed aliases

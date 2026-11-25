@@ -1,7 +1,7 @@
 import type { OllamaMeta } from '../src/ollama'
 import type { OllamaStreamDelta } from '../src/ollamaStream'
 import { afterEach, describe, expect, it } from 'bun:test'
-import { FetchError } from '../src/browser/fetch'
+import { FetchError } from '../src/fetch'
 import { readOllamaJsonStream, streamOllamaJson } from '../src/ollamaStream'
 
 // Each test swaps fetch for a mock; the real one comes back so the next file, run in the same process, gets it.

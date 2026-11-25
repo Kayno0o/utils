@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import { colors, createColors } from '../src/tools/colors'
+import { colors, createColors } from '../src/tools/ansi'
 
 const COLOR_ENV = ['FORCE_COLOR', 'NO_COLOR', 'NODE_DISABLE_COLORS', 'TERM'] as const
 const saved = Object.fromEntries(COLOR_ENV.map(key => [key, process.env[key]]))
@@ -91,7 +91,7 @@ describe('colors', () => {
 })
 
 describe('colors through a pipe', () => {
-  const script = `import { colors } from '${import.meta.dir}/../src/tools/colors'; console.log(colors.red('x'))`
+  const script = `import { colors } from '${import.meta.dir}/../src/tools/ansi'; console.log(colors.red('x'))`
 
   async function run(env: Record<string, string>) {
     const proc = Bun.spawn([process.execPath, '-e', script], { env: { PATH: process.env.PATH ?? '', ...env }, stdout: 'pipe' })

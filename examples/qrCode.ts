@@ -1,6 +1,6 @@
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import { qrCodeSvg } from '../src/tools'
+import { qrCodeSvg } from '../src/tools/QrCode'
 
 const outDir = join(import.meta.dir, 'output', 'qrcodes')
 

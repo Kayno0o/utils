@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { readNdjson } from '../src/browser/fetch'
+import { readNdjson } from '../src/fetch'
 
 function trackedStream(chunks: string[]): { body: ReadableStream<Uint8Array<ArrayBuffer>>, cancelled: () => boolean } {
   const encoder = new TextEncoder()

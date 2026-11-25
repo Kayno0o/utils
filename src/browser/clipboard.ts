@@ -1,6 +1,3 @@
-// Kept apart, so a bundle copying text carries no HTML to Markdown converter.
-export { htmlToMarkdown } from './markdown'
-
 /** Copies `text`, with an `html` version alongside for apps that paste rich text, such as documents and mail. */
 export async function copyToClipboard(text: string, options: { html?: string } = {}) {
   const formats: Record<string, Blob> = { 'text/plain': new Blob([text], { type: 'text/plain' }) }

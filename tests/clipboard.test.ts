@@ -2,7 +2,8 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'bun:test'
-import { copyToClipboard, htmlToMarkdown } from '../src/browser/clipboard'
+import { copyToClipboard } from '../src/browser/clipboard'
+import { htmlToMarkdown } from '../src/browser/markdown'
 
 const globals = globalThis as Record<string, unknown>
 const original = { navigator: globals.navigator, ClipboardItem: globals.ClipboardItem }

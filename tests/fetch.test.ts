@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import { createFetcher, FetchError, fetchJson, FetchParseError, mergeHeaders } from '../src/browser/fetch'
-import { combineSignals, fetchWithTimeout } from '../src/fetch'
+import { combineSignals, createFetcher, FetchError, fetchJson, FetchParseError, fetchWithTimeout, mergeHeaders } from '../src/fetch'
 import { tryCatch } from '../src/function'
 
 // Each test swaps fetch for a mock; the real one comes back so the next file, run in the same process, gets it.

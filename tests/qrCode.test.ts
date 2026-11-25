@@ -1,7 +1,7 @@
 import { Resvg } from '@resvg/resvg-js'
 import { describe, expect, test as it } from 'bun:test'
 import { decodeQR } from 'qr/decode.js'
-import { qrCodeDataUri, qrCodeSvg } from '../src/tools'
+import { qrCodeDataUri, qrCodeSvg } from '../src/tools/QrCode'
 
 describe('qrCodeSvg', () => {
   it('produces a valid svg with a viewBox and default quiet zone', () => {

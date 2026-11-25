@@ -1,5 +1,6 @@
 import { describe, expect, test as it, spyOn } from 'bun:test'
-import { comparePasswords, digest, digestHex, hashPassword, hashString, hmac, nanoid, PASSWORD_HASH_PARAMS, passwordNeedsRehash } from '../src'
+import { digest, digestHex, hashString, hmac, nanoid } from '../src'
+import { comparePasswords, hashPassword, PASSWORD_HASH_PARAMS, passwordNeedsRehash } from '../src/password'
 
 describe('nanoid', () => {
   it('returns default length of 21', () => {

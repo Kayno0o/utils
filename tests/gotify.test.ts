@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import { FetchError } from '../src/browser/fetch'
+import { FetchError } from '../src/fetch'
 import { sendGotify } from '../src/gotify'
 
 // Each test swaps fetch for a mock; the real one comes back so the next file, run in the same process, gets it.
