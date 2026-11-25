@@ -1,4 +1,4 @@
-name: Publish to Forgejo Package Registry
+name: Publish
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
       - name: Install project deps
         run: bun install --frozen-lockfile
 
-      # Builds, publishes to Forgejo, and stages the same version on npmjs, where @kaynooo/cli-kit's users resolve it; it goes live once approved with `npm stage approve`. A version already on Forgejo is skipped, so a rerun publishes the rest.
+      # Builds, publishes to Forgejo, and stages the same version on npmjs, where everyone but the owner installs it; it goes live once approved with `npm stage approve`. A version already on Forgejo is skipped, so a rerun publishes the rest.
       - uses: https://git.kaynooo.fr/kaynooo/actions/npm-publish@v1
         with:
           token: ${{ secrets.PACKAGE_TOKEN }}

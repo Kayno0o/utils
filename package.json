@@ -13,9 +13,6 @@
   "bugs": {
     "url": "https://git.kaynooo.fr/kaynooo/utils/issues"
   },
-  "publishConfig": {
-    "registry": "https://git.kaynooo.fr/api/packages/kaynooo/npm/"
-  },
   "keywords": [
     "utils",
     "typescript",
