@@ -314,6 +314,11 @@ export type Result<T, E = Error> = [error: undefined, value: T] | [error: E, val
 
 const toError = (error: unknown): Error => error instanceof Error ? error : new Error(String(error))
 
+/** The message of a caught `Error`, or anything else thrown as a string. */
+export function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 /** Run `func`, returning a `[error, value]` tuple instead of throwing. Awaits and catches promises too. */
 export function tryCatch<T>(func: () => Promise<T>): Promise<Result<T>>
 export function tryCatch<T>(func: () => T): Result<T>

@@ -1,5 +1,5 @@
 import { describe, expect, test as it, jest } from 'bun:test'
-import { coalesce, compose, createMutex, createRateLimiter, curry, debounce, identity, negate, noop, partial, pipe, tap, throttle, tryCatch } from '../src'
+import { coalesce, compose, createMutex, createRateLimiter, curry, debounce, errorMessage, identity, negate, noop, partial, pipe, tap, throttle, tryCatch } from '../src'
 
 describe('identity / noop', () => {
   it('identity returns its argument', () => {
@@ -405,5 +405,17 @@ describe('coalesce options', () => {
     }
 
     expect(runs).toBeGreaterThanOrEqual(1)
+  })
+})
+
+describe('errorMessage', () => {
+  it('reads the message of an Error', () => {
+    expect(errorMessage(new TypeError('bad input'))).toBe('bad input')
+  })
+
+  it('stringifies anything thrown that is not an Error', () => {
+    expect(errorMessage('timeout')).toBe('timeout')
+    expect(errorMessage(42)).toBe('42')
+    expect(errorMessage(undefined)).toBe('undefined')
   })
 })

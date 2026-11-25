@@ -41,6 +41,16 @@ export function normalizeAccents(str: string): string {
   return ASCII_ONLY.test(str) ? str : str.normalize('NFD').replace(COMBINING_MARKS_REGEX, '')
 }
 
+/** Lowercased with accents stripped, so `Élodie` and `elodie` compare equal in a search. */
+export function foldText(str: string): string {
+  return normalizeAccents(str.toLowerCase())
+}
+
+/** Every run of whitespace turned into one space, the ends trimmed. */
+export function collapseWhitespace(str: string): string {
+  return str.replace(WHITESPACE_GLOBAL_REGEX, ' ').trim()
+}
+
 export function escapeRegExp(str: string) {
   return str.replace(REGEX_SPECIALS_REGEX, '\\$&')
 }
@@ -326,6 +336,19 @@ function asBytes(input: string | BufferSource): Uint8Array {
   return ArrayBuffer.isView(input) ? new Uint8Array(input.buffer, input.byteOffset, input.byteLength) : new Uint8Array(input)
 }
 
+/** The parts joined in order into one array. */
+export function concatBytes(parts: readonly Uint8Array[]): Uint8Array<ArrayBuffer> {
+  const result = new Uint8Array(parts.reduce((length, part) => length + part.length, 0))
+  let offset = 0
+
+  for (const part of parts) {
+    result.set(part, offset)
+    offset += part.length
+  }
+
+  return result
+}
+
 /** Base64 of text's UTF-8 bytes, so any character encodes where `btoa` throws past Latin-1, or of bytes as they are; `url` gives the url-safe alphabet without padding. */
 export function base64Encode(input: string | BufferSource, url = false): string {
   const bytes = asBytes(input)
@@ -577,8 +600,6 @@ export function splitWords(str: string | string[]): string[] {
   const normalized = str
     .replace(SEPARATORS_REGEX, ' ') // snake_case / kebab-case -> space
     .replace(CAMEL_BOUNDARY_REGEX, '$1 $2') // camelCase -> camel Case
-    .replace(WHITESPACE_GLOBAL_REGEX, ' ') // collapse multiple spaces
-    .trim()
 
   const words = normalized.match(WORDS_REGEX)
 

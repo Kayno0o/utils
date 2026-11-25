@@ -1,5 +1,5 @@
 import { describe, expect, test as it } from 'bun:test'
-import { base64Decode, base64DecodeBytes, base64Encode, closestMatch, commonPrefix, commonPrefixLength, counted, cryptoRandom, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, getInitials, getUUIDFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, randomString, removeComments, renderProgressBar, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, splitList, splitWords, toCamel, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
+import { base64Decode, base64DecodeBytes, base64Encode, closestMatch, collapseWhitespace, commonPrefix, commonPrefixLength, concatBytes, counted, cryptoRandom, editDistance, escapeCSV, escapeHtml, escapeRegExp, escapeXml, expandUUID, foldText, getInitials, getUUIDFromIri, mask, maskEnv, minifyUUID, normalizeAccents, plural, randomString, removeComments, renderProgressBar, repairMojibake, searchAll, searchFuzzy, searchOne, slugify, splitList, splitWords, toCamel, toConstant, toKebab, toPascal, toSnake, toTitle, truncate, uniqueName } from '../src'
 
 describe('randomString function', () => {
   it('should generate a random string of specified length', () => {
@@ -1278,5 +1278,27 @@ describe('truncate', () => {
     expect(truncate('hello world again', 11, { wordBoundary: true })).toBe('hello world...')
     expect(truncate('supercalifragilistic', 5, { wordBoundary: true })).toBe('super...')
     expect(truncate('hello wonderful world', 12, { wordBoundary: true, includeSuffix: true, suffix: '…' })).toBe('hello…')
+  })
+})
+
+describe('foldText', () => {
+  it('lowercases and strips accents, for search', () => {
+    expect(foldText('Élodie ÇA')).toBe('elodie ca')
+  })
+})
+
+describe('collapseWhitespace', () => {
+  it('turns every run of whitespace into one space and trims the ends', () => {
+    expect(collapseWhitespace('  a \t b\n\nc  ')).toBe('a b c')
+  })
+})
+
+describe('concatBytes', () => {
+  it('joins the parts in order into one array', () => {
+    expect(concatBytes([new Uint8Array([1, 2]), new Uint8Array([]), new Uint8Array([3])])).toEqual(new Uint8Array([1, 2, 3]))
+  })
+
+  it('returns an empty array for no parts', () => {
+    expect(concatBytes([])).toEqual(new Uint8Array([]))
   })
 })

@@ -31,6 +31,11 @@ export function buildUrlQuery(query?: object | null, { encode = true, arrayForma
   return pairs.length ? `?${pairs.join('&')}` : ''
 }
 
+/** `base` joined to `path` by one slash, whether `base` ends with one and `path` starts with one or not. */
+export function joinUrl(base: string, path: string): string {
+  return `${base.endsWith('/') ? base.slice(0, -1) : base}/${path.startsWith('/') ? path.slice(1) : path}`
+}
+
 export interface NestedQuery {
   [key: string]: string | NestedQuery
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { countBy, cryptoRandom, getRandomElement, groupBy, isEmpty, keyBy, mean, median, notNullish, partition, percentile, percentiles, range, splitIntoParts, sum, toArray, unique } from '../src'
+import { chunk, countBy, cryptoRandom, getRandomElement, groupBy, isEmpty, keyBy, mean, median, notNullish, partition, percentile, percentiles, range, splitIntoParts, sum, toArray, unique } from '../src'
 
 describe('groupBy function', () => {
   it('groups items and reads each key once', () => {
@@ -214,5 +214,21 @@ describe('isEmpty function', () => {
   it('is false for content, numbers, booleans and dates', () => {
     for (const value of ['a', [0], { a: 1 }, new Map([[1, 1]]), new Set([1]), 0, false, new Date()])
       expect(isEmpty(value)).toBe(false)
+  })
+})
+
+describe('chunk', () => {
+  it('cuts items into batches of the size, the last one shorter', () => {
+    expect(chunk([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]])
+    expect(chunk([1, 2, 3, 4], 2)).toEqual([[1, 2], [3, 4]])
+  })
+
+  it('returns no batch for no items', () => {
+    expect(chunk([], 3)).toEqual([])
+  })
+
+  it('throws for a size below one', () => {
+    expect(() => chunk([1], 0)).toThrow('Size must be greater than 0')
+    expect(chunk([1, 2], 1)).toEqual([[1], [2]])
   })
 })

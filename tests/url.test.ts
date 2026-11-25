@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { buildUrlQuery, queryToNestedObject } from '../src'
+import { buildUrlQuery, joinUrl, queryToNestedObject } from '../src'
 
 describe('buildUrlQuery function', () => {
   it('should return an empty string when query is undefined', () => {
@@ -106,5 +106,17 @@ describe('queryToNestedObject function', () => {
     const result = queryToNestedObject(query)
 
     expect(result).toEqual({ key1: { key2: 'value' } })
+  })
+})
+
+describe('joinUrl', () => {
+  it('joins a base with or without its trailing slash to a path', () => {
+    expect(joinUrl('https://api.example.com', '/users')).toBe('https://api.example.com/users')
+    expect(joinUrl('https://api.example.com/', '/users')).toBe('https://api.example.com/users')
+  })
+
+  it('adds the slash a path without one lacks', () => {
+    expect(joinUrl('https://api.example.com/v1', 'users')).toBe('https://api.example.com/v1/users')
+    expect(joinUrl('https://api.example.com/v1/', 'users')).toBe('https://api.example.com/v1/users')
   })
 })
