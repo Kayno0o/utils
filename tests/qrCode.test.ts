@@ -1,6 +1,6 @@
-import decodeQR from '@paulmillr/qr/decode.js'
 import { Resvg } from '@resvg/resvg-js'
 import { describe, expect, test as it } from 'bun:test'
+import { decodeQR } from 'qr/decode.js'
 import { qrCodeDataUri, qrCodeSvg } from '../src/tools'
 
 describe('qrCodeSvg', () => {
