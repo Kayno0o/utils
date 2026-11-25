@@ -31,6 +31,8 @@ export interface FormatDurationOptions {
   units?: DurationUnit[]
   /** What each unit is written as, for a locale that does not read them in English: `{ d: { short: 'j', one: 'jour', other: 'jours' } }`. Relabelled output no longer round-trips through `parseDuration`. */
   labels?: Partial<Record<DurationUnit, DurationLabel>>
+  /** Round up to the smallest of `units` rather than down, so a countdown with 30 s left reads `1m`, not `0m`. */
+  roundUp?: boolean
 }
 
 function writeDuration(count: number, label: Required<DurationLabel>, override: DurationLabel | undefined, long: boolean): string {
@@ -42,10 +44,11 @@ function writeDuration(count: number, label: Required<DurationLabel>, override: 
 const DEFAULT_DURATION_UNITS: DurationUnit[] = ['d', 'h', 'm', 's']
 
 /** A duration in milliseconds as text such as `1d 7h 30m` (negative ones keep their sign); in short mode with the default labels, `parseDuration` reads it back. */
-export function formatDuration(ms: number, { long = false, maxUnits = Infinity, units = DEFAULT_DURATION_UNITS, labels }: FormatDurationOptions = {}): string {
+export function formatDuration(ms: number, { long = false, maxUnits = Infinity, units = DEFAULT_DURATION_UNITS, labels, roundUp = false }: FormatDurationOptions = {}): string {
   const selected = DURATION_UNITS.filter(({ unit }) => units.includes(unit))
+  const smallest = selected.at(-1) ?? DURATION_UNITS.at(-1)!
 
-  let remaining = Math.floor(Math.abs(ms))
+  let remaining = roundUp ? Math.ceil(Math.abs(ms) / smallest.ms) * smallest.ms : Math.floor(Math.abs(ms))
   const parts: string[] = []
 
   for (const { unit, ms: unitMs, label } of selected) {
@@ -60,11 +63,8 @@ export function formatDuration(ms: number, { long = false, maxUnits = Infinity, 
       break
   }
 
-  if (parts.length === 0) {
-    const smallest = selected.at(-1) ?? DURATION_UNITS.at(-1)!
-
+  if (parts.length === 0)
     return writeDuration(0, smallest.label, labels?.[smallest.unit], long)
-  }
 
   return (ms < 0 ? '-' : '') + parts.join(long ? ', ' : ' ')
 }

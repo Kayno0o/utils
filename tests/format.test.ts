@@ -38,6 +38,14 @@ describe('formatDuration', () => {
     expect(formatDuration(30_000, { units: ['h', 'm'] })).toBe('0m')
   })
 
+  it('rounds up to the smallest unit when asked, so a countdown never reads 0 before it ends', () => {
+    expect(formatDuration(30_000, { units: ['h', 'm'], roundUp: true })).toBe('1m')
+    expect(formatDuration(3_570_000, { units: ['h', 'm'], roundUp: true })).toBe('1h')
+    expect(formatDuration(-90_000, { units: ['m'], roundUp: true })).toBe('-2m')
+    expect(formatDuration(0, { units: ['m'], roundUp: true })).toBe('0m')
+    expect(formatDuration(1200, { roundUp: true })).toBe('2s')
+  })
+
   it('relabels units in both registers', () => {
     const labels = { d: { short: 'j', one: 'jour', other: 'jours' }, h: { one: 'heure', other: 'heures' } }
 
